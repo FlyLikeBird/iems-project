@@ -1,0 +1,267 @@
+.container {
+    width:100%;
+    height:100%;
+    position:relative;
+    overflow: hidden;
+    background-color:#fff;
+    animation:shadowMotion 1s forwards;
+    animation-delay: 1s;
+    border-radius:6px;
+}
+
+.content-container {
+    width:100%;
+    height:100%;
+}
+
+.item-container {
+    width:100%;
+    height:100%;
+}
+
+.item {
+    width:100%;
+    height:100%;
+    position:absolute;
+    top:0;
+    left:0;
+    overflow:hidden;
+    z-index:1;
+    background-color:rgb(247, 247, 247);
+}
+
+.item>div {
+    width:100%;
+    height:100%;
+}
+
+.item :global(.img-container) img{
+    width:100%;
+    height:100%;
+}
+
+.button {
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    background-color:rgba(0,0,0,0.2);
+    color:#fff;
+    z-index:100;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 50%;
+    text-align: center;
+    cursor: pointer;
+    transition:all 0.3s;
+}
+
+.button:hover {
+    background-color:rgba(0,0,0,0.4);
+}
+
+.button.left {
+    left:20px;
+}
+
+.button.right {
+    right:20px;
+}
+
+.dot-container {
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:20px;
+    display:flex;
+    z-index:100;
+}
+
+.dot-container .dot {
+    width:10px;
+    height:10px;
+    border-radius: 50%;
+    background-color:#ccc;
+    margin:0 4px;
+}
+
+.dot-container .dot.current {
+    background-color:#1890ff;
+}
+
+.action-container {
+    position:absolute;
+    right:10px;
+    bottom:10px;
+    z-index:80;
+}
+
+.action-container>span {
+    width: 30px;
+    height: 30px;
+    background-color:rgba(0,0,0,0.2);
+    display: inline-block;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 30px;
+    color: #fff;
+    cursor: pointer;
+    transition:all 0.5s;
+    margin:0 4px;
+    
+}
+
+.action-container>span:hover {
+    background-color:rgba(0,0,0,0.4);
+
+}
+
+/*  容器内 标签 和 信息框 样式 */
+.container :global(.info-container) {
+    position:absolute;
+    width:20%;
+    height:6rem;
+    left:0;
+    bottom:10%;
+    
+    color:#fff;
+    background-color: rgba(24, 144, 255, .5);
+    border: 1px solid #1890ff;
+    font-size: 1.2rem;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.container :global(.info-container-2){
+    position:absolute;
+    width:20%;
+    height:6rem;
+    left:0;
+    color:#fff;
+    font-size: 1.2rem;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left:20px
+}
+
+.container :global(.info-container-2):nth-child(2){
+    background-color:rgb(45, 72, 97, 0.8);
+    bottom:13.5rem;
+}
+
+.container :global(.info-container-2):nth-child(3){
+    background-color:rgb(101, 202, 227, 0.8);
+    bottom:7rem;
+}
+
+.container :global(.info-container-2):nth-child(4){
+    background-color:rgba(87, 226, 159, 0.8);
+    bottom:0.5rem;
+}
+
+.container :global(.info-container) :global(.text), .container :global(.info-container-2) :global(.text) {
+    font-size:2rem;
+}
+
+/* 承载图片的容器，宽高和图片一致 */
+.content-container :global(.img-container){
+    position:relative;
+}
+
+/* 拟态图标签样式  */
+.content-container :global(.tag-container){
+    position:absolute;
+    width:80px;
+    height:20px;
+    text-align:center;
+    cursor: pointer;
+}
+
+.content-container :global(.tag-container) :global(.tag){
+    color:#000;
+    border-radius:20px;
+    background-color: rgba(131, 202, 64, .7);
+    border: 1px solid #478c06;
+    font-weight:bold;
+}
+
+.content-container :global(.tag-container) :global(.sub-tag){
+    position:absolute;
+    background-color:rgba(0,0,0,0.5);
+    color:#fff;
+    border-radius:20px;
+    top:100%;
+    max-width: 180px;
+    width:180px;
+    padding: 2px 4px;
+    transform: scale(0.8);
+    transform-origin: left;
+}
+
+:global(.tooltip) {
+    width:400px;
+    max-width:400px;
+}
+
+:global(.tooltip) :global(.ant-tooltip-inner) {
+    padding:0;
+    background-color: rgba(255,255,255,0.8);
+}
+
+:global(.tooltip) :global(.ant-tooltip-arrow):before {
+    background-color:rgba(24, 144, 255, .8);
+}
+
+/* 拟态图定位标签样式 */
+.container :global(.point-container){
+    position:absolute;
+    font-size:30px;
+    color:#e94c3e;
+    transform-origin: bottom;
+}
+
+.container :global(.point-container):global(.motion){
+    animation: scaleMotion 3s infinite ;
+}
+
+/* 
+
+    能流图button样式
+*/
+.container :global(.flow-chart-button) :global(.ant-radio-button-wrapper) {
+    display:block;
+    width:32px;
+    height:auto;
+    text-align: center;
+}
+
+.spin {
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+}
+
+@keyframes scaleMotion{
+    0%{
+        transform:scale(0);
+    }
+    50%{
+        transform:scale(1.2); 
+    }
+    100%{
+        transform:scale(0);
+    }
+}
+
+@keyframes shadowMotion {
+    0% {
+        box-shadow:none;
+    }
+    100%{
+        box-shadow:0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08);
+    }
+}

@@ -1,0 +1,27 @@
+.container {
+    display:flex;
+    flex-direction: column;
+}
+
+.container .title {
+    padding:6px 20px;
+    background-color:rgba(24, 144, 255, .8);
+    color:#fff;
+    font-weight:600;
+}
+
+.item {
+    display:flex;
+    padding:10px 20px;
+    color:#1890ff;
+}
+
+.item>span {
+    flex:1;
+}
+
+.item .text {
+    /* color:#1890ff; */
+    color:#000;
+    font-weight:600;
+}

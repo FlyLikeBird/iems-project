@@ -1,0 +1,203 @@
+.container {
+    background-color:#fff;
+    padding:20px 40px;
+    height:100%
+    /* display:flex;
+    flex-direction: column; */
+}
+
+.top-container {
+    display:flex;
+    height:500px;
+}
+/* ----------拟态图样式 */
+.top-container .canvas-container {
+    width:70%;
+}
+
+/* --------成本费用信息样式 */
+.top-container .info-container {
+    width:30%;
+    display:flex;
+    flex-direction: column;
+    margin-left:20px;
+}
+
+.info-container :global(.ant-radio-group) :global(.ant-radio-button-wrapper):first-child {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+.info-container :global(.ant-radio-group) :global(.ant-radio-button-wrapper):last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.info-container .info-content {
+    flex:1;
+    display:flex;
+    flex-direction: column;
+    margin-top:20px;
+}
+
+.info-content .item-container {
+    flex:1;
+    display:flex;
+    text-align:center;
+    margin-bottom:10px;
+    /* box-shadow:0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08); */
+    /* 小范围投影 */
+    /* box-shadow:0 3px 6px -4px rgba(0,0,0,.05), 0 10px 10px 0 rgba(0,0,0,0.08); */
+}
+
+
+.info-content .item-container:last-child {
+    margin-bottom:0;
+}
+
+
+.info-content .item-container>div {
+    flex:1; 
+    background-color:#f7f7f7;
+    margin-right:10px;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.info-content .item-container>div:last-child {
+    margin-right:0;
+}
+
+.info-container .info-item .info {
+    font-size:20px;
+    color:#1890ff;
+    font-weight:bold;
+}
+
+
+.info-container .info-item .unit {
+    font-size:14px;
+    color:rgba(0, 0, 0, 0.65);
+    font-weight:normal;
+}
+
+.middle-container {
+    display:flex;
+    height:400px;
+    padding:40px 0;
+}
+
+.chart-container {
+    position:relative;
+}
+
+.chart-container .title {
+    font-size:18px;
+    font-weight:600;
+    height:30px;
+    color:rgba(0,0,0,0.8);
+}
+
+.chart-container .chart-button {
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:100;
+}
+
+.bottom-container{
+    display:flex;
+    height:400px;
+    margin:20px 0;
+}
+
+/* 卡片容器里的图表统一样式 */
+.top-container :global(.ant-card), .middle-container :global(.ant-card), .bottom-container :global(.ant-card) {
+    flex:1;
+    height:100%;
+    margin-right:20px;
+    position:relative;
+}
+
+.top-container :global(.ant-card):last-child, .middle-container :global(.ant-card):last-child, .bottom-container :global(.ant-card):last-child {
+    margin-right:0;
+}
+
+.top-container :global(.ant-card) :global(.title), .middle-container :global(.ant-card) :global(.title), .bottom-container :global(.ant-card) :global(.title) {
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-container :global(.ant-card) :global(.unit), .middle-container :global(.ant-card) :global(.unit), .bottom-container :global(.ant-card) :global(.unit) {
+    display: inline-block;
+    transform: scale(0.7);
+    transform-origin: 20% 50%;
+}
+
+.top-container :global(.ant-card) :global(.action-container), .middle-container :global(.ant-card) :global(.action-container), .bottom-container :global(.ant-card) :global(.action-container) {
+    position:absolute;
+    bottom:20px;
+    width:400px;
+    text-align:center;
+}
+
+.container .fixed-button {
+    position:fixed;
+    right:20px;
+    bottom:40px;
+}
+
+.fixed-button :global(.ant-radio-group){
+    display:flex;
+    flex-direction: column;
+    margin-bottom:20px;
+}
+
+.fixed-button :global(.ant-radio-group) :global(.ant-radio-button-wrapper){
+    width:40px;
+    text-align: center;
+    height:100%;
+    padding:8px;
+}
+
+.flex-container {
+    display:flex;
+}
+
+.flex-container .item {
+    flex:1;
+    display:flex;
+    margin-right:20px;
+    border-right:1px solid #d4d4d4;
+}
+
+.flex-container .item:last-child {
+    margin-right:0;
+    border:none;
+}
+
+
+.flex-container .item>div {
+    flex:1;
+}
+
+.flex-container .item .num {
+    font-size: 1.6rem;
+    color: #000;
+    font-weight: bold;
+}
+
+.container .small-menu-card :global(.ant-card-head-title) {
+    padding:0;
+    line-height:48px;
+}
+
+.skeleton {
+    height:180px;
+    background-color:#fff;
+    border-radius:6px;
+    padding:20px;
+    margin-bottom:20px;
+}

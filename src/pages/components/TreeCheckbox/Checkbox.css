@@ -1,0 +1,28 @@
+.container {
+    min-height:400px;
+    margin-bottom:20px;
+}
+
+.item {
+    /* border-bottom: 1px solid #e9e9e9; */
+    margin-bottom: 30px;
+}
+
+.sum-button {
+    background-color:#f7f7f7;
+    padding:10px;
+    margin-bottom:10px;
+}
+
+.sum-button span {
+    font-size:16px;
+    color:#000;
+}
+
+.item :global(.ant-checkbox-group){
+    padding-left:10px;
+}
+
+.item:last-child {
+    border-bottom:none;
+}

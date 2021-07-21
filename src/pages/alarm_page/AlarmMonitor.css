@@ -1,0 +1,349 @@
+.container {
+    height:calc(100% - 50px);
+    position:relative;
+    overflow: hidden;
+}
+
+.screen-container {
+    height:100%;
+}
+
+.operation-container {
+    width:100%;
+    height:150px;
+    padding:10px 20px;
+    margin-bottom:10px;
+    border-radius: 6px;
+    background-color:#fff;
+
+}
+
+.content-container {
+    height:calc( 100% - 160px);
+}
+
+.screen-container .top-container {
+    height:60%;
+    padding-bottom:10px;
+}
+
+.screen-container .bottom-container {
+    height:40%;
+    padding-bottom:10px;
+}
+
+@media ( max-width:1440px ){
+    .container {
+        height:calc(100% - 34px);
+    }
+    .operation-container {
+        margin-bottom:4px;
+    }
+
+    .screen-container .top-container {
+        padding-bottom:4px;
+    }
+    
+    .screen-container .bottom-container {
+        padding-bottom:4px;
+    }
+}
+/* 图表容器样式 */
+.container .chart-container {
+    position:relative;
+    height:100%;
+    display:inline-block;
+    background-color:#f1f1f1;
+    vertical-align: top;
+    padding-right:10px;
+}
+
+.container .chart-container:last-child {
+    padding-right:0;
+}
+
+.chart-container .chart {
+    height:100%;
+    background-color:#fff;
+    animation:shadowMotion 0.3s forwards;
+    animation-delay: 0.5s;
+    border-radius:6px;
+}
+
+.chart-container .chart .title {
+    height:20px;
+    padding:10px 20px;
+}
+
+.chart-container .chart .content {
+    height:calc(100% - 20px);
+}
+
+@media ( max-width:1440px ){
+    .container .chart-container {
+        padding-right:4px;
+    }
+}
+
+.item-container {
+    height:33.3%;
+    padding-bottom:10px;
+    /* box-shadow:0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08); */
+    /* 小范围投影 */
+    /* box-shadow:0 3px 6px -4px rgba(0,0,0,.05), 0 10px 10px 0 rgba(0,0,0,0.08); */
+}
+
+.item-container:last-child {
+    padding-bottom:0;
+}
+
+.item-container .item-wrapper {
+    width:50%;
+    height:100%;
+    display:inline-block;
+    vertical-align: top;
+    padding-right:10px;
+}
+
+.item-container .item-wrapper:last-child {
+    padding-right:0;
+}
+
+.item-container .item-wrapper .item {
+    height:100%;
+    border-radius: 6px;
+    /* animation:shadowMotion 0.3s forwards;
+    animation-delay: 0.5s; */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    white-space: nowrap;
+    font-size:1rem;
+}
+
+.item-container .item .title {
+    text-decoration: underline;
+    font-size:1.2rem;
+    color:#313138;
+}
+
+.item-container .item .sub-item {
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    margin:10px 0;
+}
+
+.item-container .item .num {
+    font-size:1.8rem;
+    font-weight:bold;
+    margin-right:20px;
+    color:#313138;
+    cursor: pointer;
+}
+
+.item-container .item .sub-num {
+    font-weight:bold;
+    color:#313138;
+}
+
+@media ( max-width:1440px){
+    .item-container {
+        padding-bottom:4px;
+    }
+    .item-container .item-wrapper {
+        padding-right:4px;
+    }
+    .item-container .item .num {
+        /* margin-right:0; */
+    }
+}
+
+.chart-container .title {
+    font-size:18px;
+    font-weight:600;
+    height:30px;
+    color:rgba(0,0,0,0.8);
+}
+
+.chart-container .chart-button {
+    position:absolute;
+    top:0;
+    left:0;
+    z-index:100;
+}
+
+
+/* 报警详情页面样式 */
+.warning-container {
+    /* position:fixed; */
+    display:flex;
+    margin-top:10px;
+    transition: all 0.3s ease-out;
+    z-index:100;
+}
+
+.warning-container>div {
+    display:flex;
+    width:25%;
+    align-items: center;
+    padding:10px;
+    margin-right:10px;
+    color:#fff;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.warning-container>div:hover {
+    cursor: pointer;
+}
+
+.warning-container>div:last-child {
+    margin-right:0;
+}
+
+.warning-container>div .num {
+    font-size:1.6rem;
+    color:#fff;
+    font-weight:bold;
+}
+
+.warning-container>div .icon {
+    font-size:30px;
+    margin-right:20px;
+}
+
+.detail-container {
+    margin-right:10px;
+    border:1px solid #f0f0f0;
+    min-height:300px;
+}
+
+.detail-container:last-child {
+    margin-right:0;
+}
+
+/* 
+    报警详情页表格样式
+*/
+
+.container :global(.table-container):global(.space-color) :global(.ant-table) :global(.ant-table-tbody)>:nth-child(even) {
+    background-color: #f1f1f1;
+}
+
+.container :global(.table-container):global(.space-color) :global(.ant-table) :global(.ant-table-tbody) > tr:hover > td {
+    background-color:#45d5fd;
+}
+
+.container :global(.table-container):global(.space-color) :global(.ant-table) thead > tr > th{
+    padding:2px 4px;
+    border:none;
+    font-size:1rem;
+    white-space: nowrap;
+}
+
+.container :global(.table-container):global(.space-color) :global(.ant-table) tbody > tr > td{
+    padding:2px 4px;
+    border:none;
+    font-size:0.8rem;
+    white-space: nowrap;
+}
+
+/* 
+    告警趋势模块样式
+*/
+.trend-container {
+    height:calc(100% - 50px);
+    position:relative;
+    overflow: hidden;
+    padding:0 20px 10px 20px;
+}
+
+.trend-container .flex-container {
+    height:100%;
+}
+
+.trend-container .flex-container .flex-item-wrapper {
+    width:25%;
+    display:inline-block;
+    vertical-align: top;
+    padding-right:14px;
+}
+
+.trend-container .flex-container .flex-item-wrapper:last-child {
+    padding-right:0;
+}
+
+.trend-container .flex-container .flex-item-wrapper .flex-item{
+    width:100%;
+    height:100%;
+    background-color:#fff;
+    padding:0;
+}
+
+.trend-container .flex-item .flex-item-title {
+    height:60px;
+    line-height:60px;
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    padding-left: 10px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.trend-container .flex-item .flex-item-content {
+    height:calc(100% - 60px);
+    padding:0 10px;
+}
+.trend-scroll-container::-webkit-scrollbar {
+    width:8px;
+    height:1px;
+}
+
+.trend-scroll-container::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.3);
+}
+
+.trend-scroll-container::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    background:rgba(255,255,255,0.1);
+}
+/* 
+    告警模块图表统一样式
+*/
+.table-container thead > tr > th, .table-container tbody > tr > td {
+    padding:4px 10px;
+    font-size:1rem;
+    white-space: nowrap;
+}
+
+/* 
+    flex-container 样式
+*/
+
+.flex-container {
+    display:flex;
+    text-align: center;
+}
+
+.flex-container .flex-item {
+    flex:1;
+    padding:10px;
+    background-color:#ccc
+}
+
+
+@keyframes shadowMotion {
+    0% {
+        box-shadow:none;
+    }
+    100%{
+        box-shadow:0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08);
+    }
+}

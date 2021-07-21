@@ -1,0 +1,67 @@
+.container {
+    padding:0 10px;
+    width:100%;
+    height:100%;
+}
+
+.container .thead {
+    height:10%;
+}
+
+.thead>div {
+    display:inline-block;
+    vertical-align: middle;
+    width:25%;
+    padding:4px 6px;
+    font-size:0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background-color:#f8f8f8;
+}
+
+.container .content-container {
+    height:90%;
+}
+
+.content-container .item {
+    height:20%;
+    display:flex;
+    align-items: center;
+    background-color: rgba(255,255,255,0.1);
+    padding: 6px;
+    border-bottom: 1px solid #e2e2e2;
+    font-size:0.8rem;
+    white-space: nowrap;
+}
+
+.container .item:nth-child(even){
+    background-color: rgba(255,255,255,0.2);
+}
+
+.content-container .item>div {
+    width:25%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+@media ( max-width:1440px){
+    .content-container .item > div {
+        transform:scale(0.9);
+        transform-origin:left;
+    }
+}
+
+.content-container .item.fill {
+    background-color:transparent;
+    opacity:0;
+}
+
+.content-container .item:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+.content-container .item:last-child {
+    border-bottom:none;
+}

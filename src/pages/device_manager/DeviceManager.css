@@ -1,0 +1,34 @@
+.container {
+    padding:20px;
+    background-color:#fff;
+    height:calc( 100% - 50px );
+}
+
+.operation-container {
+    display:flex;
+    align-items: center;
+    margin-bottom:10px;
+}
+
+@media ( max-width:1440px ){
+    .container {
+        padding:10px;
+        height:calc(100% - 34px);
+    }
+}
+
+.button-container {
+}
+
+.button-container button {
+    margin-right:6px;
+}
+
+.content-container {
+    min-height:300px;
+}
+
+.container :global(.ant-table) thead > tr > th, .container :global(.ant-table) tbody > tr > td {
+    font-size:1rem;
+    padding:6px 10px;
+}

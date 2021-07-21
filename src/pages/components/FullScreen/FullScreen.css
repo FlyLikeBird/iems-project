@@ -1,0 +1,154 @@
+.container {
+    width:100%;
+    height:100%;
+    position:relative;
+    overflow:hidden;
+    z-index:100;
+    border-radius: 6px;
+    box-shadow: 0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08), 0 9px 28px 8px rgba(0,0,0,.05);
+    /* border: 4px solid #f7f7f7; */
+}
+
+.container.zoom {
+    box-shadow:none;
+    border:none;
+}
+
+.container .content-container {
+    width:100%;
+    height:100%;
+}
+
+.container :global(.info-container) {
+    position:absolute;
+    width:300px;
+    height:100px;
+    left:0;
+    bottom:10%;
+    color:#fff;
+    background-color: rgba(24, 144, 255, .5);
+    border: 1px solid #1890ff;
+    font-size: 16px;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.container :global(.info-container-2){
+    position:absolute;
+    width:200px;
+    height:80px;
+    left:0;
+    color:#fff;
+    font-size: 16px;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;   
+}
+
+.container :global(.info-container) :global(.text) {
+    font-size:28px;
+}
+
+.container :global(.info-container-2) :global(.text) {
+    font-size:24px;
+}
+
+.action-container {
+    position:absolute;
+    right:10px;
+    bottom:10px;
+}
+
+.action-container>span {
+    display:inline-block;
+    width:30px;
+    height:30px;
+    line-height: 30px;
+    text-align: center;
+    background-color:rgba(56, 57, 58, .3);
+    margin: 0 6px;
+    border-radius: 50%;
+    font-size:16px;
+    cursor:pointer;
+    color:#fff;
+}
+
+.action-container>span:hover {
+    background-color:rgba(56, 57, 58, .5);
+}
+
+/* 承载图片的容器，宽高和图片一致 */
+.container :global(.img-container){
+    position:relative;
+}
+
+/* 拟态图标签样式  */
+.container :global(.tag-container){
+    position:absolute;
+    width:100px;
+    height:30px;
+    text-align:center;
+    cursor: pointer;
+}
+
+.container :global(.tag-container) :global(.tag){
+    color:#000;
+    font-size:16px;
+    font-weight:500;
+    border-radius:20px;
+    background-color: rgba(131, 202, 64, .7);
+    border: 1px solid #478c06;
+    font-weight: 600;
+}
+
+.container :global(.tag-container) :global(.sub-tag){
+    position:absolute;
+    background-color:rgba(0,0,0,0.5);
+    color:#fff;
+    border-radius:20px;
+    top:100%;
+    max-width: 180px;
+    width:180px;
+    padding: 2px 4px;
+    transform: scale(0.8);
+    transform-origin: left;
+}
+
+:global(.tooltip) {
+    width:400px;
+    max-width:400px;
+}
+
+:global(.tooltip) :global(.ant-tooltip-inner) {
+    padding:0;
+    background-color: rgba(255,255,255,0.8);
+}
+
+:global(.tooltip) :global(.ant-tooltip-arrow):before {
+    background-color:rgba(24, 144, 255, .8);
+}
+
+/* 拟态图定位标签样式 */
+.container :global(.point-container){
+    position:absolute;
+    font-size:30px;
+    color:#e94c3e;
+    transform-origin: bottom;
+    animation: scaleMotion 3s infinite ;
+}
+
+@keyframes scaleMotion{
+    0%{
+        transform:scale(0);
+    }
+    50%{
+        transform:scale(1.2); 
+    }
+    100%{
+        transform:scale(0);
+    }
+}
+

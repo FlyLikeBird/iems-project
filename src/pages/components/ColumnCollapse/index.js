@@ -62,7 +62,7 @@ function ColumnCollapse({ sidebar, content, user, mode }){
         <div className={ mode === 'dark' || theme === 'dark' ? style['container'] + ' ' + style['dark'] : style['container']}>
             <div style={{ width: width + 'px', marginRight: hidden ? '0' : padding + 'px', left:padding + 'px' }} className={style['sidebar-container']} >
                 {  sidebar }
-                <div className={style['flex-pointer']} ref={pointerRef} style={{ left:`${offsetLeft + padding + width - 15 - padding}px` }}></div>             
+                <div className={style['flex-pointer']} ref={pointerRef} style={{ left:`${offsetLeft + padding + width - 6 }px` }}></div>             
             </div>
             
             <div className={style['content-container']} style={{ left: padding + width + ( hidden ? 0 : padding ) + 'px', width:`calc( 100% - ${width + padding * 2 + ( hidden ? 0 : padding )}px)` }}>

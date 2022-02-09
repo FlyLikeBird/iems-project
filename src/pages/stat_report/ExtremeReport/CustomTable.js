@@ -8,7 +8,7 @@ import XLSX from 'xlsx';
 
 let power = [
     { title:'有功功率(W)', type:'P' },
-    { title:'无功功率(var)', type:'Q'},
+    { title:'无功功率(Var)', type:'Q'},
     { title:'视在功率(VA)', type:'S' }
 ];
 let vol = [

@@ -1,4 +1,4 @@
-import { getUserList, getRoleList, createUser, editUser, deleteUser, getRolePermission, editRolePermission } from '../../services/userListService';
+import { getUserList, getRoleList, createUser, editUser, deleteUser, updatePassword, getRolePermission, editRolePermission } from '../../services/userListService';
 import { md5 } from '../../utils/encryption';
 
 const initialState = {
@@ -57,6 +57,8 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({ type:'fetchRolePermission', payload:{ currentRole }});
                     if ( resolve && typeof resolve === 'function' ) resolve('权限设置成功');
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject && typeof reject === 'function' ) reject(data.msg);
                 }
@@ -74,6 +76,8 @@ export default {
             if ( data && data.code == 0 ){
                 yield put({type:'fetchUserList'});
                 if ( resolve ) resolve();
+            } else if ( data && data.code === '1001'){
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject ) reject(data.msg);
             }
@@ -83,9 +87,21 @@ export default {
             let { data } = yield call(deleteUser, { user_id : selectedRowKeys});
             if ( data && data.code == 0 ){
                 yield put({type:'fetchUserList'});
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
-        
+        *changePassword(action, { call, put }){
+            let { user_id, old_password, password, confirm_password, resolve, reject } = action.payload || {};
+            let { data } = yield call(updatePassword, { user_id, old_password, password, confirm_password });
+            if ( data && data.code === '0') {
+                if ( resolve && typeof resolve === 'function') resolve();
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
+            } else {
+                if ( reject && typeof reject === 'function' ) reject(data.msg);
+            }
+        }
     },
     reducers:{
         toggleLoading(state, { payload}){

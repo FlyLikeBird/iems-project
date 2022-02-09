@@ -52,6 +52,107 @@ export function getDayActiveDevice(data = {}){
         body:str
         }); 
 }
+
+export function getTotalAlarm(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/agent/getrecordlist', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+export function getSumTrend(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/agent/warninganalyz', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+export function getProjectTrend(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/agent/warningrank', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+// 告警处理接口
+export function getLogType(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/warn/getlogtype', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function confirmRecord(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/warn/operwarning', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function getHistoryLog(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/warn/getmachhistorylog', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function getProgressLog(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/warn/getrecordlog', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function uploadImg(data={}){
+    let token = apiToken();
+    let { company_id, file } = data;
+    let formData = new FormData();
+    formData.append('file', file);
+    formData.append('token',token);
+    return request('/upload/upload', { 
+        method:'POST',
+        body:formData
+        }); 
+}
 export function getProjectList(data = {}){
     let token = apiToken();
     data.token = token;

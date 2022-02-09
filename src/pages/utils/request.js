@@ -1,5 +1,5 @@
 import fetch from 'dva/fetch';
-import config from '../../../config';
+// import config from '../../../config';
 
 function parseJSON(response) {
     return response.json();
@@ -23,6 +23,7 @@ function checkStatus(response) {
  * @return {object}           An object containing either "data" or "err"
  */
 export default function request(url, options, otherProxy) {
+    let config = window.g;
     let proxy = otherProxy || config.proxy;
     let finalURL = `http://${config.apiHost}${proxy}${url}`;
     return fetch(finalURL, options)
@@ -33,6 +34,7 @@ export default function request(url, options, otherProxy) {
 }
 
 export function requestImg(url, options) {
+    let config = window.g;
     let finalURL = `http://${config.apiHost}${config.proxy}${url}`;
     return fetch(finalURL, options)
         .then(checkStatus)

@@ -52,8 +52,14 @@ const EditableCell = ({
                 setEditing(false);
                 return;
             }
-            handleSave(values, record, dataIndex)
-            .then(()=>setEditing(false))
+            if ( values[dataIndex] >= 0 ){
+                handleSave(values, record, dataIndex)
+                .then(()=>setEditing(false))
+            } else {
+                message.info('请输入合适的值');
+                return;
+            }
+            
         })
         .catch(err=>{
             console.log(err);
@@ -67,13 +73,13 @@ const EditableCell = ({
     let childNode = children;
     if ( editable ) {
         childNode = editing ? (
-            <Form.Item style={{ margin:'0' }} name={dataIndex} rules={[{ validator }]}>
+            <Form.Item style={{ margin:'0' }} name={dataIndex} >
                 <Input ref={inputRef} onPressEnter={save} onBlur={save} />
             </Form.Item>
         )
         :
         (
-            <div className={style['editable-cell-value-wrapper']} onClick={handleEdit}>
+            <div className='editable-cell-value-wrapper' onClick={handleEdit}>
                 { children }
             </div>
         )
@@ -81,32 +87,45 @@ const EditableCell = ({
     return <td {...restProps}>{ childNode }</td>
 }
 
-function createMonthCols(row){
+function createMonthCols(year){
     let monthCols = [];
-    if (row){     
-        for(var i=1;i<13;i++){
-            let key = `month_${i}`;
-            let obj = { width:120, title:`${i}月`, dataIndex:key, key, editable:true };
-            monthCols.push(obj);
-        }
+    for(var i=1;i<13;i++){
+        let key = `month_${i}`;
+        let obj = { width:120, title:`${year}年-${i}月`, dataIndex:key, key, editable:true };
+        monthCols.push(obj);
     } 
     return monthCols;
 }
-
+function createDayCols(year, month){
+    let today = new Date(year,month,0).getDate();
+    let dayCols = [];
+    month = Math.round(month);
+    for(var i=1;i<=today;i++){
+        let key = `day_${i}`;
+        let obj = { width:120, title:`${month}月-${i}号`, dataIndex:key, key, editable:true };
+        dayCols.push(obj);
+    } 
+    return dayCols;
+}
 function ManuallyTable({ dispatch, manually, currentAttr,  pagesize }){
-    let { list, year, time_type, current, pageNum, total, isLoading, isMeterPage, fillType, meterType } = manually;  
+    let { list, fillDate, time_type, current, pageNum, total, isLoading, isMeterPage, fillType, meterType } = manually;  
     let info = isMeterPage ? meterType.filter(i=>i.type_id === +current )[0] : fillType.filter(i=>i.type_id === +current)[0];
     let [form] = Form.useForm();
     let [sourceData, setSourceData] = useState(list);
+    let dateArr = fillDate.format('YYYY-MM').split('-');
     useEffect(()=>{
         setSourceData(list);
     },[list]);
-    let yearMode = time_type === '1' ? true : false;
-    let temp = yearMode
+    let timeMode = time_type === '1' ? 'year' : time_type === '2' ? 'month' : 'day';
+    let temp = timeMode === 'year'
                 ?
-                [ { width:150, title:`${year}年`, dataIndex:'fill_value', key:'year', editable:true }]
+                [ { width:150, title:`${dateArr[0]}年`, dataIndex:'fill_value', key:'year', editable:true }]
                 :
-                createMonthCols(list.length && list[0]);
+                timeMode === 'month'
+                ?
+                createMonthCols(dateArr[0])
+                :
+                createDayCols(dateArr[0], dateArr[1])
     const columns = [
         {
             title:'序号',
@@ -122,7 +141,7 @@ function ManuallyTable({ dispatch, manually, currentAttr,  pagesize }){
     ];
     const handleSave = (values, record, dataIndex, forDelete)=>{
         return new Promise(( resolve, reject)=>{
-            dispatch({ type:'manually/save', payload:{ values, currentKey:record.attr_id, dataIndex, forDelete, resolve, reject }})
+            dispatch({ type:'manually/save', payload:{ value:time_type === '1' ? values['fill_value'] : values[dataIndex], currentKey:record.attr_id, type_id:current, dataIndex, time_type, fillDate, forDelete, resolve, reject }})
         })
         .then(()=>{
             // 更新sourceData
@@ -172,7 +191,10 @@ function ManuallyTable({ dispatch, manually, currentAttr,  pagesize }){
                         <div>{ `${info.type_name}填报设置`}</div>
                         <div>
                             <Button size="small" type="primary" onClick={()=>dispatch({type:'manually/toggleVisible', payload:true})}>导入模板</Button>
-                            <Button size="small" type="primary" style={{marginLeft:'10px'}} onClick={()=>dispatch({type:'manually/export'})}>导出模板</Button>
+                            <Button size="small" type="primary" style={{marginLeft:'10px'}} onClick={()=>{
+                                dispatch({type:'manually/export'});
+                                message.info('模板生成中，请稍后...');
+                            }}>导出模板</Button>
                         </div>
                     </div>
                 )

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Radio, Card, Button,  } from 'antd';
-import {  DownloadOutlined, FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import {  DownloadOutlined, PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { downloadExcel } from '@/pages/utils/array';
@@ -139,8 +139,8 @@ function TabChart({ data, toggleVisible, activeKey, onDispatch, theme, title, fo
                         downloadExcel(sheet, fileTitle + '.xlsx' );
                     }
                 }}>
-                    <Radio.Button key='download' value='download'><IconFont style={{ fontSize:'1.2rem'}} type='icontupian'/></Radio.Button>
-                    <Radio.Button key='excel' value='excel'><IconFont style={{ fontSize:'1.2rem' }} type='iconexcel1' /></Radio.Button>
+                    <Radio.Button key='download' value='download'><PictureOutlined /></Radio.Button>
+                    <Radio.Button key='excel' value='excel'><FileExcelOutlined /></Radio.Button>
                 </Radio.Group>
             }                         
             <ReactEcharts

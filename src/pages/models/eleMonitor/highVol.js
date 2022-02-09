@@ -21,6 +21,7 @@ export default {
         },
         // 统一管理所有action
         *init(action, { put }){
+            yield put.resolve({ type:'fetchIncoming'});
             yield put({ type:'fetchIncomingInfo'});
             yield put({ type:'fetchIncomingChart'});
         },
@@ -31,22 +32,20 @@ export default {
             yield put({ type:'reset'});
         },
         *fetchIncoming(action, { call, put, select }){
-            yield put.resolve({ type:'cancelable', task:fetchIncomingCancelable, action:'cancelIncoming'});
-            function* fetchIncomingCancelable(params){
-                try{
-                    let { user:{ company_id }} = yield select();
-                    let { resolve, reject } = action.payload || {};
-                    let { data } = yield call(getIncoming, { company_id });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getIncoming', payload:{ data:data.data }});
-                        if ( resolve && typeof resolve === 'function' ) resolve();
-                    }  else {
-                        if ( reject && typeof reject === 'function') reject();
-                    }
-                } catch(err){
-                    console.log(err);
+            try{
+                let { user:{ company_id }} = yield select();
+                let { resolve, reject } = action.payload || {};
+                let { data } = yield call(getIncoming, { company_id });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getIncoming', payload:{ data:data.data }});
+                    if ( resolve && typeof resolve === 'function' ) resolve();
+                }  else {
+                    if ( reject && typeof reject === 'function') reject();
                 }
+            } catch(err){
+                console.log(err);
             }
+            
         },
         *fetchIncomingInfo(action, { call, put, select }){
             yield put.resolve({ type:'cancelable', task:fetchIncomingInfoCancelable, action:'cancelIncomingInfo' });
@@ -56,8 +55,8 @@ export default {
                     let { data } = yield call(getIncomingInfo, { company_id, in_id:currentIncoming.in_id });
                     if ( data && data.code === '0'){
                         yield put({ type:'getIncomingInfo', payload:{ data:data.data }});
-                    } else {
-                        
+                    } else if ( data && data.code === '1001'){
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);

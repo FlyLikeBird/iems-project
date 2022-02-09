@@ -28,16 +28,16 @@ function CustomDatePicker({ dispatch, onDispatch, size, user, optionStyle, mode,
                         ?
                         null
                         :
-                        <Radio.Button value='1'>日</Radio.Button>
+                        <Radio.Button value='1'>时</Radio.Button>
                     }
                     {
                         noMonth
                         ?
                         null
                         :
-                        <Radio.Button value='2'>月</Radio.Button>
+                        <Radio.Button value='2'>日</Radio.Button>
                     }
-                    <Radio.Button value='3'>年</Radio.Button>
+                    <Radio.Button value='3'>月</Radio.Button>
                 </Radio.Group>
             }
             

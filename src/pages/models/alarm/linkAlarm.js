@@ -57,6 +57,8 @@ export default {
                 let { data } = yield call(getAttrWarning, action.payload );
                 if ( data && data.code === '0'){
                     yield put({ type:'getAttrWarning', payload:{ data:data.data }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             }
         },

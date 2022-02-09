@@ -1,4 +1,4 @@
-import { getFields, deleteField, getFieldType, addField, editField, getFieldAttrs, addFieldAttr, deleteFieldAttr, editFieldAttr, getAttrDevice, getAllDevice, addAttrDevice, deleteAttrDevice } from '../../services/fieldsService';
+import { deleteField, addField, editField, addFieldAttr, deleteFieldAttr, editFieldAttr, getAttrDevice, getAllDevice, addAttrDevice, deleteAttrDevice, getCalcRule, addCalcRule, editCalcRule, deleteCalcRule } from '../../services/fieldsService';
 
 const initialState = {
     deviceList:[],
@@ -21,6 +21,7 @@ const initialState = {
     forSub:false,
     //  编辑属性
     editAttr:false,
+    calcRuleList:[]
 };
 
 export default {
@@ -39,7 +40,9 @@ export default {
             let { data } = yield call(getAttrDevice, { attr_id:selectedAttr.key});
             if ( data && data.code == 0 ){
                 yield put({type:'getDevice', payload:{data:data.data}});
-            }         
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
+            }   
         },
         *fetchAll(action, { call, put, select }){
             yield put({type:'toggleStatus', payload:true});
@@ -63,6 +66,8 @@ export default {
             if ( data && data.code ==0 ) {
                 yield put({type:'fields/fetchField', payload:{ needsUpdate:true }});
                 if ( resolve && typeof resolve === 'function' ) resolve();
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject(data.msg);
             }
@@ -74,6 +79,8 @@ export default {
             if ( data && data.code == 0 ){
                 yield put({type:'fields/fetchField', payload:{ needsUpdate:true }});
                 if ( resolve && typeof resolve === 'function' ) resolve();
+            } else if ( data && data.code === '1001' ){
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject(data.msg);
             }
@@ -84,6 +91,8 @@ export default {
             if (data && data.code ==0){
                 yield put({type:'fields/fetchField', payload:{ needsUpdate:true }});
                 if ( resolve && typeof resolve === 'function' ) resolve();
+            } else if ( data && data.code === '1001'){
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject(data.msg);
             }
@@ -103,6 +112,8 @@ export default {
             if ( data && data.code == 0 ){               
                 yield put({type:'fields/fetchFieldAttrs', needsUpdate:true, passField:selectedField });  
                 if ( resolve && typeof resolve === 'function' ) resolve();
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject(data.msg);
             }
@@ -114,6 +125,8 @@ export default {
             if ( data && data.code == 0){
                 yield put({type:'fields/fetchFieldAttrs', needsUpdate:true, passField:selectedField });
                 if ( resolve && typeof resolve === 'function' ) resolve();
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject(data.msg);
             }
@@ -123,6 +136,8 @@ export default {
             let { data } = yield call(deleteFieldAttr, { attr_id:selectedAttr.key });
             if ( data && data.code == 0 ){
                 yield put({type:'fields/fetchFieldAttrs', needsUpdate:true, passField:selectedField });
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
         *addDevice(action, { call, put, select}){
@@ -132,6 +147,8 @@ export default {
             if ( data && data.code == 0 ){
                 yield put({ type:'fetchAttrDevice' });
                 if ( resolve && typeof resolve === 'function') resolve();
+            } else if ( data && data.code === '1001'){
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject(data.msg);
             }
@@ -143,10 +160,50 @@ export default {
             if ( data && data.code == 0 ){
                 yield put({ type:'fetchAttrDevice' });
                 if ( resolve && typeof resolve === 'function') resolve();
+            } else if ( data && data.code ==='1001') {
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject(data.msg);
             }
+        },
+        *fetchCalcRule(action, { call, put, select }){
+            let { fieldDevice:{ selectedAttr }} = yield select();
+            let { data } = yield call(getCalcRule, { attr_id:selectedAttr.key });
+            if ( data && data.code === '0'){
+                yield put({ type:'getRuleList', payload:{ data:data.data }});
+            }
+        },
+        *addCalc(action, { all, call, put, select }){
+            let { resolve, reject, rules } = action.payload || {};
+            if ( rules && rules.length ){
+                let data = yield all(
+                    rules.map((item)=>{
+                        if ( item.id ) {
+                            return call(editCalcRule, { id:item.id, calc_attr_id:item.calc_attr_id, calc_type:item.calc_type, calc_ratio:item.calc_ratio, begin_date: item.begin_date ? Object.prototype.toString.call(item.begin_date) === '[object String]' ? item.begin_date : item.begin_date.format('YYYY-MM-DD') : null, end_date: item.end_date ? Object.prototype.toString.call(item.end_date) === '[object String]' ? item.end_date : item.end_date.format('YYYY-MM-DD') : null })
+                        } else {
+                            return call(addCalcRule, { attr_id:item.attr_id, calc_attr_id:item.calc_attr_id, calc_type:item.calc_type, calc_ratio:item.calc_ratio, begin_date: item.begin_date ? Object.prototype.toString.call(item.begin_date) === '[object String]' ? item.begin_date : item.begin_date.format('YYYY-MM-DD') : null, end_date: item.end_date ? Object.prototype.toString.call(item.end_date) === '[object String]' ? item.end_date : item.end_date.format('YYYY-MM-DD') : null })
+                        }
+                    })
+                );
+                if ( data[0].data.code === '0' ) {
+                    if ( resolve && typeof resolve === 'function') resolve();
+                    yield put({ type:'fetchCalcRule' });
+                } else {
+                    if ( reject && typeof reject === 'function' ) reject(data[0].data.msg);
+                }
+            }
+        },
+        *deleteCalc(action, { put, call }){
+            let { resolve, reject, id } = action.payload || {};
+            let { data } = yield call(deleteCalcRule, { id });
+            if ( data && data.code === '0' ){
+                yield put({ type:'fetchCalcRule'});
+                if ( resolve && typeof resolve === 'function') resolve();
+            } else {
+                if ( reject && typeof reject === 'function' ) reject(data.msg);
+            }
         }
+        
     },
     reducers:{
         toggleLoading(state){
@@ -176,6 +233,10 @@ export default {
         },
         select(state, { payload }){
             return { ...state, selectedRowKeys:payload };
+        },
+        getRuleList(state, { payload:{ data }}){
+            console.log(data);
+            return { ...state, calcRuleList:data };
         },
         reset(state){
             return initialState;

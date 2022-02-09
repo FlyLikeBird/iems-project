@@ -1,4 +1,4 @@
-import { getBilling, addBilling, deleteBilling, editBilling, isActive, isUnActive, editRate } from '../../services/billingService';
+import { getFeeRate, setWaterRate, getBilling, addBilling, deleteBilling, editBilling, isActive, isUnActive, editRate } from '../../services/billingService';
 
 const initialState = {
     list:[],
@@ -7,6 +7,7 @@ const initialState = {
     is_actived:false,
     prevItem:{},
     rateInfo:{},
+    feeRate:{},
     isLoading:false
 };
 
@@ -14,13 +15,18 @@ export default {
     namespace:'billing',
     state:initialState,
     effects:{
-        *init(action, { select, call, put}){
-            let { pageNum } = action.payload || {};
+        *init(action, { select, call, put, all }){
+            yield put({ type:'fetchEleBilling'});
+            yield put({ type:'fetchFeeRate'});
+        },
+        *fetchEleBilling(action, { select, call, put }){
             let { user:{ company_id }} = yield select();
             let { data } = yield call(getBilling, { company_id });
             if ( data && data.code === '0' ) {
                 yield put({type:'get', payload:{ data:data.data }});
-            } 
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
+            }
         },
         *add(action, { call, put, select}){
             let { user:{ company_id }} = yield select();
@@ -39,16 +45,20 @@ export default {
                 values['quarter_id'] = prevItem['quarter_id'];
                 let { data } = yield call(editBilling, values);
                 if ( data && data.code === '0' ){
-                    yield put({type:'fetch', payload:{}});
+                    yield put({ type:'fetchEleBilling' });
                     if ( resolve ) resolve();
+                } else if ( data && data.code === '1001'){
+                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject ) reject(data.msg);
                 }
             } else {
                 let { data } = yield call(addBilling, values);
                 if ( data && data.code === '0' ){
-                    yield put({type:'fetch', payload:{}});
+                    yield put({ type:'fetchEleBilling' });
                     if ( resolve ) resolve();
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject ) reject(data.msg);
                 }
@@ -58,7 +68,9 @@ export default {
             let { payload } = action;
             let { data } = yield call(deleteBilling, { quarter_id: payload });
             if ( data && data.code === '0' ) {
-                yield put({type:'fetch', payload:{}});
+                yield put({ type:'fetchEleBilling' });
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
         *active(action, { call, put, select}){
@@ -85,7 +97,29 @@ export default {
         *editRate(action, { call, put }){
             let { data } = yield call(editRate, action.payload.values);
             if ( data && data.code === '0'){
-                yield put({type:'fetch', payload:{}});
+                yield put({ type:'fetchEleBilling' });
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
+            }
+        },
+        *fetchFeeRate(action, { select, call, put}){
+            let { user:{ company_id }} = yield select();
+            let { data } = yield call(getFeeRate, { company_id });
+            if ( data && data.code === '0'){
+                yield put({ type:'getFeeRate', payload:{ data:data.data }});                
+            } 
+        },
+        *setFeeRate(action, { select, call, put }){
+            let { user:{ company_id }} = yield select();
+            let { resolve, reject, water_rate } = action.payload || {};
+            let { data } = yield call(setWaterRate, { company_id, water_rate });
+            if ( data && data.code === '0'){
+                yield put({ type:'fetchFeeRate'});
+                if ( resolve && typeof resolve === 'function' ) resolve();
+            } else if ( data && data.code === '1001' ){
+                yield put({ type:'user/loginOut'});
+            } else {
+                if ( reject && typeof reject === 'function' ) reject(data.msg);
             }
         }
     },
@@ -101,6 +135,9 @@ export default {
         },
         toggleActive(state){
             return { ...state, is_actived:!state.is_actived};
+        },
+        getFeeRate(state, { payload:{ data }}){
+            return { ...state, feeRate:data };
         },
         reset(){
             return initialState;

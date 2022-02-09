@@ -2,13 +2,13 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Card, Button, DatePicker } from 'antd';
-import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { downloadExcel } from '@/pages/utils/array';
 import style from '../../../IndexPage.css';
 import XLSX from 'xlsx';
-import { IconFont } from '@/pages/components/IconFont';
+// import { IconFont } from '@/pages/components/IconFont';
 
 function MeasureBarChart({ data, timeType, theme, forReport }) { 
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
@@ -77,7 +77,7 @@ function MeasureBarChart({ data, timeType, theme, forReport }) {
                 ?
                 null
                 :
-                <Radio.Group size='small' className={style['custom-button']} value='data' onChange={e=>{
+                <Radio.Group size='small' style={{ marginLeft:'20px' }} className={style['custom-button']} value='data' onChange={e=>{
                     let value = e.target.value;
                     let fileTitle = `电度电费-${showType}`;
                     if ( value === 'download' && echartsRef.current ){
@@ -117,8 +117,8 @@ function MeasureBarChart({ data, timeType, theme, forReport }) {
                         return ;
                     }
                 }}>
-                    <Radio.Button key='download' value='download'><IconFont style={{ fontSize:'1.2rem'}} type='icontupian'/></Radio.Button>
-                    <Radio.Button key='excel' value='excel'><IconFont style={{ fontSize:'1.2rem' }} type='iconexcel1' /></Radio.Button>
+                    <Radio.Button key='download' value='download'><PictureOutlined /></Radio.Button>
+                    <Radio.Button key='excel' value='excel'><FileExcelOutlined /></Radio.Button>
                 </Radio.Group> 
             }
             </div>

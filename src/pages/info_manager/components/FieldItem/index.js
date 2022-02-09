@@ -57,10 +57,11 @@ function FieldItem({ dispatch, field, theme}){
                             <SettingOutlined style={{ flex:'1' }} key="setting" onClick={()=>{
                                 dispatch({type:'fieldDevice/toggleField', payload : { visible:true, field }});
                                 new Promise((resolve, reject)=>{
-                                    dispatch({ type:'fields/fetchFieldAttrs', passField:field, needsUpdate:true, resolve, reject })
+                                    dispatch({ type:'fields/fetchFieldAttrs', passField:field, resolve, reject })
                                 })
                                 .then(()=>{
                                     dispatch({type:'fieldDevice/fetchAttrDevice'});
+                                    dispatch({ type:'fieldDevice/fetchCalcRule'});
                                 })
                             }}/>
                             <EditOutlined style={{ flex:'1' }} key="edit" onClick={ () => toggleEditing(true)}/>

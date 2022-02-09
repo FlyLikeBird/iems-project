@@ -42,6 +42,8 @@ export default {
                     let { data } = yield call(getAttrWarning, { company_id, cate_code:'2', time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key } );
                     if ( data && data.code === '0'){
                         yield put({ type:'getAttrWarning', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
                     }
                      
                 } catch(err){  

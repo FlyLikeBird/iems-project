@@ -16,14 +16,12 @@ const buttons = [
 ];
 
 function ChartContainer({ dispatch, currentMach, data, startDate, timeType, isLoading }){
-    console.log(data);
     const [optionType, toggleOptionType] = useState('1');
     useEffect(()=>{
         dispatch({ type:'eleMonitor/fetchEleLinesDetail', payload:{ mach_id:currentMach.mach_id, optionType }});
     },[optionType]);
    
     let info = buttons.filter(i=>i.code === optionType)[0] ;
-    
     return (
         <div style={{ position:'relative', height:'100%' }}>
             {
@@ -33,7 +31,7 @@ function ChartContainer({ dispatch, currentMach, data, startDate, timeType, isLo
                 :
                 null
             }
-            <div style={{ height:'2rem', fontSize:'1.2rem', lineHeight:'2rem', color:'#fff'}}>{ `${currentMach.scene_name || ''}-${currentMach.meter_name || ''}` }</div>
+            <div style={{ height:'2rem', fontSize:'1.2rem', lineHeight:'2rem', color:'#fff'}}>{ `${currentMach.scene_name || ''} -- ${currentMach.meter_name || ''}` }</div>
             <div className={style['button-group-container']}>
                 {
                     buttons.map((item,index)=>(

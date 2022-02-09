@@ -34,16 +34,28 @@ export default {
             }
         },
         *fetchMeterReport(action, { call, put, select }){
-            yield put({ type:'cancelMeterReport'});
+            yield put.resolve({ type:'cancelMeterReport'});
             yield put.resolve({ type:'cancelable', task:fetchMeterReportCancelable, action:'cancelMeterReport'});
             function* fetchMeterReportCancelable(params){
                 try {
+                    let { startHour } = action.payload || {};
                     let { user:{ company_id, startDate, endDate }, fields:{ currentAttr, energyInfo }} = yield select();
-                    yield put({ type:'toggleLoading'});                
-                    let { data } = yield call(getMeterReport, { company_id, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD')});
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getMeterReport', payload:{ data:data.data }});
-                    }                  
+                    let obj = { company_id, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD')};
+                    if ( startHour ) {
+                        obj.day_start_hour = startHour;
+                    }
+                    if ( currentAttr.key ){
+                        yield put({ type:'toggleLoading'});                
+                        let { data } = yield call(getMeterReport, obj );
+                        if ( data && data.code === '0'){
+                            yield put({ type:'getMeterReport', payload:{ data:data.data }});
+                        } else if ( data && data.code === '1001') {
+                            yield put({ type:'user/loginOut'});
+                        }
+                    } else {
+                        yield put({ type:'getMeterReport', payload:{ data:[] }});
+                    }
+                                     
                 } catch(err){
                     console.log(err);
                 }

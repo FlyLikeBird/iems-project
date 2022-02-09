@@ -105,6 +105,7 @@ function PageItem2({ efficiency, analyze, fields, dispatch, companyName }){
                         data={chartInfo} 
                         theme='light'
                         rankInfo={rankInfo}
+                        energyInfo={energyInfo}
                         dispatch={dispatch}
                         chartLoading={chartLoading} 
                     />   

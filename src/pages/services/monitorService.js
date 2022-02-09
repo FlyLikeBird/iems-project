@@ -15,6 +15,19 @@ export function getMonitorInfo(data = {}){
         }); 
 }
 
+export function getCoalTrend(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/index/coaltrend', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
 export function getTplInfo(data = {}){
     let token = apiToken();
     data.token = token;

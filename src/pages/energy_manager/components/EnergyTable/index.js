@@ -1,79 +1,104 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
-import { Row, Col, Table, Button, Card, Tree, Select, Skeleton, Spin, message } from 'antd';
+import { Row, Col, Table, Button, Input, Skeleton, Form, message } from 'antd';
 import style from '@/pages/IndexPage.css';
 import { downloadExcel } from '@/pages/utils/array';
 import XLSX from 'xlsx';
 
-function getTimePeriod(arr){
-    return arr.map((date,index)=>{
-        let obj = {};
-        let prevTime = arr[index].split(' ')[1];
-        let nextTime;
-        if ( prevTime ){
-            obj.width = '120px';
-            obj.dataIndex = date;
-            obj.render = (text)=>(<span style={{color:'#1890ff'}}>{ (+text).toFixed(1) } </span>);
-            if ( index === arr.length - 1) {
-                if ( prevTime === '23:00') {
-                    nextTime = '00:00';
-                } else {
-                    let temp = +prevTime.split(':')[0];
-                    ++temp;
-                    nextTime = temp < 10 ? '0'+temp+':00' : temp+':00';
-                }
-            } else {
-                nextTime = arr[index+1].split(' ')[1]
-            }   
-            obj.title = (<span>
-                { `${prevTime} - ${nextTime}` }
-            </span>);   
-            return obj;
-        }
-        
-    });
+const EditableContext = React.createContext();
+const EditableRow = ({ index, ...props}) => {
+    const [form] = Form.useForm();
+    return (
+        <Form form={form} component={false}>
+            <EditableContext.Provider value={form}>
+                <tr {...props} />
+            </EditableContext.Provider>
+        </Form>
+    )
 }
 
-function EnergyTable({ dispatch, user, costReport }){
-    const { energyInfo, reportInfo, dataType, isLoading } = costReport;
-    const { userInfo, containerWidth, pagesize, timeType, startDate, endDate } = user;
+const EditableCell = ({
+    title,
+    editable,
+    children,
+    dataIndex,
+    record,
+    handleSave,
+    sourceData,
+    setSourceData,
+    ...restProps
+})=>{
+    const [editing, setEditing] = useState(false);
+    const inputRef = useRef();
+    const form = useContext(EditableContext);
+    const handleEdit = ()=>{
+        setEditing(!editing);
+        form.setFieldsValue({
+            [dataIndex]:record[dataIndex]
+        });
+    };
+    const save = ()=>{
+        form.validateFields()
+        .then(values=>{ 
+            if( values[dataIndex] === record[dataIndex] ) {
+                setEditing(false);
+                return;
+            }
+            handleSave(values, record, dataIndex)
+            .then(()=>{
+                setEditing(false);
+            })
+            
+        })
+        .catch(err=>{
+            console.log(err);
+        })
+    }
+    useEffect(()=>{
+        if(editing){
+            inputRef.current.focus();
+        }
+    },[editing]);
+    let childNode = children;
+    if ( editable ) {
+        childNode = editing ? (
+            <Form.Item style={{ margin:'0' }} name={dataIndex}>
+                <Input style={{ whiteSpace:'nowrap' }} ref={inputRef} onPressEnter={save} onBlur={save} />
+            </Form.Item>
+        )
+        :
+        (
+            <div className='editable-cell-value-wrapper' onClick={handleEdit}>
+                { children }
+            </div>
+        )
+    }
+    return <td {...restProps}>{ childNode }</td>
+}
+
+function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType, pagesize, startDate, companyName }){
     const [currentPage, setCurrentPage] = useState(1);
+    let [sourceData, setSourceData] = useState(data.value);
+    let [isPatching, togglePatching] = useState(false);
+    let [value, setValue] = useState('');
+    useEffect(()=>{
+        setSourceData(data.value);
+        setCurrentPage(1);
+    },[data])
     let dateColumns = [];
     // console.log(energyInfo);
     // 获取不同时间维度下的列数据
-    if ( reportInfo && reportInfo.date ){
-        if ( timeType === '1'){
-            dateColumns = reportInfo.date.map(time=>{
-                let temp = time.split(' ');
-                let prefix = Number(temp[1].split(':')[0]);
-                return {
-                    title:`${prefix < 10 ? '0' + prefix : prefix }:00-${ prefix+1 < 10 ? '0' + (prefix + 1 ) : prefix + 1 }:00`,
-                    width:'120px',
-                    render:(text)=>(<span style={{color:'#1890ff'}}>{ (+text).toFixed(1) } </span>),
-                    dataIndex:time
-                }
-            })
-        } else if ( timeType === '2') {
-            dateColumns = reportInfo.date.map(time=>{
-                return {
-                    title:time,
-                    width:'120px',
-                    render:(text)=>(<span style={{color:'#1890ff'}}>{ (+text).toFixed(1) } </span>),
-                    dataIndex:time
-                    
-                }
-            })
-        } else if ( timeType === '3') {
-            dateColumns = reportInfo.date.map(time=>{
-                return {
-                    title:time,
-                    width:'120px',
-                    render:(text)=>(<span style={{color:'#1890ff'}}>{ (+text).toFixed(1) } </span>),
-                    dataIndex:time                
-                }
-            })
-        }
+    if ( !isLoading && data && data.date ){
+        // 日时间周期
+        dateColumns = data.date.map(time=>{
+            return {
+                title:time,
+                width:'140px',
+                render:(text)=>(<span style={{color:'#1890ff'}}>{ (+text).toFixed(1) } </span>),
+                dataIndex:time
+            }
+        })
     };
     const columns = [
         {
@@ -107,31 +132,27 @@ function EnergyTable({ dispatch, user, costReport }){
             }
         },
         {
-            title:'注册码',
-            width:'120px',
-            key:'regcode',
-            dataIndex:'regcode',
-            ellipsis:true
+            title:'产量',
+            width:'100px',
+            dataIndex:'productNum',
+            editable:true,
+            render:value=>(<span>{ value || '-- --'}</span>)
         },
         {
-            title:'配电房',
-            width:'120px',
-            key:'ele_room',
-            dataIndex:'ele_room'
+            title:'目标单耗',
+            width:'100px',
+            dataIndex:'target',
+            editable:true,
+            render:value=>(<span>{ value || '-- --'}</span>)
         },
         {
-            title:'相关属性',
-            key:'related',
-            width:'120px',
-            dataIndex:'other_attr',
-            ellipsis: true,
-        },
-        {
-            title:'相关属性2',
-            key:'related',
-            width:'120px',
-            dataIndex:'other_attr2',
-            ellipsis: true
+            title:'实际单耗',
+            width:'100px',
+            key:'single_cost',
+            render:(row)=>{
+                let result = +row.productNum ? (row.total / row.productNum ).toFixed(3) : '-- --';
+                return <span>{ result }</span>
+            }
         },
         {
             title: dataType === '1' ? '费用汇总' : '能耗汇总',
@@ -169,33 +190,147 @@ function EnergyTable({ dispatch, user, costReport }){
         //     dataIndex:'bottom',
         //     render:(text)=>(<span style={{color:'#1890ff'}}>{ text ? (+text).toFixed(1) : '--' } </span>)
         // },
-        
-        ...dateColumns
-    ];
-    useEffect(()=>{
-        setCurrentPage(1);
-    },[reportInfo, pagesize])
-    return (
-        isLoading
+        ...dateColumns,
+        {
+            title:'注册码',
+            width:'120px',
+            key:'regcode',
+            dataIndex:'regcode',
+            ellipsis:true
+        },
+        energyInfo.type_code === 'ele'
         ?
-        <Skeleton active className={style['skeleton']} />
+        {
+            title:'配电房',
+            width:'120px',
+            key:'ele_room',
+            dataIndex:'ele_room'
+        }
         :
+        {}
+        ,
+        {
+            title:'相关属性',
+            key:'related',
+            width:'120px',
+            dataIndex:'other_attr',
+            ellipsis: true,
+        },
+        {
+            title:'相关属性2',
+            key:'related',
+            width:'120px',
+            dataIndex:'other_attr2',
+            ellipsis: true
+        }
+    ];
+    function handleSave(values, record, dataIndex ){
+        // console.log(values, record, dataIndex);
+        let time_type = timeType === '1' ? '3' : timeType === '3' ? '1' : '2';
+        let dateArr = startDate.format('YYYY-MM-DD').split('-');
+        let key = timeType === '2' ? `month_${dateArr[1]}` : timeType === '1' ? `day_${dateArr[2]}` : '';
+        // console.log(key);
+        if ( dataIndex === 'productNum') {
+            return new Promise(( resolve, reject)=>{
+                dispatch({ type:'manually/save', payload:{ value:values[dataIndex], currentKey:record.attr_id, type_id:5, dataIndex:key, time_type, fillDate:startDate, resolve, reject }})
+            })
+            .then(()=>{
+                let newArr = sourceData.map(item=>{
+                    if ( item.attr_id === record.attr_id ) {
+                        item[dataIndex] = values[dataIndex];
+                    } 
+                    return item;
+                });
+                setSourceData(newArr);
+            })
+            .catch(msg=>message.info(msg))
+        } else if ( dataIndex === 'target' ) {
+            return new Promise((resolve, reject)=>{
+                dispatch({ type:'costReport/setProduct', payload:{ attr_id:record.attr_id, time_type, target:values[dataIndex], year:dateArr[0], month:dateArr[1], day:dateArr[2], resolve, reject }})
+            })
+            .then(()=>{
+                let newArr = sourceData.map(item=>{
+                    if ( item.attr_id === record.attr_id ) {
+                        item[dataIndex] = values[dataIndex];
+                    } 
+                    return item;
+                });
+                setSourceData(newArr);
+            })
+            .catch(msg=>message.info(msg))
+        }
+    }
+    const mergedColumns = columns.map(col=>{
+        if(!col.editable){
+            return col;
+        }
+        return {
+            ...col,
+                onCell: record=>({
+                record,
+                editable:col.editable,
+                dataIndex:col.dataIndex,
+                title:col.title,
+                handleSave
+            })
+        }
+    });
+    return (
+       
         <Table
-            columns={columns}
-            dataSource={reportInfo.value}
+            columns={mergedColumns}
+            dataSource={sourceData}
             rowKey={(text,record)=>text.attr_name}
             className={style['self-table-container']}
             bordered={true}
+            components={{
+                body:{
+                    row:EditableRow,
+                    cell:EditableCell
+                }
+            }}
             title={()=>{
                 return (
                     <div style={{ display:'flex', justifyContent:'space-between'}}>
-                        <div>{ `${userInfo.company_name}能源${ dataType === '1' ? '成本' : '能耗' }报表`}</div>
+                        <div>
+                            <span>{ `${companyName}能源${ dataType === '1' ? '成本' : '能耗' }报表`}</span>
+                            {
+                                isPatching 
+                                ?
+                                <span style={{ margin:'0 10px'}}>
+                                    <Input size='small' style={{ width:'120px', marginRight:'6px' }} value={value} onChange={e=>setValue(e.target.value)} />
+                                    <Button size='small' type='primary' style={{ marginRight:'6px' }} onClick={()=>{
+                                        let time_type = timeType === '1' ? '3' : timeType === '3' ? '1' : '2';
+                                        let dateArr = startDate.format('YYYY-MM-DD').split('-');
+                                        let key = timeType === '2' ? `month_${dateArr[1]}` : timeType === '1' ? `day_${dateArr[2]}` : '';
+                                        new Promise(( resolve, reject)=>{
+                                            dispatch({ type:'manually/save', payload:{ forPatch:true, value:value, attr_ids:sourceData.map(i=>i.attr_id), type_id:5, dataIndex:key, time_type, fillDate:startDate, resolve, reject }})
+                                        })
+                                        .then(()=>{
+                                            let newArr = sourceData.map(item=>{
+                                                item['productNum'] = value;
+                                                return item;
+                                            });
+                                            setSourceData(newArr);
+                                            togglePatching(false);
+                                        })
+                                        .catch(msg=>message.info(msg))
+                                                                     
+                                    }}>录入</Button>
+                                    <Button size='small' onClick={()=>{
+                                        togglePatching(false);
+                                    }}>取消</Button>
+                                </span>
+                                :
+                                <Button style={{ margin:'0 10px' }} size='small' type='primary' onClick={()=>togglePatching(true)}>批量录入产量</Button>
+                            }
+                        </div>
                         <Button size="small" type="primary" onClick={()=>{
                             if ( isLoading ){
                                 message.info('正在加载数据，请稍后');
                                 return ;
                             } else {
-                                if ( !reportInfo.value.length ){
+                                if ( !data.value.length ){
                                     message.info('数据源为空');
                                 } else {
                                     let fileTitle = `统计报表-${ dataType === '1' ? '成本' : '能耗' }报表`;
@@ -207,14 +342,17 @@ function EnergyTable({ dispatch, user, costReport }){
                                         colsStyle.push({ wch:16 });
                                     });
                                     aoa.push(thead);
-                                    reportInfo.value.forEach((item,index)=>{
+                                    data.value.forEach((item,index)=>{
                                         let temp = [];
                                         temp.push(index + 1);
                                         columns.forEach((col,j)=>{
-                                            if ( col.dataIndex ){
-                                                temp.push(item[col.dataIndex] || '-- --');
+                                            if ( col.dataIndex ){                                              
+                                               temp.push(item[col.dataIndex] || '-- --');                                   
                                             } else if ( col.key === 'unit') {
                                                 temp.push(dataType === '1' ? '元' : energyInfo.unit )
+                                            } else if ( col.key === 'single_cost') {
+                                                let result = item.productNum ? (item.total / item.productNum).toFixed(3) : '-- --';
+                                                temp.push(result);
                                             }
                                         })
                                         aoa.push(temp);
@@ -235,7 +373,7 @@ function EnergyTable({ dispatch, user, costReport }){
                 setCurrentPage(pagination.current);
             }}
             pagination={{ 
-                total:reportInfo.value ? reportInfo.value.length : 0, 
+                total:data.value ? data.value.length : 0, 
                 current:currentPage,
                 pageSize:pagesize,
                 showSizeChanger:false                
@@ -247,4 +385,12 @@ function EnergyTable({ dispatch, user, costReport }){
 EnergyTable.propTypes = {
 };
 
-export default EnergyTable;
+function areEqual(prevProps, nextProps){
+    if ( prevProps.data !== nextProps.data  ) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+export default React.memo(EnergyTable, areEqual);

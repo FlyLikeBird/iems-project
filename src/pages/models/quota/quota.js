@@ -3,9 +3,9 @@ let date = new Date();
 
 const initialState = {
     list:[],
-    energyList:[],
+    optionList:[],
     // 默认能源类型为电
-    energyInfo:{},
+    optionInfo:{},
     // 默认年份为今年
     year:date.getFullYear(),
     // 默认定额周期为年
@@ -31,12 +31,7 @@ export default {
             try {
                 let { query } = action.payload;
                 yield put.resolve({ type:'fetchEnergy'});
-                yield put.resolve({ type:'fields/init'});
-                // let { quota:{ energyList }} = yield select();             
-                // if ( query ){
-                //     let temp = energyList.filter(i=>i.type_id == query )[0];
-                //     yield put({ type:'quota/toggleEnergy', payload:temp });
-                // }          
+                yield put.resolve({ type:'fields/init'});        
                 yield put({ type:'fetchQuota'});
             } catch(err){
                 console.log(err);
@@ -44,16 +39,19 @@ export default {
         },
         *fetchQuota(action, { call, put, select, all }){
             yield put({ type:'cancelQuota'});
-            yield put({ type:'cancelable', task:fetchQuotaCancelable, action:'cancelQuota' });
+            yield put.resolve({ type:'cancelable', task:fetchQuotaCancelable, action:'cancelQuota' });
             function* fetchQuotaCancelable(){
                 try {
-                    let { user:{ company_id, pagesize }, fields:{ currentAttr }, quota:{ pageNum, energyInfo, time_type, year }} = yield select();
-                    yield put({type:'toggleLoading' });
-                    let { data } = yield call(getQuotaList, { company_id, attr_id:currentAttr.key, year, time_type, type_id:energyInfo.type_id, page:pageNum, pagesize });
-                    if ( data && data.code === '0' ){
-                        yield put({type:'get', payload:{ data:data.data, total:data.count }})
+                    let { user:{ company_id, pagesize }, fields:{ currentAttr }, quota:{ pageNum, optionInfo, time_type, year }} = yield select();
+                    if ( currentAttr.key ){
+                        yield put({type:'toggleLoading' });
+                        let { data } = yield call(getQuotaList, { company_id, attr_id:currentAttr.key, year, time_type, type_id:optionInfo.type_id, page:pageNum, pagesize });
+                        if ( data && data.code === '0' ){
+                            yield put({type:'get', payload:{ data:data.data, total:data.count }})
+                        } 
+                    } else {
+                        yield put({ type:'get', payload:{ data:{ data:[] }}})
                     }
-                    
                 } catch(err){
                     console.log(err);
                 }
@@ -69,9 +67,9 @@ export default {
         *save(action, { call, put, select}){
             // 当编辑时把表单项传过来  删除时把一行记录传过来
             let { values, currentKey, dataIndex, forDelete, resolve, reject } = action.payload;
-            let { quota : { currentEnergy, time_type, year, is_calc_year }} = yield select();
+            let { fields:{ currentAttr }, quota : { optionInfo, time_type, year, is_calc_year }} = yield select();
             let finalValue;
-            let obj = { type_id:currentEnergy, attr_id: currentKey, time_type, year, is_calc_year:1 };
+            let obj = { type_id:optionInfo.type_id, attr_id: currentKey, time_type, year, is_calc_year:1 };
             if ( time_type === '1'){
                 // 年定额
                 finalValue = forDelete ? 0 : values['fill_value'];
@@ -86,15 +84,20 @@ export default {
             let { data } = yield call(fillQuota, obj);
             if ( data && data.code === '0') {
                 if ( resolve && typeof resolve === 'function') resolve();
-                
+            } else if ( data && data.code === '1001'){
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject();
             }
         },
         *export(action, { call, put, select}){
-            let { user:{ company_id }, fields : { currentAttr}, quota: { currentEnergy, year }} = yield select();
-            let url = yield call(exportQuota, { company_id, attr_id:currentAttr.key, year, type_id:currentEnergy});
-            window.location.href = url;
+            let { user:{ company_id }, fields : { currentAttr }, quota: { optionInfo, year }} = yield select();
+            if ( localStorage.getItem('user_id')) {
+                let url = yield call(exportQuota, { company_id, attr_id:currentAttr.key, year, type_id:optionInfo.type_id });
+                window.location.href = url;
+            } else {
+                yield put({ type:'user/loginOut'});
+            }
         },
         *import(action, { select, call, put}){
             let { file } = action.payload;
@@ -103,12 +106,18 @@ export default {
             if ( data && data.code === '0' ) {
                 yield put({type:'fetchQuota'});
                 yield put({type:'toggleVisible', payload:false });
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
         *importTpl(action, { call, put, select}){
-            let { user:{ company_id }, fields: { currentField }, quota:{ currentEnergy}} = yield select();
-            let url = yield call(importTpl, { company_id, field_id:currentField.field_id, type_id:currentEnergy});
-            window.location.href = url;
+            let { user:{ company_id }, fields: { currentField }, quota:{ optionInfo }} = yield select();
+            if ( localStorage.getItem('user_id')) {
+                let url = yield call(importTpl, { company_id, field_id:currentField.field_id, type_id:optionInfo.type_id });
+                window.location.href = url;
+            } else {
+                yield put({ type:'user/loginOut'});
+            }
         }
     },
     reducers:{
@@ -116,14 +125,14 @@ export default {
             return { ...state, isLoading:true };
         },
         getEnergy(state, { payload : { data }}){
-            let energyInfo = data.filter(i=>i.type_code === 'ele')[0];
-            return { ...state, energyList:data, energyInfo:energyInfo || {} };
+            let optionInfo = data.filter(i=>i.type_code === 'ele')[0];
+            return { ...state, optionList:data, optionInfo:optionInfo || {} };
         },
         get(state,{ payload:{ data, total }}){
             return { ...state, list:data.data, total, isLoading:false };
         },
-        toggleEnergy(state, { payload}){
-            return { ...state, energyInfo : payload } ;
+        toggleOption(state, { payload}){
+            return { ...state, optionInfo : payload } ;
         },
         toggleTimeType(state, { payload }){
             return { ...state, time_type:payload };

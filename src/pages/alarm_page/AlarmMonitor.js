@@ -46,12 +46,14 @@ function AlarmMonitor({ dispatch, user, alarm }){
             dispatch({ type:'alarm/reset'});
         }
     },[])
-    const data = [];
     const content = (
-        <div>
-            <div className='img-container' data-width={sceneInfo.scene ? sceneInfo.imageInfo.width : 0} data-height={sceneInfo.scene ? sceneInfo.imageInfo.height : 0} >
-                { sceneInfo.scene ? <img src={sceneInfo.scene.bg_image_path} style={{width:'100%',height:'100%'}} /> : null }
-                
+        <div style={{ height:'100%' }}>
+            <div className='img-container' style={{ 
+                height:'100%',
+                backgroundImage:`url(${sceneInfo.scene ? sceneInfo.scene.bg_image_path : ''})`,
+                backgroundRepeat:'no-repeat',
+                backgroundSize:'cover'
+            }}>                
                 {/*
                     sceneInfo.tags && sceneInfo.tags.length
                     ?              
@@ -94,7 +96,6 @@ function AlarmMonitor({ dispatch, user, alarm }){
             </div>      
         </div>
     );
-    data.push(content);
     return (
         <div className={style['page-container']}>
             <div style={{ height:'60%'}}>
@@ -103,7 +104,7 @@ function AlarmMonitor({ dispatch, user, alarm }){
                         {
                             Object.keys(sceneInfo).length 
                             ?
-                            <FullscreenSlider interval={0} data={data} dispatch={dispatch} sourceData={[sceneInfo]} collapsed={user.collapsed} currentPath={user.currentPath} />                                                             
+                            <FullscreenSlider interval={0} data={content} dispatch={dispatch} collapsed={user.collapsed} currentPath={user.currentPath} />                                                             
                             :
                             <Spin size='large' className={style['spin']} />
                         }

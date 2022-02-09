@@ -9,18 +9,23 @@ import ChartContainer  from './ChartContainer';
 import style from '../../IndexPage.css';
 
 const { TabPane } = Tabs;
-
+let timer;
 function EleMonitorManager({ dispatch, user, eleMonitor, fields }) {
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { chartInfo, optionType, isLoading, startDate, timeType } = eleMonitor;
     const { currentCompany, pagesize } = user;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     useEffect(()=>{     
         dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1'}});                      
-        dispatch({ type:'eleMonitor/fetchChartInfo'});          
+        dispatch({ type:'eleMonitor/init'}); 
+        timer = setInterval(()=>{
+            dispatch({ type:'eleMonitor/fetchChartInfo' });
+        },3 * 60 * 1000)         
         return ()=>{
             dispatch({ type:'eleMonitor/cancelAll'});
+            clearInterval(timer);
+            timer = null;
         }
     },[])
     const sidebar = (
@@ -50,7 +55,10 @@ function EleMonitorManager({ dispatch, user, eleMonitor, fields }) {
                                 :
                                 <Tree
                                     className={style['custom-tree']}
-                                    defaultExpandAll={true}
+                                    expandedKeys={expandedKeys}
+                                    onExpand={temp=>{
+                                        dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                    }}
                                     selectedKeys={[currentAttr.key]}
                                     treeData={fieldAttrs}
                                     onSelect={(selectedKeys, {node})=>{                                    

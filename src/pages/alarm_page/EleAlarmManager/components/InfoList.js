@@ -41,7 +41,7 @@ function InfoList({ data, typeCode }){
     let iconsMap = typeCode === 'ele' ? eleIconsMap : typeCode === 'over' ? overIconsMap : linkIconsMap;
 
     return (
-        <div className={style['flex-container']} style={{ height:'10%', paddingBottom:'1rem' }}>
+        <div className={style['flex-container']} style={{ height:'14%', paddingBottom:'1rem' }}>
             {
                 Object.keys(data).map(key=>(
                     <div key={key} className={style['flex-item-wrapper']} >
@@ -54,7 +54,7 @@ function InfoList({ data, typeCode }){
                             </div>            
                             <div className={style['flex-info']}>
                                 <div className={style['data']}>{ data[key] }</div>
-                                <div>{ typeCode === 'link' ? linkKeyMap[key] + '通讯异常' : key }</div>
+                                <div style={{ overflow:'hidden', textOverflow:'ellipsis' }}>{ typeCode === 'link' ? linkKeyMap[key] + '通讯异常' : key }</div>
                             </div>
                             <div className={style['mask']}></div>
                         </div>

@@ -15,7 +15,7 @@ const { TabPane } = Tabs;
 
 function CostAnalyze({ dispatch, costReport, fields, user }) {
     const { analyzeInfo, chartInfo, checkedKeys, timeType } = costReport;
-    const { allFields, energyList, energyInfo, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, energyList, energyInfo, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     let infoTitle = timeType === '1' ? '昨日' : timeType === '2' ? '上月' : timeType === '3' ? '去年' : '';
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
@@ -88,7 +88,10 @@ function CostAnalyze({ dispatch, costReport, fields, user }) {
                                                         className={style['custom-tree']}
                                                         checkable
                                                         checkStrictly
-                                                        defaultExpandAll={true}
+                                                        expandedKeys={expandedKeys}
+                                                        onExpand={temp=>{
+                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                                        }}
                                                         checkedKeys={checkedKeys}
                                                         onCheck={(checkedKeys, e)=>{
                                                             let { checked, checkedNodes, node }  = e;

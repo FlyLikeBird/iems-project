@@ -53,7 +53,7 @@ function PageItem1({ energy, attrEnergy, analyze, dispatch, companyName }){
                             <Radio.Group buttonStyle='solid' size='small' value={energy.energyInfo.type_id} onChange={e=>{
                                 let prevEnergy = energyInfo;
                                 let currentEnergy = energyList.filter(i=>i.type_id === e.target.value )[0];
-                                if ( e.target.value === 0 || e.target.value === 1 ){
+                                if ( e.target.value === 0 || e.target.value === 1 || e.target.value === 2 ){
                                     dispatch({type:'energy/toggleEnergyType', payload:currentEnergy });
                                     dispatch({type:'energy/toggleMaskVisible', payload:true });
                                     Promise.all([

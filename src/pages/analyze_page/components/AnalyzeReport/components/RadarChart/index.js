@@ -38,9 +38,9 @@ function RadarChart({ data }) {
                 radar: {
                     // shape: 'circle',
                     name: {
-                        formatter:(value, indicator)=>{
-                            return `${value}:${data[typesToKeys[value]]}`
-                        },
+                        // formatter:(value, indicator)=>{
+                        //     return `${value}`
+                        // },
                         textStyle: {
                             color: '#fff',
                             padding:4,

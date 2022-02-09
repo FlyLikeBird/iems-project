@@ -204,3 +204,16 @@ export function fetchImg(data = {}){
         body:str
         }); 
 }
+
+export function setProductTarget(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/costreport/setproducttarget', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}

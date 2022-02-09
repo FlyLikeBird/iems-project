@@ -37,7 +37,8 @@
 
 .flex-item .flex-info {
     width:70%;
-    text-align:center;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .flex-item .mask {

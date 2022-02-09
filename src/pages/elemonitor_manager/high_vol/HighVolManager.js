@@ -9,19 +9,21 @@ import ChartContainer  from './ChartContainer';
 import style from '../EleMonitor.css';
 import IndexStyle from '../../IndexPage.css';
 const { TabPane } = Tabs;
-
+let timer = null;
 function HighVolManager({ dispatch, user, highVol, eleMonitor, global }){
     
     const { incomingList, currentIncoming, incomingInfo, chartInfo, optionType, isLoading } = highVol;
     useEffect(()=>{
-        new Promise((resolve, reject)=>{
-            dispatch({ type:'highVol/fetchIncoming', payload:{ resolve, reject }});
-        })
-        .then(()=>{
-            dispatch({ type:'highVol/init'});
-        })
+        
+        dispatch({ type:'highVol/init'});
+        timer = setInterval(()=>{
+            dispatch({ type:'highVol/fetchIncomingInfo'});
+            dispatch({ type:'highVol/fetchIncomingChart'});
+        },3 * 60 * 1000)
         return ()=>{
             dispatch({ type:'highVol/cancelAll'});
+            clearInterval(timer);
+            timer = null;
         }
     },[]);
     const sidebar = (
@@ -37,7 +39,8 @@ function HighVolManager({ dispatch, user, highVol, eleMonitor, global }){
                                     <div key={index} style={{ textAlign:'center', color: currentIncoming.in_id === item.in_id ? '#03a4fe' : '#a3a3ad'}} onClick={()=>{
                                         if ( item.in_id !== currentIncoming.in_id ){
                                             dispatch({ type:'highVol/toggleIncoming', payload:item });
-                                            dispatch({ type:'highVol/init'});
+                                            dispatch({ type:'highVol/fetchIncomingInfo'});
+                                            dispatch({ type:'highVol/fetchIncomingChart'});
                                         }
                                     }}>
                                         <div><IconFont style={{ fontSize:'10rem', margin:'10px 0' }} type='iconVector1' /></div>
@@ -56,7 +59,7 @@ function HighVolManager({ dispatch, user, highVol, eleMonitor, global }){
         <div>
             <div className={IndexStyle['card-container-wrapper']} style={{ height:'36%', paddingRight:'0'}}>
                 <div className={IndexStyle['card-container']}>
-                    <div className={IndexStyle['card-title']}>进线状态</div>
+                    <div className={IndexStyle['card-title']}>{ currentIncoming.name || '-- --' }</div>
                     <div className={IndexStyle['card-content']}>
                         <div className={ user.theme === 'dark' ? style['flex-container'] + ' ' + style['dark'] : style['flex-container']}>
                             {

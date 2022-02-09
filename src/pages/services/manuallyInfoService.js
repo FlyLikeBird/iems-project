@@ -1,6 +1,7 @@
 import request from '../utils/request';
 import { translateObj } from '../utils/translateObj';
 import { apiToken } from '../utils/encryption';
+import config from '../../../config';
 
 export function getInfoType(data = {}){
     let token = apiToken();
@@ -41,11 +42,24 @@ export function fillInfo(data={}){
         }); 
 }
 
+export function patchFillInfo(data={}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/infofill/patchfillinfo', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
 export function exportInfo(data={}){
     let token = apiToken();
     data.token = token;
     let str = translateObj(data);
-    let url = `http://192.168.20.33:8880/api/export/exportinfofill?${str}`;
+    let url =  `http://${config.apiHost}/api/export/exportinfofill?${str}`;
     return url;
 }
 
@@ -53,7 +67,7 @@ export function importTpl(data={}){
     let token = apiToken();
     data.token = token;
     let str = translateObj(data);
-    let url = `http://192.168.20.33:8880/api/export/createinfotpl?${str}`;
+    let url = `http://${config.apiHost}/api/export/createinfotpl?${str}`;
     return url;
 }
 

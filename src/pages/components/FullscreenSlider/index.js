@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { Link, withRouter } from 'dva/router';
+import { Link } from 'dva/router';
 import { Spin, Upload, Button, Modal, message, Tooltip } from 'antd';
 import { LeftOutlined, RightOutlined, FullscreenOutlined, DownloadOutlined, PlusOutlined, FullscreenExitOutlined, UploadOutlined } from '@ant-design/icons';
 import style from './FullscreenSlider.css';
@@ -8,6 +8,12 @@ import config from '../../../../config';
 
 let eventAdd = false;
 let subWindow = null;
+function isFullscreen(){
+    return document.fullscreenElement    ||
+           document.msFullscreenElement  ||
+           document.mozFullScreenElement ||
+           document.webkitFullscreenElement || false;
+}
 function getBase64(file){
     return new Promise(( resolve, reject)=>{
         let reader = new FileReader();
@@ -17,7 +23,7 @@ function getBase64(file){
     })
 }
 // sourceData = 全屏组件包含的内部组件的数据 
-function FullscreenSlider({ data, sourceData, interval, isLoading, dispatch, collapsed, currentPath, currentIndex, user, location, isFulled, delay = 0}){
+function FullscreenSlider({ data, sourceData, interval, isLoading, dispatch, collapsed, currentPath, currentIndex, user, delay = 0}){
     let timerRef = useRef(null);
     let itemRef = useRef({ smallWidth:0, fullWidth:0 });
     const sourceDataRef = useRef();
@@ -32,26 +38,10 @@ function FullscreenSlider({ data, sourceData, interval, isLoading, dispatch, col
 
     // 下载图片
     const handleDownloadImg = ()=>{
-        let infoDoms = contentRef.current.getElementsByClassName('info-container');
-        let info2Doms = contentRef.current.getElementsByClassName('info-container-2');
-        let tagDoms = contentRef.current.getElementsByClassName('point-container');
-        // 去掉信息框的动画样式
-        if ( infoDoms && infoDoms.length ){
-            infoDoms[0].classList.remove('animate__animated','animate__bounceInLeft');
-        }
-        if ( info2Doms && info2Doms.length ){
-            for( let i = 0;i<info2Doms.length;i++){
-                info2Doms[i].classList.remove('animate__animated','animate__bounceInLeft');
-            }
-        }
-        if ( tagDoms && tagDoms.length){
-            for(let i=0;i<tagDoms.length;i++){
-                tagDoms[i].classList.remove('motion');
-            }
-        }
-        html2canvas(contentRef.current, { allowTaint:false, useCORS:true})
+        html2canvas(contentRef.current, { allowTaint:false, useCORS:true, scale:1 })
             .then(canvas=>{
-                let MIME_TYPE = "image/png";
+              
+                let MIME_TYPE = "image/jpg";
                 let url = canvas.toDataURL(MIME_TYPE);
                 let linkBtn = document.createElement('a');
                 linkBtn.download = '拟态图';          
@@ -60,14 +50,6 @@ function FullscreenSlider({ data, sourceData, interval, isLoading, dispatch, col
                 document.body.appendChild(linkBtn);
                 linkBtn.click();
                 document.body.removeChild(linkBtn);
-                console.log(tagDoms);
-                setTimeout(()=>{
-                    if ( tagDoms && tagDoms.length){
-                        for(let i=0;i<tagDoms.length;i++){
-                            tagDoms[i].classList.add('motion');
-                        }
-                    }
-                },100)
             })
     }
     // 鼠标移入dom内，停止自动轮播
@@ -257,52 +239,17 @@ function FullscreenSlider({ data, sourceData, interval, isLoading, dispatch, col
         } 
         fixImgWidth(); 
     },[collapsed]);
-    // 注册message事件用来父子窗口之间通信
-    useEffect(()=>{
-        function handleMessage(e){
-            if ( e.data === 'loaded'){
-                let obj = {
-                    user:{ ...user, socket:null, startDate:'', endDate:'' },
-                    from:window.location.pathname,
-                    state:sourceDataRef.current,
-                }                    
-                if ( subWindow ){
-                    subWindow.postMessage(obj, location.origin);
-                }
-            }
-            if ( e.data ==='closed' ){
-                subWindow = null;
-            }
-        }
-        window.addEventListener('message', handleMessage);
-        return ()=>{
-            window.removeEventListener('message',handleMessage);
-            subWindow = null;
-        }
-    },[])
+   
     const handleFullscreen = ()=>{
-        // if ( currentPath === '/global_fullscreen') {
-        //     // 回退到跳转之前的页面
-        //     history.push({
-        //         pathname:location.from,
-        //         state:location.state,
-        //         noRefresh:true
-        //     });
-        // } else {
-        //     history.push({
-        //         pathname:'/global_fullscreen',
-        //         from:currentPath,
-        //         index:sliderInfo.current,
-        //         state:sourceData
-        //     });
-        // }
-        // console.log(window.location);
-        let origin = window.location.pathname;
-        let url = `${window.location.origin}/global_fullscreen`;
-        if(!subWindow){
-            subWindow = window.open(url, window.location.origin + origin);
-        } else {
-            subWindow.focus();
+        let container = containerRef.current;
+        if ( container ){
+            try {
+                if ( container.requestFullscreen ) {
+                    container.requestFullscreen();
+                }
+            } catch(err){
+                console.log(err);
+            }
         }
     }
     
@@ -352,44 +299,11 @@ function FullscreenSlider({ data, sourceData, interval, isLoading, dispatch, col
           <div style={{ marginTop: 8 }}>上传图片</div>
         </div>
       );
+    let isFulled = isFullscreen();
     return (
-        <div ref={containerRef} className={style['container']} onMouseOver={handleMouseOver} onMouseOut={handleMouseOut}>
+        <div ref={containerRef} className={style['container']}>
             <div ref={contentRef} className={style['content-container']}>
-                <div className={style['item-container']}>  
-                {
-                    data && data.length 
-                    ?
-                    data.map((item,i)=>(
-                        <div
-                            className={style['item']}
-                            key={i} 
-                            style={{ 
-                                transform:`translateX(${sliderInfo.positions[i]}px)`,
-                                transition: sliderInfo.useTransition ? 'transform 1.5s' : 'none',
-                            }}>
-                            { item }
-                        </div>
-                    ))
-                    :
-                    <Spin className={style['spin']} size='large' />
-                }
-                </div>
-                
-            </div>
-            {/*  左右控制button */}
-            { data.length > 1 ? <div className={`${style['button']} ${style['left']}`} onClick={()=>handleToggle('left')}><LeftOutlined /></div> : null }
-            { data.length > 1 ? <div className={`${style['button']} ${style['right']}`} onClick={()=>handleToggle('right')}><RightOutlined /></div> : null }
-            {/* 指示点 */}
-            <div className={style['dot-container']}>
-                {
-                    data && data.length && data.length > 1
-                    ?
-                    data.map((item,index)=>(
-                        <div key={index} className={ index === sliderInfo.current ? `${style['dot']} ${style['current']}` : style['dot'] }></div>
-                    ))
-                    :
-                    null
-                }
+                { data }
             </div>
             <Modal visible={visible} onCancel={()=>toggleVisible(false)} okText='上传' cancelText='取消' onOk={()=>{
                 // console.log(fileList);
@@ -428,19 +342,26 @@ function FullscreenSlider({ data, sourceData, interval, isLoading, dispatch, col
                 :
                 <div className={style['action-container']}>
                     {
-                        currentPath === '/energy/energy_manage' || currentPath === '/energy/alarm_manage'
+                        ( currentPath === '/energy/energy_manage' || currentPath === '/energy/alarm_manage' ) && !isFulled
                         ?
                         <Tooltip title='上传公司图片'><span onClick={()=>toggleVisible(true)}><UploadOutlined /></span></Tooltip>
                         :
                         null
                     }
-                    <Tooltip title='下载图片'><span onClick={handleDownloadImg}><DownloadOutlined /></span></Tooltip>
                     {
-                        !isFulled
+                        currentPath === '/energy/energy_manage' || currentPath === '/energy/alarm_manage' 
                         ?
-                        <Tooltip title='全屏显示'><span onClick={()=>handleFullscreen()}><FullscreenOutlined /></span></Tooltip>
+                        <Tooltip title='下载图片'><span onClick={handleDownloadImg}><DownloadOutlined /></span></Tooltip>
                         :
                         null
+                    }
+                    
+                    {
+                        isFulled 
+                        ?
+                        null
+                        :
+                        <Tooltip title='全屏显示'><span onClick={()=>handleFullscreen()}><FullscreenOutlined /></span></Tooltip>
                     }
                 </div>
             }
@@ -449,4 +370,4 @@ function FullscreenSlider({ data, sourceData, interval, isLoading, dispatch, col
 }
 
   
-export default withRouter(FullscreenSlider);
+export default FullscreenSlider;

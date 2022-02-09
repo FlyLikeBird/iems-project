@@ -4,7 +4,6 @@ import { Link, Route, Switch, routerRedux } from 'dva/router';
 import { Radio, Spin } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 // import MonitorIndex from './monitor_index';
-
 import GlobalMonitor from './GlobalMonitor';
 // import PowerRoomManager from './PowerRoomManager';
 // import TerminalMach from './TerminalMach';

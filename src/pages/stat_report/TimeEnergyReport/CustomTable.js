@@ -6,7 +6,7 @@ import style from '../../IndexPage.css';
 import { downloadExcel } from '@/pages/utils/array';
 import XLSX from 'xlsx';
 
-function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate, dataType, companyName, pagesize, isLoading }){
+function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate, dataType, companyName, pagesize }){
     const [currentPage, setCurrentPage] = useState(1);
     const columns = [
         {
@@ -72,12 +72,9 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
     ];
     useEffect(()=>{
         setCurrentPage(1);
-    },[data, pagesize])
+    },[data, pagesize]);
     return (
-        isLoading
-        ?
-        <Skeleton active className={style['skeleton']} />
-        :
+       
         <Table
             columns={columns}
             dataSource={data}
@@ -89,10 +86,7 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
                     <div style={{ display:'flex', justifyContent:'space-between'}}>
                         <div>{ `${companyName}复合计费${ dataType === '1' ? '成本' : '能耗' }报表`}</div>
                         <Button size="small" type="primary" onClick={()=>{
-                            if ( isLoading ){
-                                message.info('正在加载数据，请稍后');
-                                return ;
-                            } else {
+                            
                                 if ( !data.length ){
                                     message.info('数据源为空');
                                 } else {
@@ -130,7 +124,7 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
                                     downloadExcel(sheet, fileTitle + '.xlsx' );
                                 }
                                
-                            }
+                            
                         }}>导出报表</Button>
                     </div>
                 )

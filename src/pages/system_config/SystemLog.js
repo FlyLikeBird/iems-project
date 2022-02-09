@@ -72,7 +72,6 @@ const SystemLog = ({dispatch, log, user}) => {
                             columns={columns}
                             dataSource={logData.logs || []}
                             className={style['self-table-container']}
-                            style={{ paddingTop:'0' }}
                             rowKey="log_id"
                             loading={isLoading}
                             bordered={true}
@@ -89,7 +88,6 @@ const SystemLog = ({dispatch, log, user}) => {
                             columns={columns}
                             dataSource={logData.logs || []}
                             rowKey="log_id"
-                            style={{ paddingTop:'0' }}
                             className={style['self-table-container']}
                             loading={isLoading}
                             bordered={true}

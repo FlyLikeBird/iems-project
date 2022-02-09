@@ -1,4 +1,4 @@
-import { getTotalCost, getCurrentCost, getEnergyType, getSceneInfo, getRank, getElectricCostAnalysis, getTotalCostAnalysis, fetchImg } from '../../services/energyService';
+import { getTotalCost, getCurrentCost, getEnergyType, getSceneInfo, getRank, getElectricCostAnalysis, getAttrWaterCost, getTotalCostAnalysis, fetchImg } from '../../services/energyService';
 import { setSceneInfo, uploadImg } from '../../services/alarmService';
 import { getMachs } from '../../services/demandService';
 import { getSaveSpace } from '../../services/monitorService';
@@ -21,7 +21,8 @@ const initialState = {
     // 0 成本   1 能耗
     showType:'0',
     // 遮罩层状态
-    maskVisible:false
+    maskVisible:false,
+    waterCost:{}
 };
 
 export default {
@@ -56,6 +57,8 @@ export default {
                     let payload = { currentCost : currentCost.data.data,  costAnalysis : costAnalysis.data.data, energyType: energyInfo.type_id };
                     yield put({type:'get', payload});
                     if ( resolve && typeof resolve === 'function') resolve();
+                } else if ( currentCost.data.code === '1001' ){
+                    yield put({ type:'user/loginOut'});
                 }
             } catch (err){
                 console.log(err);
@@ -70,6 +73,31 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({type:'getCostByTime', payload:{ data:data.data, timeType, energyType:energyInfo.type_id }});
                     if ( resolve && typeof resolve === 'function' ) resolve();
+                }
+            } catch(err){
+                console.log(err);
+            }
+        },
+        *initWaterCost(action, { call, select, put, all }) {
+            try {
+                let { user:{ company_id }, fields:{ currentAttr }} = yield select();
+                yield put.resolve({ type:'fields/init'});
+                yield put({ type:'fetchWaterCost'});
+            } catch(err){
+                console.log(err);
+            }
+        },
+        *fetchWaterCost(action, { call, select, put }){
+            try {
+                let { user:{ company_id }, fields:{ currentAttr }} = yield select();
+                if ( !Object.keys(currentAttr).length ) {
+                    yield put({ type:'getWaterCost', payload:{ data:{ a:'1' } }});
+                }
+                let { data } = yield call(getAttrWaterCost, { company_id, attr_id:currentAttr.key });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getWaterCost', payload:{ data:data.data }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
@@ -150,7 +178,6 @@ export default {
         },
         get(state, { payload : { currentCost, costAnalysis, energyType }}){
             let costInfo=[];
-            console.log(currentCost);
             costInfo.push({ key:'day', ...currentCost['day']});
             costInfo.push({ key:'month',  ...currentCost['month']});
             costInfo.push({ key:'year', ...currentCost['year']});
@@ -172,16 +199,24 @@ export default {
             chartInfo['sameValueData'] = { '0':data.sameCost, '1':data.sameEnergy };
             return { ...state, chartInfo, chartLoading:false };
         },
+        getWaterCost(state, { payload:{ data }}){
+            let costInfo = [], chartInfo = {};
+            costInfo.push({ key:'month',  ...data['month']});
+            costInfo.push({ key:'year', ...data['year']});
+            data['costInfo'] = costInfo;
+            data['cost'] = data.value;
+            data['lastValueData'] = { '0':data.lastValue,'1':[] };
+            return { ...state, waterCost:data };
+        },
         getScene(state, { payload : { data }}){
             return { ...state, sceneInfo:data };
         },
         getType(state, { payload : { data } }){
             // let energyInfo = data.filter(i=>i.type_code === 'ele')[0];
-            let energyInfo = { type_id : 0, type_name:'总', type_code:'total', unit:'kwh' };
+            let energyInfo = { type_id : 0, type_name:'总', type_code:'total', unit:'kgce' };
             data.unshift(energyInfo);
             return { ...state, energyList:data, energyInfo:energyInfo };
         },
-        
         toggleChartLoading(state){
             return { ...state, chartLoading:true };
         },

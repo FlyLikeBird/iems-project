@@ -1,11 +1,8 @@
 .container {
-    height:100%;
     width:100%;
-    overflow-x:hidden;
-    overflow-y:hidden;
     border-right:none;
     background-color:#fff;
-    border:none;
+    border-right:none !important;
 }
 
 .container:global(.ant-menu) :global(.ant-menu-submenu) :global(.ant-menu-submenu-title){

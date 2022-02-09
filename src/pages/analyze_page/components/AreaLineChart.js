@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Radio, Card, Button  } from 'antd';
-import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined } from '@ant-design/icons';
+import { LineChartOutlined, BarChartOutlined, PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
-import { FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
 import { downloadExcel } from '@/pages/utils/array';
 import style from '@/pages/IndexPage.css';
 import XLSX from 'xlsx';
@@ -61,7 +60,7 @@ function AreaLine({ data, theme, forModal }) {
                     downloadExcel(sheet, fileTitle + '.xlsx' );
                 }
             }}>
-                <Radio.Button value='download'><FileImageOutlined /></Radio.Button>
+                <Radio.Button value='download'><PictureOutlined /></Radio.Button>
                 <Radio.Button value='excel'><FileExcelOutlined /></Radio.Button>
             </Radio.Group>
             <ReactEcharts

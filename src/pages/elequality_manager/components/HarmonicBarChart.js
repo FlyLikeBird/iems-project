@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { connect } from 'dva';
 import { Radio } from 'antd';
-import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import html2canvas  from 'html2canvas';
 import { downloadExcel } from '@/pages/utils/array';
 import style from '../../IndexPage.css';
@@ -101,7 +101,7 @@ function HarmonicBarChart({ data, title, timeType, type, theme }) {
             }}>
                 <Radio.Button value='bar'><BarChartOutlined /></Radio.Button>
                 <Radio.Button value='line'><LineChartOutlined /></Radio.Button>
-                <Radio.Button value='download'><FileImageOutlined /></Radio.Button>
+                <Radio.Button value='download'><PictureOutlined /></Radio.Button>
                 <Radio.Button value='excel'><FileExcelOutlined /></Radio.Button>
             </Radio.Group>
             <ReactEcharts

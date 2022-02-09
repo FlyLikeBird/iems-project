@@ -1,4 +1,4 @@
-import { getMonitorInfo, getEnergyScene, getEfficiencyScene, getAlarmScene, getTplInfo, getTplRank, fetchImg, getSaveSpace } from '../services/monitorService';
+import { getMonitorInfo, getCoalTrend, getEnergyScene, getEfficiencyScene, getAlarmScene, getTplInfo, getTplRank, fetchImg, getSaveSpace } from '../services/monitorService';
 import { getEnergyType } from '../services/energyService';
 
 const initialState = {
@@ -7,9 +7,7 @@ const initialState = {
     energyInfoList:[],
     energyList:[],
     energyInfo:{},
-    // 能流图层级关系
-    parentNodes:[{ attr_name:'能流图入口', attr_id:'' }],
-    chartLoading:true,
+    coalInfo:{},
     tplInfo:{},
     // 节省空间
     saveSpace:{}
@@ -31,6 +29,13 @@ export default {
             yield put({ type:'cancelSaveSpace'});
             yield put({ type:'reset'});
         },
+        *init(action, { put }){
+            yield put({ type:'fetchMonitorInfo'});
+            yield put({ type:'fetchEnergyType'});
+            yield put({ type:'fetchTplInfo'});
+            yield put({ type:'fetchSaveSpace'});
+            yield put({ type:'fetchCoalTrend'});
+        },
         *fetchMonitorInfo(action, { select, call, put}){
             yield put.resolve({ type:'cancelMonitorInfo'});
             yield put.resolve({ type:'cancelable', task:fetchMonitorInfoCancelabl, action:'cancelMonitorInfo' });
@@ -40,10 +45,21 @@ export default {
                     let { data } = yield call(getMonitorInfo, { company_id });
                     if ( data && data.code === '0') {
                         yield put({ type:'getInfo', payload:{ data : data.data }});
-                    }
+                    } 
                 } catch(err){        
                     console.log(err);
                 }
+            }
+        },
+        *fetchCoalTrend(action, { select, call, put }){
+            try {
+                let { user:{ company_id }} = yield select();
+                let { data } = yield call(getCoalTrend, { company_id });
+                if ( data && data.code === '0' ) {
+                    yield put({ type:'getCoal', payload:{ data:data.data } });
+                }
+            } catch(err){   
+                console.log(err);
             }
         },
         *fetchEnergyType(action, { call, put}){
@@ -118,29 +134,6 @@ export default {
         //     } catch(err){
         //         console.log(err);
         //     }
-        // },
-        // *fetchFlowChart(action, { select, call, put}){
-        //     try {
-        //         let company_id = localStorage.getItem('company_id');
-        //         let { timeType, attr_id, resolve, reject } = action.payload ? action.payload : {};
-        //         let { data } = yield call(getEfficiencyScene, { company_id, attr_id, time_type:timeType });
-        //         if ( data && data.code === '0' ){
-        //             let { monitor : { sceneList } } = yield select();
-        //             if ( data && data.data.length ) {
-        //                 // 请求新的能流图数据,更新sceneList
-        //                 yield put({type:'toggleChartLoading'});
-        //                 sceneList[1] = data.data;
-        //                 yield put({type:'getScenes', payload:{ sceneList }});
-        //                 if ( resolve && typeof resolve === 'function') resolve();
-        //             } else {
-        //                 // 如果返回为空数组，则不更新state
-        //                 if ( reject && typeof reject === 'function' ) reject('下一层级为空');
-                        
-        //             }
-        //         }
-        //     } catch(err){
-        //         console.log(err);
-        //     }
         // }
     },
     reducers:{
@@ -148,17 +141,22 @@ export default {
             return { ...state, chartLoading:true }
         },
         getInfo(state, { payload: { data }}){
-            let energyInfoList = Object.keys(data.energyInfo).map(key=>{
-                data.energyInfo[key]['key'] = key;
-                data.energyInfo[key]['quota'] = data.quota[key];
-                data.energyInfo[key]['demand'] = data.demand[key].predDmand;
-                data.energyInfo[key]['demandRatio'] = data.demand[key].ratio;
-                return data.energyInfo[key];                
+            let { energyInfo, quota, demand } = data;
+            let energyInfoList = Object.keys(energyInfo).map(key=>{
+                energyInfo[key]['key'] = key;
+                energyInfo[key]['quota'] = quota[key];
+                energyInfo[key]['demand'] = demand[key].predDmand;
+                energyInfo[key]['demandRatio'] = demand[key].ratio;
+                energyInfo[key]['percent'] = energyInfo[key].energy ? quota[key] ? energyInfo[key].energy / quota[key] >= 1 ? 100 : Math.round(energyInfo[key].energy/quota[key]*100) : 100 : 0;
+                return energyInfo[key];                
             });
             return { ...state, monitorInfo:data, energyInfoList };
         },
         getTplInfo(state, { payload:{ data }}){
             return { ...state, tplInfo:data } ;
+        },
+        getCoal(state, { payload:{ data }}){
+            return { ...state, coalInfo:data };
         },
         getScenes(state, { payload :{ sceneList }}){
             return { ...state, sceneList, chartLoading:false };
@@ -172,9 +170,6 @@ export default {
         },
         toggleEnergy(state, { payload }){
             return { ...state, energyInfo:payload };
-        },
-        setLevelInfo(state, { payload }){
-            return { ...state, parentNodes:payload };
         },
         reset(state){
             return initialState;

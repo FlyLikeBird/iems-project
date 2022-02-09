@@ -14,6 +14,7 @@ const buttons = [
     { title:'功率因素', code:'5', unit:'cosΦ' },
     { title:'无功功率', code:'6', unit:'kvar' },
     { title:'视在功率', code:'7', unit:'kw' },
+    { title:'温度', code:'8', unit:'℃' }
     // { title:'三相不平衡', code:'8', unit:'' },
 ];
 

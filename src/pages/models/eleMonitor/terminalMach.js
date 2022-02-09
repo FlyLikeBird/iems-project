@@ -69,7 +69,8 @@ export default {
                     let { data } = yield call(getSeriesMach, { company_id, type:currentType.key, page, pagesize:12 });
                     if ( data && data.code === '0'){
                         yield put({ type:'getSeriesMach', payload:{ data:data.data, currentPage:page, total:data.count }});
-                    } else {
+                    } else if ( data && data.code === '1001'){
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);
@@ -91,7 +92,8 @@ export default {
                     let { data } = yield call(getMachDetail, { company_id, mach_id:currentMach.mach_id, date_time:referDate.format('YYYY-MM-DD')  });
                     if ( data && data.code === '0'){
                         yield put({ type:'getMachDetail', payload:{ data:data.data }});
-                    } else {
+                    } else if ( data && data.code === '1001'){
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);

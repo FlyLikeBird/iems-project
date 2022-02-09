@@ -15,7 +15,7 @@ const { TabPane } = Tabs;
 function DemandManager({ dispatch, user, demand, fields }){
     const { timeType, startDate, endDate } = user;
     const { machList, currentMach, referTime, demandInfo, demandLoading } = demand;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     const [activeKey, setActiveKey] = useState('1');
@@ -54,7 +54,10 @@ function DemandManager({ dispatch, user, demand, fields }){
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{

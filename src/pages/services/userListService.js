@@ -93,6 +93,19 @@ export function deleteUser(data={}){
         });
 }
 
+export function updatePassword(data={}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/index/updateuserpw', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        });
+}
+
 export function getUserPermission(data={}){
     let token = apiToken();
     data.token = token;

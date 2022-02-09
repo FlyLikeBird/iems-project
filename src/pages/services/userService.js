@@ -41,6 +41,16 @@ export function getNewThirdAgent(data = {}){
         body:str
         }); 
 }
+export function fetchSessionUser(data = {}){
+    let str = translateObj(data);
+    return request('/login/getsessionuser', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
 // 修改企业用户的logo
 export function setCompanyLogo(data = {}){
     let token = apiToken();

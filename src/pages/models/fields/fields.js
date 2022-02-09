@@ -5,7 +5,8 @@ const initialState = {
     energyList:[
         { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'},
         { type_name:'水', type_code:'water', type_id:'2', unit:'m³'},
-        { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' }
+        { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' },
+        { type_name:'热', type_code:'hot', type_id:'4', unit:'GJ' }
     ],
     energyInfo:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh' },
     // {
@@ -24,6 +25,7 @@ const initialState = {
     currentField:{},
     //  当前维度属性
     currentAttr:{},
+    expandedKeys:[],
     isLoading:false,
     loaded:false,
     //  属性树加载状态
@@ -73,7 +75,7 @@ export default {
                     let { resolve, reject, needsUpdate } = action.payload || {};
                     //  初始化维度列表
                     // needsUpdate字段是维度源数据变化时强制更新, 否则从缓存中读取维度属性和属性树状态不变
-                    if ( !allFields[energyInfo.type_code] || needsUpdate ) {
+                    if ( !allFields[energyInfo.type_code] || needsUpdate ) {            
                         yield put({type:'toggleLoading'}); 
                         let { data } = yield call(getFields, { company_id, energy_type:energyInfo.type_id });
                         if ( data && data.code == 0 ){
@@ -124,13 +126,17 @@ export default {
                     } else {
                         // console.log('c');
                         // 如果某个维度属性树已经存在，则当前节点更新为树的根节点
-                        let temp = allFields[energyInfo.type_code]['fieldAttrs'][finalField.field_name];
-                        let result = temp && temp.length ? temp[0] : {}; 
-                        yield put({ type:'toggleAttr', payload:result });
+                        let fieldAttrs = allFields[energyInfo.type_code]['fieldAttrs'][finalField.field_name];
+                        let attr = fieldAttrs && fieldAttrs.length ? fieldAttrs[0] : {}; 
+                        let result = [], deep = 0;
+                       
+                        yield put({ type:'toggleAttr', payload:attr });
+                        getExpendKeys( fieldAttrs && fieldAttrs.length ? fieldAttrs : [], result, deep);
+                        yield put({ type:'setExpandedKeys', payload:result });
                         if ( passField ) {
-                            yield put({ type:'fieldDevice/toggleAttr', payload:result });
+                            yield put({ type:'fieldDevice/toggleAttr', payload:attr });
                         }
-                        if ( resolve && typeof resolve === 'function') resolve(temp);
+                        if ( resolve && typeof resolve === 'function') resolve(fieldAttrs);
                     } 
 
                 } catch(err){
@@ -153,16 +159,21 @@ export default {
             allFields[energyInfo.type_code] = {
                 fieldList:fields
             }  
-            return { ...state, currentField:fields && fields.length ? fields[0] : {}, allFields, isLoading:false, loaded:true };
+            return { ...state, currentField:fields && fields.length ? fields[0] : {}, allFields, currentAttr:fields.length ? state.currentAttr : {}, isLoading:false, loaded:true };
         },
         updateField(state){
             let temp = state.allFields[state.energyInfo.type_code];
             let currentField = temp.fieldList && temp.fieldList.length ? temp.fieldList[0] : {};
             let currentAttr = temp.fieldAttrs && temp.fieldAttrs[currentField.field_name] ? temp.fieldAttrs[currentField.field_name][0] : {};
-            return { ...state, currentField, currentAttr };
+            // 当维度为空时，维度相关的属性树也为空
+            let result = [], deep = 0;
+            
+            getExpendKeys( temp.fieldAttrs && temp.fieldAttrs[currentField.field_name] ? temp.fieldAttrs[currentField.field_name] : [], result, deep); 
+            return { ...state, currentField, currentAttr:Object.keys(currentField).length ? currentAttr : {}, expandedKeys:result };
         },
         getFieldType(state, { payload:{data} }){
             let { types } = data;
+            types.push({ field_type:'0', code_name:'其他' });
             return { ...state, fieldType:types };
         },
         getFieldAttrs(state, { payload:{ data, energyInfo, finalField }}){
@@ -172,8 +183,9 @@ export default {
                 fieldList:temp[energyInfo.type_code].fieldList, 
                 fieldAttrs:temp[energyInfo.type_code].fieldAttrs ? { ...temp[energyInfo.type_code].fieldAttrs, [finalField.field_name]:list } : {[finalField.field_name]:list }
             };
-            console.log(list && list[0]);
-            return { ...state, currentAttr:list && list.length ? list[0] : {}, allFields:temp, attrModal:false, treeLoading:false };
+            let result = [], deep = 0;
+            getExpendKeys(list, result, deep);
+            return { ...state, currentAttr:list && list.length ? list[0] : {}, allFields:temp, expandedKeys:result, attrModal:false, treeLoading:false };
         },
         toggleField(state, { payload }){
             let { visible, field } = payload;
@@ -189,8 +201,24 @@ export default {
         setFromWindow(state, { payload:{ allFields, energyInfo, currentField, currentAttr }}){
             return { ...state, allFields, energyInfo, currentField, currentAttr };
         },
+        setExpandedKeys(state, { payload }){
+            return { ...state, expandedKeys:payload };
+        },
         reset(state){
-            return { ...initialState, allFields:{}, currentField:{}, currentAttr:{} };
+            return { ...initialState, allFields:{}, currentField:{}, currentAttr:{}, expandedKeys:[] };
         }
     }
+}
+
+function getExpendKeys(data, result, deep){
+    ++deep;
+    if ( deep === 2 ){
+        return ;
+    }
+    data.forEach(item=>{
+        if ( item.children && item.children.length ){
+            result.push(item.key);
+            getExpendKeys(item.children, result, deep);
+        }
+    })
 }

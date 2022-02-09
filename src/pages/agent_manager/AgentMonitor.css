@@ -164,36 +164,90 @@ html,body{
     项目列表样式
 */
 .project-container-2 {
-    overflow:hidden auto;
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%,-50%);
     width: 80%;
     height:80%;
+    z-index:3;
+    display:flex;
 }
-.project-container-2::-webkit-scrollbar {
+
+.project-container-2 :global(.ant-tree) {
+    background:transparent;
+    color:#fff;
+    margin-right:2rem;
+    width:10%;
+    white-space:nowrap;
+    overflow:hidden auto;
+}
+.project-container-2 :global(.ant-tree) :global(.ant-tree-treenode) .num {
+    font-weight:bold;
+    color:#20b4ff;
+    /* padding:0 10px;
+    background-color:#20b4ff;
+    border-radius:8px; */
+}
+.project-container-2 :global(.ant-tree) :global(.ant-tree-treenode):global(.ant-tree-treenode-selected) :global(.ant-tree-node-content-wrapper) {
+    background-color:#20b4ff;
+    color:#061d3a;
+}
+.project-container-2 :global(.ant-tree) :global(.ant-tree-treenode):global(.ant-tree-treenode-selected) :global(.ant-tree-node-content-wrapper)  {
+    color:#fff;
+}
+.project-container-2 :global(.ant-tree) :global(.ant-tree-treenode):global(.ant-tree-treenode-selected) :global(.ant-tree-node-content-wrapper) .num  {
+    color:#fff;
+}
+.project-container-2 .item-container {
+    width:90%;
+    overflow:hidden auto;
+}
+.project-container-2 .item-container::-webkit-scrollbar {
     width:8px;
     height:1px;
 }
-.project-container-2::-webkit-scrollbar-thumb {
+.project-container-2 .item-container::-webkit-scrollbar-thumb {
     border-radius: 8px;
     -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
     background: rgba(255,255,255,0.3);
 }
 
-.project-container-2::-webkit-scrollbar-track {
+.project-container-2 .item-container::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
     border-radius: 8px;
     background:rgba(255,255,255,0.1);
 }
-.project-container-2 > div {
-    width:20%;
-    height:140px;
+.project-container-2 .item-container .item-wrapper {
+    width:25%;
+    height:160px;
     display:inline-block;
     vertical-align: top;
+    padding:0 0.5rem 0.5rem 0;
 }
-.project-container-2 > div:hover {
+
+.project-container-2 .item-container .item-wrapper .item {
+    position:relative;
+    display:inline-flex; 
+    width:100%;
+    height:100%;
+    flex-direction:column; 
+    align-items: center; 
+    justify-content:space-around; 
+    border:1px solid #000;
+    text-align:center; 
+    background-color:rgba(0,0,0,0.4); 
+    font-size:0.8rem;
+    white-space:nowrap;
+    cursor:pointer;
+}
+.project-container-2 .item-container .item-wrapper .item .tag {
+    position:absolute;
+    right:1rem;
+    top:1rem;
+    z-index:2;
+}
+.project-container-2 .item-container .item-wrapper .item:hover {
     background-color:rgba(0,0,0,0.2);
 }
 /* 
@@ -519,6 +573,7 @@ html,body{
     top:50%;
     margin-top:-20px;
     cursor: pointer;
+
 }
 
 .toggle-button:hover {
@@ -618,23 +673,5 @@ html,body{
     100%{
         transform:translateX(100%);
         opacity:0;
-    }
-}
-
-@keyframes motion2 {
-    0%{
-        width:0;
-    }
-    100%{
-        width:80%;
-    }
-}
-
-@keyframes motion3 {
-    0%{
-        opacity: 0;
-    }
-    100%{
-        opacity:1;
     }
 }

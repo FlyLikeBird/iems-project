@@ -86,7 +86,7 @@ function AdjustCostManager({ dispatch, user, baseCost }) {
                     </div>
                 </div>
             </div>
-            <div className={style['card-container-wrapper']} style={{ height:'50%'}}>
+            <div className={style['card-container-wrapper']} style={{ height:'50%', paddingRight:'0' }}>
                 <div className={style['card-container']}>
                     <AdjustCostChart data={adjustCostInfo.view} theme={user.theme} />
                 </div>

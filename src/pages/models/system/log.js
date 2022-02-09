@@ -27,6 +27,8 @@ export default {
                         logs:data.data.logs,
                     };
                     yield put({type:'getLoginLog', payload:{ data: logData }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);

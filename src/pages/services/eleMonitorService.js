@@ -157,5 +157,17 @@ export function getEleLines(data = {}){
         }); 
 }
 
+export function getLinesData(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/scene/getdiagramdetail', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
 
 

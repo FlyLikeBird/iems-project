@@ -1,5 +1,6 @@
-import { getInfoList, getInfoType, fillInfo, importTpl, importInfo, exportInfo } from '../../services/manuallyInfoService';
+import { getInfoList, getInfoType, fillInfo, patchFillInfo, importTpl, importInfo, exportInfo } from '../../services/manuallyInfoService';
 import { getMeterList, getMeterType, fillMeter, importMeter, importMeterTpl, exportMeter } from '../../services/manuallyMeterService';
+import moment from 'moment';
 let date = new Date();
 
 const initialState = {
@@ -13,7 +14,7 @@ const initialState = {
     // 填报类型列表 
     fillType:[],
     // 默认年份为今年
-    year:date.getFullYear(),
+    fillDate:moment(date),
     // 默认定额周期为年
     time_type:'1',
     is_calc_year:'1',
@@ -34,12 +35,16 @@ export default {
             yield put({ type:'fetchInfo'});
         },
         *fetchInfo(action, { call, put, select, all }){
-            let { user:{ company_id, pagesize }, fields : { currentAttr }, manually : { current, pageNum, isMeterPage, year, time_type } } = yield select();
+            let { user:{ company_id, pagesize }, fields : { currentAttr }, manually : { current, pageNum, isMeterPage, fillDate, time_type } } = yield select();
             let { page } = action.payload || {};
+            let temp = fillDate.format('YYYY-MM').split('-');
+            pageNum = page || 1;
             yield put({type:'toggleLoading', payload:{ page }});
-            let { data } = yield call( isMeterPage ? getMeterList : getInfoList, { company_id, attr_id:currentAttr.key, year, time_type, type_id:current, page:pageNum, pagesize });
+            let { data } = yield call( isMeterPage ? getMeterList : getInfoList, { company_id, attr_id:currentAttr.key, year:temp[0], month:temp[1], time_type, type_id:current, page:pageNum, pagesize });
             if ( data && data.code === '0' ){
                 yield put({type:'get', payload:{ data:data.data, total:data.count }})
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
         *fetchFillType(action, { call, put}){
@@ -58,49 +63,63 @@ export default {
         },
         *save(action, { call, put, select}){
             // 当编辑时把表单项传过来  删除时把一行记录传过来
-            let { values, currentKey, dataIndex, forDelete, resolve, reject } = action.payload;
-            let { manually : { isMeterPage, current, time_type, year, is_calc_year }} = yield select();
-            let finalValue;
-            let obj = { type_id:current, attr_id: currentKey, time_type, year, is_calc_year:1 };
+            let { value, currentKey, attr_ids, type_id, dataIndex, time_type, fillDate, forDelete, forPatch, resolve, reject } = action.payload;
+            let { manually : { isMeterPage, is_calc_year }} = yield select();
+            let dateArr = fillDate.format('YYYY-MM-DD').split('-'); 
+            let obj = { type_id, attr_id: currentKey, time_type, year:dateArr[0], is_calc_year:1 };
             if ( time_type === '1'){
                 // 年定额
-                finalValue = forDelete ? 0 : values['fill_value'];
                 obj['month'] = 1;    
-                obj['value'] = finalValue;
-            } else {            
+            } else if ( time_type === '2'){            
                 // 月定额
-                finalValue = forDelete ? 0 : values[dataIndex];
+                // dataIndex格式为'month_XXX'
                 obj['month'] = dataIndex && ( dataIndex.length === 7 ) ? dataIndex.slice(-1) : dataIndex && ( dataIndex.length === 8 ) ? dataIndex.slice(-2) : '';
-                obj['value'] = finalValue;
+            } else if ( time_type === '3'){
+                obj['month'] = dateArr[1];
+                obj['day'] = dataIndex && ( dataIndex.length === 5 ) ? dataIndex.slice(-1) : dataIndex && ( dataIndex.length === 6   ) ? dataIndex.slice(-2) : '';
             }
-            let { data } = yield call( isMeterPage ? fillMeter : fillInfo, obj);
+            obj['value'] = forDelete ? 0 : value;
+            if ( forPatch ){
+                obj['attr_ids'] = attr_ids;
+            }
+            let { data } = yield call( isMeterPage ? fillMeter : forPatch ? patchFillInfo : fillInfo, obj);
             if ( data && data.code === '0') {
                 if ( resolve && typeof resolve === 'function') resolve();
-                
+            } else if ( data && data.code === '1001' ) {
+                yield put({ type:'user/loginOut'});
             } else {
                 if ( reject && typeof reject === 'function') reject();
             }
-            
         },
         *export(action, { call, put, select}){
-            let { user:{ company_id }, fields : { currentAttr}, manually: { isMeterPage, current, year }} = yield select();
-            let url = yield call( isMeterPage ? exportMeter : exportInfo, { company_id, attr_id:currentAttr.key, year, type_id:current});
-            window.location.href = url;
+            let { user:{ company_id }, fields : { currentAttr}, manually: { isMeterPage, current, fillDate }} = yield select();
+            if ( localStorage.getItem('user_id')) {
+                let dateArr = fillDate.format('YYYY-MM-DD').split('-');
+                let url = yield call( isMeterPage ? exportMeter : exportInfo, { company_id, attr_id:currentAttr.key, year:dateArr[0], type_id:current});
+                window.location.href = url;
+            } else {
+                yield put({ type:'user/loginOut'});
+            }
         },
         *import(action, { call, put, select}){
             let { file } = action.payload;
             let { user:{ company_id }, manually : { isMeterPage }} = yield select();
             let { data } = yield call( isMeterPage ? importMeter : importInfo, { company_id, file });
             if ( data && data.code === '0' ) {
-                yield put({type:'fetch'});
+                yield put({type:'fetchInfo'});
                 yield put({type:'toggleVisible', payload:false });
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
         *importTpl(action, { call, put, select}){
             let { user:{ company_id }, fields: { currentField }, manually :{ isMeterPage, current }} = yield select();
-            let url = yield call( isMeterPage ? importMeterTpl : importTpl, { company_id, field_id:currentField.field_id, type_id:current });
-            // console.log(url);
-            window.location.href = url;
+            if ( localStorage.getItem('user_id')){
+                let url = yield call( isMeterPage ? importMeterTpl : importTpl, { company_id, field_id:currentField.field_id, type_id:current });
+                window.location.href = url;
+            } else {
+                yield put({ type:'user/loginOut'});
+            }
         }
     },
     reducers:{
@@ -125,8 +144,9 @@ export default {
         toggleTimeType(state, { payload }){
             return { ...state, time_type:payload };
         },
-        toggleYear(state, { payload }){
-            return { ...state, year:payload };
+        toggleFillDate(state, { payload }){
+            console.log('a');
+            return { ...state, fillDate:payload };
         },
         toggleVisible(state, { payload }){
             return { ...state, visible:payload };

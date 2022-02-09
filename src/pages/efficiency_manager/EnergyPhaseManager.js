@@ -47,7 +47,7 @@ for(let i=1;i<5;i++){
 function EnergyPhaseManager({ dispatch, user, fields, demand }) {
     const { timeType, startDate, endDate, theme } = user;
     const { energyList, energyInfo, phaseInfo, phaseValueList, phaseLoading, phaseDayTimeType,  phaseOptionType } = demand ;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     const inputRef = useRef();
@@ -82,7 +82,10 @@ function EnergyPhaseManager({ dispatch, user, fields, demand }) {
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{

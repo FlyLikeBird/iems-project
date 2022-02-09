@@ -7,15 +7,16 @@ import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import style from '../EleMonitor.css';
 import IndexStyle from '../../IndexPage.css';
 import { IconFont } from '@/pages/components/IconFont';
-import MachDetail from './MachDetail';
+import EleMachDetail from './EleMachDetail';
+import WaterMachDetail from './WaterMachDetail';
 import CameraManager from './CameraManager';
 
 const iconsMap = {
     'all':'iconVector-4',
-    'ele':'iconVector-3',
+    'ele_meter':'iconVector-3',
     'switch':'iconUnion-1',
-    'gas':'lala',
-    'water':'lala',
+    'gas':'iconqibiao',
+    'water_meter':'iconshuibiao',
     'camera':'iconVector',
     'bar_temp':'iconUnion'
 };
@@ -147,14 +148,40 @@ function Transform({ dispatch, user, terminalMach, global }){
                             }
                         </div>
                     {/* 设备详情modal */}
-                    <MachDetail 
+                    <Modal 
                         visible={visible}
-                        machLoading={machLoading}
-                        dispatch={dispatch}
-                        currentMach={currentMach}
-                        data={machDetailInfo}
-                        theme={user.theme}
-                    /> 
+                        footer={null}
+                        className={style['custom-modal']}
+                        width='80vw'
+                        height='80vh'
+                        destroyOnClose={true}
+                        onCancel={()=>{
+                            dispatch({ type:'terminalMach/resetMachDetail'});
+
+                        }}
+                    >
+                        {
+                            currentMach.energy_type === 1 
+                            ?
+                            <EleMachDetail 
+                                machLoading={machLoading}
+                                dispatch={dispatch}
+                                currentMach={currentMach}
+                                data={machDetailInfo}
+                                theme={user.theme}
+                            /> 
+                            :
+                            <WaterMachDetail 
+                                machLoading={machLoading}
+                                dispatch={dispatch}
+                                currentMach={currentMach}
+                                data={machDetailInfo}
+                                theme={user.theme}
+                            /> 
+                        }
+                        
+                    </Modal>
+                    
                     <Modal 
                         visible={cameraVisible}
                         footer={null}

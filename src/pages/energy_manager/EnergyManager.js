@@ -22,6 +22,7 @@ const dotStyle = {
 }
 let clearIndex;
 let loaded = false;
+let timer;
 function EnergyManager({ dispatch, user, energy, attrEnergy }){ 
     const { timeType, maskVisible, energyInfo, showType, energyList, chartInfo, sceneInfo, costInfo, costAnalysis, isLoading, chartLoading } = energy;
     // 添加滚动事件，如果滚出视图区，则变为固定定位
@@ -36,15 +37,26 @@ function EnergyManager({ dispatch, user, energy, attrEnergy }){
     //     };
     useEffect(()=>{
         // 当组件卸载时重置loaded的状态
+        timer = setInterval(()=>{
+            dispatch({ type:'energy/fetchCost'});
+            dispatch({ type:'energy/fetchCostByTime'});
+        },3 * 60 * 1000)
         return ()=>{
             dispatch({type:'energy/reset'});
+            clearInterval(timer);
+            timer = null;
         }
     },[]);
     const containerRef = useRef();
     const content = (
-        <div>
-            <div className='img-container' data-width={ sceneInfo.imageInfo ? sceneInfo.imageInfo.width : 0} data-height={ sceneInfo.imageInfo ? sceneInfo.imageInfo.height : 0} >
-                <img src={ sceneInfo.scene ? sceneInfo.scene.bg_image_path : ''}  style={{width:'100%',height:'100%'}} />  
+        <div style={{ height:'100%' }}>
+            <div className='img-container' style={{ 
+                height:'100%',
+                backgroundImage:`url(${sceneInfo.scene ? sceneInfo.scene.bg_image_path : ''})`,
+                backgroundRepeat:'no-repeat',
+                backgroundSize:'cover'
+            }}> 
+                
                 {/* {
                     sceneInfo.tags && sceneInfo.tags.length
                     ?              
@@ -66,7 +78,7 @@ function EnergyManager({ dispatch, user, energy, attrEnergy }){
                     null
                 } */}
             </div>
-            <div style={{ backgroundImage:'linear-gradient(to right, rgba(0,0,0,0.6) , transparent)', position:'absolute', left:'0', top:'0', width:'20%', height:'100%' }}>
+            <div style={{ backgroundImage:'linear-gradient(to right, rgba(0,0,0,0.4) , transparent)', position:'absolute', left:'0', top:'0', width:'20%', height:'100%' }}>
                 <div style={{ color:'#fff', position:'absolute', transform:'translateY(-50%)', left:'0', top:'50%', padding:'0 40px'}}>
                     <div style={{ margin:'20px 0', position:'relative'}}>
                         <div style={{...dotStyle, backgroundColor:'#2d54ef'}}></div>

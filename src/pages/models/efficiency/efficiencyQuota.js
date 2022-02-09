@@ -35,6 +35,8 @@ export default {
             let { data } = yield call(getEfficiencyQuota, { company_id, time_type:timeType, energy_type:energyInfo.type_id, attr_id:currentAttr.key, year, month })
             if ( data && data.code === '0'){
                 yield put({type:'getQuota', payload:{ data:data.data }});
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
         *fetchEnergy(action ,{ call, put}){

@@ -172,3 +172,56 @@ export function deleteAttrDevice(data = {}){
         body:str
         }); 
 }
+
+// 查询虚拟节点运算公式
+export function getCalcRule(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/attrcalc/getcalcrule', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function addCalcRule(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/attrcalc/addcalcrule', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function editCalcRule(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/attrcalc/updatecalcrule', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function deleteCalcRule(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/attrcalc/delcalcrule', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}

@@ -88,6 +88,8 @@ export default {
                     let { data } = yield call(getMachRunEff, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:startDate.format('YYYY-MM-DD'), mach_id:currentMach.mach_id });
                     if ( data && data.code === '0'){
                         yield put({ type:'getMachRunEff', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);   
@@ -101,7 +103,9 @@ export default {
                 let { data } = yield call(setMachRefer, { company_id, mach_id:currentMach.mach_id, off_power, empty_power, over_power } );
                 if ( data && data.code === '0'){
                     yield put({type:'fetchMachEff'});
-                }   
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
+                }
             } catch(err){
                 console.log(err);
             }
@@ -163,6 +167,8 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({ type:'baseSaveSpaceResult', payload:{ data:data.data } });
                     if ( resolve && typeof resolve === 'function') resolve();
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject && typeof reject === 'function' ) reject();
                 }
@@ -179,6 +185,8 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({ type:'meterSaveSpaceResult', payload:{ data:data.data } });
                     if ( resolve && typeof resolve === 'function') resolve();
+                } else if ( data && data.code === '1001' ) {
+
                 } else {
                     if ( reject && typeof reject === 'function') reject();
                 }
@@ -195,6 +203,8 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({ type:'adjustSaveSpaceResult', payload:{ data:data.data } });
                     if ( resolve && typeof resolve === 'function') resolve();
+                } else if ( data && data.code === '1001') {
+
                 } else {
                     if ( reject && typeof reject === 'function') reject();
                 }
@@ -212,6 +222,8 @@ export default {
                 let { data } = yield call(getSaveSpaceTrend, { company_id, begin_date:modalStartDate.format('YYYY-MM-DD'), end_date:modalEndDate.format('YYYY-MM-DD'), attr_id:finalAttr.key })
                 if ( data && data.code === '0'){
                     yield put({ type:'getSaveSpaceTrend', payload:{ data:data.data }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
@@ -348,10 +360,16 @@ export default {
             connectPoint(data.tipArr, data.topArr, data.middleArr, data.bottomArr);
             let referArr = [];
             if ( data.tipReferArr ){
-                data.tipReferArr.forEach((item,index)=>{
-                    let value = item || data.topReferArr[index] || data.middleReferArr[index] || data.bottomReferArr[index];
+                data.tipReferArr.forEach((item,index)=>{ 
+                    let value = item === 0 ? 0 : 
+                        data.topReferArr[index] === 0 ? 0 : data.topReferArr[index] 
+                        ? data.topReferArr[index] : data.middleArr[index] === 0 ? 0 : data.middleReferArr[index] 
+                        ? data.middleReferArr[index] : data.bottomReferArr[index] === 0 ? 0 : data.bottomReferArr[index]
+                        ? data.bottomReferArr[index] : null; 
+                    // let value =  item || ( data.topReferArr[index]  ) || ( data.middleReferArr[index] || 0 ) || data.bottomReferArr[index];
                     referArr.push(value); 
-                })
+                });
+                
             };
             data.referArr = referArr;
             return { ...state, saveSpaceTrend:data, saveTrendLoading:false };

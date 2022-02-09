@@ -58,6 +58,8 @@ export default {
                 let { data } = yield call(getBaseCost, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
                 if ( data && data.code === '0'){
                     yield put({type:'getBaseInfo', payload:{ data:data.data }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
@@ -83,6 +85,8 @@ export default {
                 let { data } = yield call(getAdjustCost, { company_id, attr_id:currentAttr.key });
                 if ( data && data.code === '0'){
                     yield put({type:'getAdjustInfo', payload:{ data:data.data }});
+                } else if ( data && data.code === '0'){
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
@@ -96,7 +100,9 @@ export default {
                 let { data } = yield call(getMeasureCost, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType });
                 if ( data && data.code === '0') {
                     yield put({ type:'getMeasureInfo', payload:{ data:data.data }});
-                }   
+                } else if ( data && data.code === '0'){
+                    yield put({ type:'user/loginOut'});
+                }
             } catch(err){
                 console.log(err);
             }
@@ -124,8 +130,8 @@ export default {
             let temp = data.base.detail.pop(), temp2 = data.referInfo.refer.pop();
             data.base.detail.unshift(temp);
             data.referInfo.refer.unshift(temp2);
-            measureInfoList = data.base.detail.filter(i=>+i.totalCost);
-            measureReferList = data.referInfo.refer.filter(i=>+i.totalCost);
+            measureInfoList = data.base.detail;
+            measureReferList = data.referInfo.refer;
             return { ...state, measureCostInfo:data, measureInfoList, measureReferList, isLoading:false };
         },
         toggleEnergyType(state, { payload }){

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { connect } from 'dva';
+import { history } from 'umi';
 import { Link, Route, Switch } from 'dva/router';
 import { Row, Col, Table, Button, Card, Modal, Drawer, Tree, Select, Spin, Tabs, Radio, Form, Upload, message } from 'antd';
 import { FireOutlined, DownloadOutlined, DoubleLeftOutlined, DoubleRightOutlined, PlusOutlined } from '@ant-design/icons'
@@ -19,15 +20,16 @@ for(var i=0;i<30;i++){
 
 
 function QuotaManager({ dispatch, user, quota, fields }){
-    let { energyList, energyInfo, year, time_type, visible, list, pageNum, total, isLoading } = quota;
-    let { allFields, currentField, currentAttr, treeLoading } = fields;
-    let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
-    let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
+    let { optionList, optionInfo, year, time_type, visible, list, pageNum, total, isLoading } = quota;
+    let { allFields, currentField, currentAttr, energyList, energyInfo, expandedKeys, treeLoading } = fields;
+    let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
+    let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
     let [fileList, changeFileList] = useState([]);
     const layout = {
         labelCol: { span: 6 },
         wrapperCol: { span: 18 },
     };
+
     useEffect(()=>{
         return ()=>{
             dispatch({ type:'quota/reset'});
@@ -35,55 +37,95 @@ function QuotaManager({ dispatch, user, quota, fields }){
     },[])
     // console.log(currentField);
     const sidebar = (
-        <div className={style['card-container']}>
-            <Tabs className={style['custom-tabs']} activeKey={currentField.field_id + ''} onChange={activeKey=>{
-                let field = fieldList.filter(i=>i.field_id == activeKey )[0];
-                dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
-                new Promise((resolve)=>{
-                    dispatch({type:'fields/fetchFieldAttrs', resolve })
-                }).then((attrs)=>{
-                    dispatch({type:'quota/fetchQuota'});
-                })
-            }}>
-                {                       
-                    fieldList.map(field=>(
-                        <TabPane 
-                            key={field.field_id} 
-                            tab={field.field_name}
-                        >
-                            {
-                                treeLoading
-                                ?
-                                <Spin />
-                                :
-                                <Tree
-                                    className={style['custom-tree']}
-                                    defaultExpandAll={true}
-                                    selectedKeys={[currentAttr.key]}
-                                    treeData={fieldAttrs}
-                                    onSelect={(selectedKeys, {node})=>{
-                                        dispatch({type:'fields/toggleAttr', payload:node});
-                                        dispatch({type:'quota/fetchQuota'});
-                                    }}
-                                />
-                            }
-                            
-                        </TabPane>
-                    ))
-                }
-            </Tabs>
+        <div>
+            <div className={style['card-container']}>
+            <Tabs className={style['custom-tabs']} activeKey={energyInfo.type_id} onChange={activeKey=>{
+                    let temp = energyList.filter(i=>i.type_id === activeKey)[0];
+                    dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
+                    new Promise((resolve, reject)=>{
+                        dispatch({ type:'fields/init', payload:{ resolve, reject }})
+                    })
+                    .then(()=>{
+                        dispatch({type:'quota/fetchQuota'});
+                    })
+                }}>
+                    {
+                        energyList.map((item,index)=>(
+                            <TabPane key={item.type_id} tab={item.type_name}>
+                                <Tabs  
+                                    className={style['custom-tabs']}
+                                    activeKey={currentField.field_id + ''}  
+                                    type='card'                      
+                                    onChange={fieldKey=>{
+                                        let field = fieldList.filter(i=>i.field_id == fieldKey )[0];
+                                        dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
+                                        new Promise((resolve)=>{
+                                            dispatch({type:'fields/fetchFieldAttrs', resolve })
+                                        })
+                                        .then(()=>{
+                                            dispatch({type:'quota/fetchQuota'});
+                                        })
+                                        
+                                }}>
+                                    {   
+                                        fields.isLoading
+                                        ?
+                                        null
+                                        :
+                                        fieldList && fieldList.length
+                                        ?                    
+                                        fieldList.map(field=>(
+                                            <TabPane 
+                                                key={field.field_id} 
+                                                tab={field.field_name}
+                                            >
+                                                {
+                                                    treeLoading
+                                                    ?
+                                                    <Spin />
+                                                    :
+                                                    <Tree
+                                                        className={style['custom-tree']}
+                                                        expandedKeys={expandedKeys}
+                                                        onExpand={temp=>{
+                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                                        }}
+                                                        selectedKeys={[currentAttr.key]}
+                                                        treeData={fieldAttrs}
+                                                        onSelect={(selectedKeys, {node})=>{
+                                                            dispatch({type:'fields/toggleAttr', payload:node});
+                                                            dispatch({type:'quota/fetchQuota'});
+                                                        }}
+                                                    />
+                                                }
+                                            </TabPane>
+                                        ))
+                                        :
+                                        <div className={style['text']} style={{ padding:'1rem'}}>
+                                            <div>{`${energyInfo.type_name}能源类型还没有设置维度`}</div>
+                                            <div style={{ padding:'1rem 0'}}><Button type='primary' onClick={()=>{
+                                                history.push(`/energy/info_manage_menu/field_manage?type=${energyInfo.type_code}`);
+                                            }} >设置维度</Button></div>
+                                        </div>
+                                    }
+                                </Tabs>
+                            </TabPane>
+                        ))
+                    }
+                </Tabs>
+            </div>
         </div>
     );
     const content = (
         <div>
             <div style={{ height:'40px', display:'flex' }}>
-                <Radio.Group size='small' className={style['custom-radio']} value={energyInfo.type_id} onChange={e=>{
-                    let currentEnergy = energyList.filter(i=>i.type_id == e.target.value )[0];
-                    dispatch({type:'quota/toggleEnergy', payload:currentEnergy });
+                <Radio.Group size='small' className={style['custom-radio']} value={optionInfo.type_id} onChange={e=>{
+                    let temp = optionList.filter(i=>i.type_id == e.target.value )[0];
+                    dispatch({type:'quota/toggleOption', payload:temp });
                     dispatch({type:'quota/fetchQuota'});
                 }}>
                     {
-                        energyList.map(item=>(
+                        optionList.map(item=>(
                             <Radio.Button key={item.type_id} value={item.type_id}>{item.type_name}</Radio.Button>
                         ))
                     }
@@ -127,7 +169,10 @@ function QuotaManager({ dispatch, user, quota, fields }){
                 title="定额管理导入"
                 closable={false}
                 destroyOnClose={true}
-                onCancel={()=>dispatch({type:'quota/toggleVisible', payload:false})}
+                onCancel={()=>{
+                    dispatch({type:'quota/toggleVisible', payload:false});
+                    changeFileList([]);
+                }}
             >
                <Form {...layout}>
                    <Form.Item label="选择文件" name="upload">
@@ -169,7 +214,8 @@ function QuotaManager({ dispatch, user, quota, fields }){
                             if (!fileList.length){
                                 message.error('还没有上传EXCEL文件');
                             } else {
-                                dispatch({type:'quota/import', payload:{ file:fileList[0]}})
+                                dispatch({type:'quota/import', payload:{ file:fileList[0]}});
+                                message.success('模板正在导入中,请稍后...');
                             }
                        }}>导入</Button>
                        <Button style={{margin:'0 10px'}} onClick={()=>dispatch({type:'quota/toggleVisible', payload:false})}>取消</Button>

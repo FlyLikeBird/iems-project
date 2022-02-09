@@ -10,13 +10,20 @@ import style from '../EleMonitor.css';
 import IndexStyle from '../../IndexPage.css';
 
 const { TabPane } = Tabs;
-
+let timer;
 function TransformerManager({ dispatch, user, transformer, eleMonitor, fields }) {
     const { transformerInfo, machList, currentMach, isLoading, chartInfo } = transformer;
     useEffect(()=>{
         dispatch({ type:'transformer/initTransformer'});
+        timer = setInterval(()=>{
+            dispatch({ type:'transformer/fetchTransformerInfo'});
+            dispatch({ type:'transformer/fetchMachChartInfo'});
+        },3 * 60 * 1000)
         return ()=>{
+            // console.log('transformer unmounted');
             dispatch({ type:'transformer/cancelAll'});
+            clearInterval(timer);
+            timer = null;
         }
     },[]);
     const sidebar = (
@@ -50,7 +57,7 @@ function TransformerManager({ dispatch, user, transformer, eleMonitor, fields })
         <div>
             <div className={IndexStyle['card-container-wrapper']} style={{ display:'block', height:'36%', paddingRight:'0' }}>
                 <div className={IndexStyle['card-container']}>
-                    <div className={IndexStyle['card-title']}>变压器状态</div>
+                    <div className={IndexStyle['card-title']}>{ currentMach.title || '-- --' }</div>
                     <div className={IndexStyle['card-content']}>                             
                         <div className={ user.theme === 'dark' ? style['flex-container'] + ' ' + style['dark'] : style['flex-container']} style={{ position:'relative'}}>
                             {

@@ -1,8 +1,7 @@
 import { routerRedux } from 'dva/router';
-import { login, userAuth, agentUserAuth, getNewThirdAgent, setCompanyLogo, getWeather, getThirdAgentInfo, getCameraAccessToken } from '../services/userService';
+import { login, userAuth, agentUserAuth, fetchSessionUser, getNewThirdAgent, setCompanyLogo, getWeather, getThirdAgentInfo, getCameraAccessToken } from '../services/userService';
 import { uploadImg } from '../services/alarmService';
 import { message } from 'antd';
-import config from '../../../config';
 import { md5, encryptBy, decryptBy } from '../utils/encryption';
 import { getCompanyId } from '../utils/storage';
 import moment from 'moment';
@@ -11,6 +10,12 @@ const reg = /\/info_manage_menu\/manual_input\/([^\/]+)\/(\d+)/;
 const companyReg = /\?companyId=(\d*)/;
 const agentReg = /\?agent=(.*)/;
 const agentReg2 = /iot-(.*)/;
+const sessionReg = /\?sid=(.*)/;
+let energyList = [
+    { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'},
+    { type_name:'水', type_code:'water', type_id:'2', unit:'m³'},
+    { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' }
+];
 let date = new Date();
 // 初始化socket对象，并且添加监听事件
 function createWebSocket(url, data, companyId, dispatch){
@@ -22,10 +27,10 @@ function createWebSocket(url, data, companyId, dispatch){
         }
         ws.send(`com:${companyId}`);
     };
-    ws.onclose = function(){
-        console.log('socket close...');
-        reconnect(url, data, companyId, dispatch);
-    };
+    // ws.onclose = function(){
+    //     console.log('socket close...');
+    //     reconnect(url, data, companyId, dispatch);
+    // };
     ws.onerror = function(){
         console.log('socket error...');
         reconnect(url, data, companyId, dispatch);
@@ -77,7 +82,7 @@ const initialState = {
     // 页面总宽度
     containerWidth:0,
     collapsed:false,
-    pagesize:0,
+    pagesize:12,
     // 判断是否是中台打开的子窗口
     fromAgent:false,
     // 其他中台商ID，根据这个ID对登录页做特殊判断
@@ -87,8 +92,16 @@ const initialState = {
     theme:'dark',
     startDate:moment(date),
     endDate:moment(date),
-    timeType:'1'
+    timeType:'1',
+    // 判断是否是全屏模式
+    fullscreen:false
 };
+
+function checkIsLTUser(){
+    let str = window.location.host.split('.');
+    let matchResult = agentReg2.exec(str[0]);
+    return ( matchResult && matchResult[1] === 'lt' ) ? true : false;
+}
 
 export default {
     namespace:'user',
@@ -98,7 +111,7 @@ export default {
             history.listen(( location )=>{
                 let pathname = location.pathname;
                 // 全屏窗口，不请求数据
-                if ( pathname === '/login_spec' || pathname === 'login_mogu' || pathname === '/global_fullscreen' ) return;
+                if ( pathname === '/login_spec' || pathname === 'login_mogu' || pathname === '/global_fullscreen' || pathname === '/privacy' || pathname === '/safety' ) return;
                 // 新版第三方代理商特殊处理
                 if ( location.pathname === '/login' ) {
                     let str = window.location.host.split('.');
@@ -111,30 +124,25 @@ export default {
                 if ( pathname.includes('/login')) {         
                     dispatch({ type:'thirdAgentAuth', payload:{ pathname, search:location.search }});
                     return ;
-                }
-               
+                } 
+                // 联通账户验证sesseion,如果sessionId验证通过直接登录
+                // console.log(location.search);
+                // console.log(location.search.includes('sid'));
+                if ( checkIsLTUser() && location.search.includes('sid') ){
+                    let sessionResult = sessionReg.exec(location.search);
+                    let temp = sessionResult ? sessionResult[1] : '';
+                    if ( temp ){
+                        dispatch({ type:'fetchSession', payload:{ sid:temp }});
+                    }
+                    return;
+                }  
                 if ( pathname !== '/login') {
                     new Promise((resolve, reject)=>{
                         dispatch({type:'userAuth', payload: { dispatch, query:location.search, resolve }})
                     })
                     .then(()=>{
                         // 设置当前页面路由的路径
-                        dispatch({type:'setRoutePath', payload:location.pathname || '/' });
-                        // 能源平台主监控页面(默认页面)
-                        if ( pathname === '/' || pathname === '/energy' || pathname === '/energy/global_monitor') {
-                            dispatch({ type:'monitor/fetchMonitorInfo'});
-                            dispatch({ type:'monitor/fetchEnergyType'});
-                            dispatch({ type:'monitor/fetchTplInfo'});
-                            dispatch({ type:'monitor/fetchSaveSpace'});
-                            return;
-                        }
-                        // 配电房子站页面
-                        if ( pathname === '/energy/global_monitor/power_room' || pathname === '/energy/global_monitor/power_room/' ){
-                            // dispatch({ type:'powerRoom/fetchMonitorInfo'});
-                            // dispatch({ type:'powerRoom/fetchMonitorScenes'});
-                            dispatch({ type:'monitorIndex/fetchMonitorInfo'});
-                            return;
-                        }
+                        dispatch({type:'setRoutePath', payload:location.pathname || '/' });       
                         // 能源成本页面
                         if ( pathname === '/energy/energy_manage' ){
                             dispatch({type:'energy/fetchSceneInfo'});
@@ -153,6 +161,7 @@ export default {
                         }
                         // 成本报表和复合计费报表
                         if ( pathname === '/energy/stat_report/energy_cost_report' || pathname === '/energy/stat_report/timereport' ) {
+                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
                             dispatch({ type:'costReport/initCostReport'});
                         }
                         
@@ -193,7 +202,12 @@ export default {
                             dispatch({ type:'baseCost/initEleCost'});                           
                             return;
                         }
-                        // 电费结算单页面
+                        // 水费成本页面
+                        if ( pathname === '/energy/energy_manage/water_cost_menu' ) {
+                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'水', type_code:'water', type_id:'2', unit:'m³'}});   
+                            dispatch({ type:'energy/initWaterCost'});                   
+                        }
+                        // 费用结算单页面
                         if ( pathname === '/energy/energy_manage/ele_statement'){
                             dispatch({ type:'energy/fetchEleStatement'});
                             dispatch({ type:'costReport/fetchFeeRate'});
@@ -219,11 +233,13 @@ export default {
                         }
                         // 能源效率能流图页面
                         if ( pathname === '/energy/energy_eff'){
+                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});
                             dispatch({type:'efficiency/fetchInit'});
                             return;
                         } 
                         // 能效趋势页面
                         if ( pathname === '/energy/energy_eff/eff_trend') {
+                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});
                             dispatch({ type:'efficiency/fetchEffTrend'});
                             return;
                         }
@@ -239,13 +255,13 @@ export default {
                             return;                  
                         }
                         // 无功监测页面
-                        if ( pathname === '/energy/energy_eff/useless_manage') {
+                        if ( pathname === '/energy/ele_monitor_menu/useless_manage') {
                             dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                                                                            
                             dispatch({ type:'demand/initUseless'});                            
                             return;
                         }
                         // 需量管理页面
-                        if ( pathname === '/energy/energy_eff/demand_manage') {  
+                        if ( pathname === '/energy/ele_monitor_menu/demand_manage') {  
                             dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                                                                              
                             dispatch({ type:'demand/initDemand'});                                
                             return;
@@ -355,7 +371,11 @@ export default {
                         }
                         // 信息管理 --- 维度管理
                         if ( pathname === '/energy/info_manage_menu/field_manage' ) {
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
+                            let type = location.query.type;
+                            let temp = energyList.filter(i=>i.type_code === type )[0];
+                            if ( temp ){
+                                dispatch({ type:'fields/toggleEnergyInfo', payload:temp });                      
+                            }
                             dispatch({ type:'fields/fetchField'});
                             dispatch({ type:'fields/fetchFieldType'});
                             return;
@@ -399,7 +419,7 @@ export default {
     effects:{
         *userAuth(action, {call, select, put, all}){ 
             try {
-                let { user: { userInfo, authorized, socket, newThirdAgent }} = yield select();
+                let { user: { userInfo, authorized, newThirdAgent }} = yield select();
                 let { dispatch, query, resolve, reject } = action.payload || {};
                 // 如果是第三方服务商
                 let thirdAgent;
@@ -407,9 +427,9 @@ export default {
                     thirdAgent = JSON.parse(localStorage.getItem('third_agent'));
                     yield put({ type:'setThirdAgentInfo', payload:{ data:thirdAgent }});
                 }
+                // console.log(authorized);
                 if ( !authorized ){
                     // 判断是否是服务商用户新开的公司标签页
-                    let apiHost = '120.25.168.203';     
                     let matchResult = companyReg.exec(query);
                     let companysMap = JSON.parse(localStorage.getItem('companysMap'));
                     let defaultCompany, defaultCompanyId;
@@ -427,7 +447,7 @@ export default {
                             let temp = matchResult ? matchResult[1] : '';
                             yield put({ type:'fetchNewThirdAgent', payload:temp });
                         }
-                        yield put({type:'setUserInfo', payload:{ data:data.data, company_id, fromAgent:matchResult ? true : false } });
+                        yield put({type:'setUserInfo', payload:{ data:data.data, company_id, fromAgent:matchResult ? true : false, authorized:true } });
                         yield put({ type:'setContainerWidth' });
                         yield put({type:'weather'});
                         if ( resolve && typeof resolve === 'function') resolve();
@@ -436,7 +456,8 @@ export default {
                             window.alert('当前浏览器不支持websocket,推荐使用chrome浏览器');
                             return ;
                         }
-                        socket = createWebSocket(`ws://${apiHost}:${config.socketPort}`, data.data, company_id, dispatch);
+                        let config = window.g;
+                        socket = createWebSocket(`ws://${config.socketHost}:${config.socketPort}`, data.data, company_id, dispatch);
                     } else {
                         // 登录状态过期，跳转到登录页重新登录(特殊账号跳转到特殊登录页)
                         yield put({ type:'loginOut'});
@@ -447,15 +468,23 @@ export default {
                 console.log(err);
             }
         },
+        // 中台用户登录时更新当前中台账号下所有企业用户的告警信息
+        *updateAgentAlarm(action, { put, call, select }){
+            let { data } = yield call(userAuth);
+            if ( data && data.code === '0'){
+                yield put({ type:'getAgentAlarm', payload:{ data:data.data }});
+            }
+        },
         *login(action,{ call, put, select }){
             try {
                 let { user_name, password } = action.payload;
                 let { user:{ thirdAgent} } = yield select();
                 let { resolve, reject } = action;
-                if ( localStorage.getItem('user_id')){
-                    message.info('已有登录用户，如要登录新用户请先退出再登录')
-                    return;
-                }
+                // if ( localStorage.getItem('user_id')){
+                //     message.info('已有登录用户，请进入主页先退出再登录')
+                //     return;
+                // }
+               
                 password = md5(password, user_name);
                 var { data }  = yield call(login, {user_name, password});
                 if ( data && data.code === '0'){   
@@ -567,13 +596,33 @@ export default {
             } catch(err){   
                 console.log(err);
             }
+        },
+        *fetchSession(action, { put, call, select }){
+            let { sid } = action.payload || {};
+            let { data } = yield call(fetchSessionUser, { sid });
+            if ( data && data.code === '0'){
+                let { user:{ newThirdAgent }} = yield select();
+                let { user_id, user_name, agent_id, companys } = data.data;
+                let companysMap = companys.map((item)=>{
+                    return { [encodeURI(item.company_name)]:item.company_id };
+                })
+                let timestamp = parseInt(new Date().getTime()/1000);
+                //  保存登录的时间戳,用户id,公司id 
+                localStorage.setItem('timestamp', timestamp);
+                localStorage.setItem('user_id', user_id);
+                localStorage.setItem('user_name', user_name);
+                localStorage.setItem('companysMap', JSON.stringify(companysMap));
+                localStorage.setItem('agent_id', agent_id);
+                yield put({ type:'setUserInfo', payload:{ data:data.data, company_id:null, fromAgent:null, authorized:false }});
+                yield put(routerRedux.push('/'));
+
+            }
         }
     },
     reducers:{
-        setUserInfo(state, { payload:{ data, company_id, fromAgent }}){
+        setUserInfo(state, { payload:{ data, company_id, fromAgent, authorized }}){
             let { menuData, companys } = data;
             let currentCompany = company_id ? companys.filter(i=>i.company_id == company_id)[0] : companys[0];
-             
             let routeConfig = menuData.reduce((sum,menu)=>{
                 sum[menu.menu_code] = {
                     menu_name:menu.menu_name,
@@ -596,10 +645,9 @@ export default {
             },{});
             routeConfig.home = { menu_name:'首页', path:'/', linkable:true};
             // routeConfig['user_setting'] = { menu_name:'账号设置', path:'user_setting' };   
-            return { ...state, userInfo:data, userMenu:menuData, companyList:companys || [], company_id:currentCompany.company_id, currentCompany, routeConfig, fromAgent, authorized:true };
+            return { ...state, userInfo:data, userMenu:menuData, companyList:companys || [], company_id: currentCompany && currentCompany.company_id, currentCompany:currentCompany || {}, routeConfig, fromAgent, authorized };
         },
         setRoutePath(state, { payload }){
-            // console.log(payload);
             let routes = payload.split('/').filter(i=>i);
             let { routeConfig } = state;  
             // console.log(routeConfig);
@@ -630,6 +678,9 @@ export default {
             });
             return { ...state, routePath:routes, currentPath:payload, currentMenu : currentMenu || {}, currentProject, deviceWidth:window.innerWidth };
         },
+        getAgentAlarm(state, { payload:{ data }}){
+            return { ...state, userInfo:data };
+        },
         getWeather(state, { payload :{data}}){
             return { ...state, weatherInfo:data }
         },
@@ -647,15 +698,14 @@ export default {
         setContainerWidth(state){
             let containerWidth = window.innerWidth;
             let containerHeight = window.innerHeight;
-            let isSmallDevice = containerWidth < 1440 ? true : false;
-            // 内容区高度 = 页面总高度 - header高度 - nav高度
-            let contentHeight = Math.round(containerHeight - ( isSmallDevice ? 50 : 70 ));
-            // 内容区高度 - 内容区padding - 表格标题高度 - 表头的高度 - 分页符的高度
-            let tbodyHeight =  contentHeight  - 28 - 40 - 20 - 50 - 120 - 50;
-            let pagesize = Math.ceil( tbodyHeight / 40 );
+            // let isSmallDevice = containerWidth < 1440 ? true : false;
+            // // 内容区高度 = 页面总高度 - header高度 - nav高度
+            // let contentHeight = Math.round(containerHeight - ( isSmallDevice ? 50 : 70 ));
+            // // 内容区高度 - 内容区padding - 表格标题高度 - 表头的高度 - 分页符的高度
+            // let tbodyHeight =  contentHeight  - 28 - 40 - 20 - 50 - 120 - 50;
+            // let pagesize = Math.ceil( tbodyHeight / 40 );
             // console.log(tbodyHeight, pagesize);
-            //     // console.log(tbodyHeight, pagesize);
-            return { ...state, containerWidth, pagesize };
+            return { ...state, containerWidth };
         },
         toggleTheme(state, { payload }) {
             return { ...state, theme:payload };
@@ -694,6 +744,9 @@ export default {
         },
         setFromWindow(state, { payload:{ timeType, beginDate, endDate }}) {
             return { ...state, timeType, startDate:moment(new Date(beginDate)), endDate:moment(new Date(endDate))};
+        },
+        toggleFullscreen(state, { payload }){
+            return { ...state, fullscreen:payload };
         },
         clearUserInfo(state){
             localStorage.clear();

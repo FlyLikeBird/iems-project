@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Radio, Card, Button,  } from 'antd';
-import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { downloadExcel } from '@/pages/utils/array';
@@ -307,7 +307,7 @@ function AnalyzeChart({ data, theme }) {
                     downloadExcel(sheet, fileTitle + '.xlsx' );
                 }
             }}>
-                <Radio.Button value='download'><FileImageOutlined /></Radio.Button>
+                <Radio.Button value='download'><PictureOutlined /></Radio.Button>
                 <Radio.Button value='excel'><FileExcelOutlined /></Radio.Button>
             </Radio.Group>
             <ReactEcharts

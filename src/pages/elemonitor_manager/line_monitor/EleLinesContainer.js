@@ -81,7 +81,6 @@ function getImageBlob(url, cb) {
 let canvas, ctx;
 let id = 0;
 function EleLinesContainer({ currentScene, dispatch, eleDetail, startDate, timeType, isLoading }){
-    console.log(eleDetail);
     const containerRef = useRef();
     const [currentMach, setCurrentMach] = useState('');
     const machPos = useRef({});

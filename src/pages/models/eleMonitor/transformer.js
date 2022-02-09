@@ -54,8 +54,8 @@ export default {
                     let { data } = yield call(getTransformerInfo, { company_id, mach_id:currentMach.key });
                     if ( data && data.code === '0'){
                         yield put({ type:'getTransformerInfo', payload:{ data:data.data }});
-                    } else {
-                        
+                    } else if ( data && data.code === '1001' ) {
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);

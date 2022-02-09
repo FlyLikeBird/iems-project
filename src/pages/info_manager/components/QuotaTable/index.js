@@ -74,7 +74,7 @@ const EditableCell = ({
         )
         :
         (
-            <div className={style['editable-cell-value-wrapper']} onClick={handleEdit}>
+            <div className='editable-cell-value-wrapper' onClick={handleEdit}>
                 { children }
             </div>
         )
@@ -189,7 +189,10 @@ function QuotaTable({ dispatch, data, year, timeType, pageNum, total, isLoading,
                         <div>{ `${timeType === '1' ? '年定额' : '月定额'}设置`}</div>
                         <div>
                             <Button size="small" type="primary" onClick={()=>dispatch({type:'quota/toggleVisible', payload:true})}>导入模板</Button>
-                            <Button size="small" type="primary" style={{marginLeft:'10px'}} onClick={()=>dispatch({type:'quota/export'})}>导出模板</Button>
+                            <Button size="small" type="primary" style={{marginLeft:'10px'}} onClick={()=>{
+                                dispatch({type:'quota/export'});
+                                message.info('模板生成中，请稍后...');
+                            }}>导出模板</Button>
                         </div>
                     </div>
                 )

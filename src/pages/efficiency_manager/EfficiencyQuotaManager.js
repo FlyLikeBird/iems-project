@@ -42,7 +42,7 @@ function getQuotaRatio(energy, quota){
 
 function EfficiencyQuota({ dispatch, user, efficiencyQuota, fields }) {
     const { quotaInfo, timeType, year } = efficiencyQuota;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     let totalEnergy = getSum(quotaInfo.energy), totalQuota = getSum(quotaInfo.quota);
@@ -59,8 +59,9 @@ function EfficiencyQuota({ dispatch, user, efficiencyQuota, fields }) {
     const sidebar = (
         <div>
             <div className={style['card-container']}>
-            <Tabs className={style['custom-tabs']} activeKey={currentField.field_id + ''} onChange={activeKey=>{
-                    dispatch({type:'fields/toggleField', payload:{ visible:false, field: { field_id:activeKey } } });
+                <Tabs className={style['custom-tabs']} activeKey={currentField.field_id + ''} onChange={activeKey=>{
+                    let field = fieldList.filter(i=>i.field_id == activeKey )[0];
+                    dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
                     new Promise((resolve)=>{
                         dispatch({type:'fields/fetchFieldAttrs', resolve })
                     }).then(()=>{
@@ -81,7 +82,10 @@ function EfficiencyQuota({ dispatch, user, efficiencyQuota, fields }) {
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{

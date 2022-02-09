@@ -6,10 +6,7 @@ import style from './AlarmForm.css';
 const { TabPane } = Tabs;
 
 function AlarmForm({ data, executeType, recordHistory, recordProgress, onDispatch }){
-    console.log(data);
     const [actionInfo, setActionInfo] = useState({ visible:false, actionType:'1'});
-    console.log(recordProgress);
-    console.log(recordHistory);
     return (
         <div>
             <Tabs defaultActiveKey='1' onChange={activeKey=>{

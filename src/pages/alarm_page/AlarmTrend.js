@@ -21,6 +21,7 @@ let colorsMap = {
 function AlarmTrend({ dispatch, user, alarm }){
     const { sumInfo, sumList, warningTypeInfo, fieldWarning, machWarning, timeType, beginDate, endDate } = alarm;
     const dateRef = useRef();
+    
     return (
         <div className={style['page-container']}>
             <div style={{ height:'40px' }}>
@@ -52,7 +53,7 @@ function AlarmTrend({ dispatch, user, alarm }){
                                                 theme={user.theme}
                                                 type={item.type} 
                                                 data={ item.type === 'ele' ? warningTypeInfo.typeArr['ele'] : item.type === 'limit' ? warningTypeInfo.typeArr['limit'] : warningTypeInfo.typeArr['link'] } 
-                                                statusData={ item.type === 'ele' ? warningTypeInfo.codeArr[0] : item.ype === 'limit' ? warningTypeInfo.codeArr[1] : warningTypeInfo.codeArr[2] } />
+                                                statusData={ item.type === 'ele' ? warningTypeInfo.codeArr[0] : item.type === 'limit' ? warningTypeInfo.codeArr[1] : warningTypeInfo.codeArr[2] } />
                                         }
                                     </div>
                                     <div className={style['trend-scroll-container']} style={{ height:'60%', overflow:'hidden auto' }}>

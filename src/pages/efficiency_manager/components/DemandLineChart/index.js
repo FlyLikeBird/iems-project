@@ -2,11 +2,11 @@ import React, { useState, useRef } from 'react';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { Radio } from 'antd';
-import { FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import { downloadExcel } from '@/pages/utils/array';
 import style from '../../../IndexPage.css';
 import XLSX from 'xlsx';
-import { IconFont } from '@/pages/components/IconFont';
+// import { IconFont } from '@/pages/components/IconFont';
 const colors = ['#57e29f','#65cae3','#198efb','#f1ac5b'];
 
 function DemandLineChart({ data, theme, forReport }) {
@@ -110,8 +110,8 @@ function DemandLineChart({ data, theme, forReport }) {
                         downloadExcel(sheet, fileTitle + '.xlsx' );
                     }
                 }}>
-                    <Radio.Button key='download' value='download'><IconFont style={{ fontSize:'1.2rem'}} type='icontupian'/></Radio.Button>
-                    <Radio.Button key='excel' value='excel'><IconFont style={{ fontSize:'1.2rem' }} type='iconexcel1' /></Radio.Button>
+                    <Radio.Button key='download' value='download'><PictureOutlined /></Radio.Button>
+                    <Radio.Button key='excel' value='excel'><FileExcelOutlined /></Radio.Button>
                 </Radio.Group>
             }
             <ReactEcharts

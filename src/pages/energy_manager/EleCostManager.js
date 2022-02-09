@@ -16,13 +16,14 @@ const { RangePicker } = DatePicker;
 
 function EleCostManager({ dispatch, user, fields, baseCost }){
     const { timeType, startDate, endDate } = user;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { isLoading, measureCostInfo, baseCostInfo, adjustCostInfo } = baseCost;
     const [activeKey, setActiveKey] = useState('measure');
     const inputRef = useRef();
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     // console.log(fieldAttrs);
+    console.log(expandedKeys);
     const sidebar = (
         <div>
             <div className={style['card-container']}>
@@ -52,7 +53,10 @@ function EleCostManager({ dispatch, user, fields, baseCost }){
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={(temp)=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{
@@ -151,6 +155,7 @@ function EleCostManager({ dispatch, user, fields, baseCost }){
     useEffect(()=>{
         return ()=>{
             dispatch({ type:'baseCost/reset'});
+            dispatch({ type:'user/toggleTimeType', payload:'1' });
         }
     },[]);
     return <ColumnCollapse sidebar={sidebar} content={content} />

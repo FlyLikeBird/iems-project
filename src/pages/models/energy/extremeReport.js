@@ -40,7 +40,9 @@ export default {
                     let { data } = yield call(getExtremeReport, { company_id, time_type:timeType, attr_id:currentAttr.key, energy_type:eleType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
                     if ( data && data.code === '0'){
                         yield put({type:'getReport', payload:{ data:data.data }});
-                    }           
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
+                    }
                 } catch(err){
                     console.log(err);
                 }
@@ -60,7 +62,9 @@ export default {
                     let { data } = yield call(getEleReport, { company_id, time_type:timeType, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), energy_type:'1' })
                     if ( data && data.code === '0'){
                         yield put({type:'getReport', payload:{ data:data.data }});
-                    }                         
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
+                    }                    
                 } catch(err){
                     console.log(err);
                 }
@@ -80,7 +84,9 @@ export default {
                     let { data } = yield call(getSameRate, { company_id, time_type:timeType, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
                     if ( data && data.code === '0'){
                         yield put({type:'getReport', payload:{ data:data.data }});
-                    }                 
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
+                    }          
                 } catch(err){
                     console.log(err);
                 }
@@ -100,6 +106,8 @@ export default {
                     let { data } = yield call(getAdjoinRate, { company_id, time_type:timeType, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
                     if ( data && data.code === '0'){
                         yield put({type:'getReport', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
                     }
                      
                 } catch(err){
@@ -114,27 +122,6 @@ export default {
         },
         getReport(state, { payload:{ data }}){
             return { ...state, sourceData:data, isLoading:false };
-        },
-        toggleTimeType(state, { payload }){
-            let start, end;
-            var date = new Date();
-            if ( payload === '3'){
-                // 切换为年维度
-                start = moment(date).startOf('year');
-                end = moment(date).endOf('year');   
-            } else if ( payload === '2'){
-                // 切换为月维度
-                start = moment(date).startOf('month');
-                end = moment(date).endOf('month');
-            } else {
-                // 切换为日维度
-                start = end = moment(date);
-            }
-            return { ...state, timeType:payload, startDate:start, endDate:end };
-        },
-        toggleEnergyType(state, { payload }){
-            let energyInfo = state.energyList.filter(i=>i.type_id === payload )[0];
-            return { ...state, energyInfo };
         },
         toggleEleType(state, { payload }){
             return { ...state, eleType:payload };

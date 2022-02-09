@@ -34,7 +34,6 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
         }
     },[])
     const containerRef = useRef();
-    const data = [];
     const content = (
         <div className={style['card-container']}>
             <EnergyFlowManager 
@@ -45,13 +44,13 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
                 flowTimeType={timeType}
                 beginDate={startDate}
                 endDate={endDate}
+                energyInfo={energyInfo}
                 chartLoading={chartLoading}
                 dispatch={dispatch}
                 theme={theme}
             />
         </div>
     );
-    data.push(content);
     return (
         <div 
             className={style['page-container']} 
@@ -72,10 +71,19 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
             <div style={{ height:'40px', display:'flex' }}>
                 <Radio.Group className={style['custom-radio']} style={{ marginRight:'20px'}} value={energyInfo.type_id} onChange={e=>{
                     let temp = energyList.filter(i=>i.type_id === e.target.value)[0];
-                    dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
-                    dispatch({ type:'efficiency/toggleChartLoading', payload:true });
-                    dispatch({ type:'fields/init'});
-                    dispatch({ type:'efficiency/fetchFlowChart' });
+                    if ( temp.type_code === 'ele' || temp.type_code === 'water' ) {
+                        dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
+                        dispatch({ type:'efficiency/toggleChartLoading', payload:true });
+                        new Promise((resolve, reject)=>{
+                            dispatch({ type:'fields/init', payload:{ resolve, reject }});
+                        })
+                        .then(()=>{
+                            dispatch({ type:'efficiency/fetchFlowChart' });
+                        })
+                    } else {
+                        message.info(`还没有接入${temp.type_name}能源数据`);
+                    }
+                    
                 }}>
                     {
                         energyList.map((item)=>(
@@ -86,26 +94,33 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
                 <CustomDatePicker onDispatch={()=>{
                     dispatch({ type:'efficiency/fetchFlowChart'});
                 }} />
-                <Select style={{ width:'120px', marginLeft:'20px' }} className={style['custom-select']} value={currentField.field_id} onChange={value=>{
-                    if ( chartLoading ) {
-                        message.info('能流图还在加载中');
-                    }
-                    let current = fieldList.filter(i=>i.field_id === value )[0];
-                    dispatch({ type:'fields/toggleField', payload:{ field:current } });
-                    dispatch({ type:'efficiency/toggleChartLoading', payload:true });
-                    new Promise((resolve, reject)=>{
-                        dispatch({ type:'fields/fetchFieldAttrs', resolve, reject });
-                    })
-                    .then(()=>{
-                        dispatch({ type:'efficiency/fetchFlowChart' });
-                    })
-                }}>
-                    {
-                        fieldList.map((item,index)=>(
-                            <Option key={index} value={item.field_id}>{ item.field_name }</Option>
-                        ))
-                    }
-                </Select>
+                {
+                    fieldList && fieldList.length 
+                    ?
+                    <Select style={{ width:'120px', marginLeft:'20px' }} className={style['custom-select']} value={currentField.field_id} onChange={value=>{
+                        if ( chartLoading ) {
+                            message.info('能流图还在加载中');
+                        }
+                        let current = fieldList.filter(i=>i.field_id === value )[0];
+                        dispatch({ type:'fields/toggleField', payload:{ field:current } });
+                        dispatch({ type:'efficiency/toggleChartLoading', payload:true });
+                        new Promise((resolve, reject)=>{
+                            dispatch({ type:'fields/fetchFieldAttrs', resolve, reject });
+                        })
+                        .then(()=>{
+                            dispatch({ type:'efficiency/fetchFlowChart' });
+                        })
+                    }}>
+                        {
+                            fieldList.map((item,index)=>(
+                                <Option key={index} value={item.field_id}>{ item.field_name }</Option>
+                            ))
+                        }
+                    </Select>
+                    :
+                    null
+                }
+                
             </div>
             <div style={{ height:'calc( 100% - 40px)'}}>
                 <div style={{ height:'60%'}}>
@@ -114,7 +129,7 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
                             {
                                 Object.keys(chartInfo).length
                                 ?
-                                <FullscreenSlider isLoading={chartLoading} interval={0} data={data} sourceData={[{ chartInfo, allFields, energyInfo, currentField, currentAttr, timeType, beginDate:startDate.format('YYYY-MM-DD'), endDate:endDate.format('YYYY-MM-DD'), rankInfo }]} collapsed={user.collapsed} currentPath={user.currentPath} user={user} />                                                                                                          
+                                <FullscreenSlider isLoading={chartLoading} interval={0} data={content} collapsed={user.collapsed} currentPath={user.currentPath} user={user} />                                                                                                          
                                 :
                                 <Spin size='large' className={style['spin']} />
                             }

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { connect } from 'dva';
 import { history } from 'umi';
 import { Link } from 'umi';
-import { Menu, Button } from 'antd';
-import { MailOutlined, UserOutlined, BarsOutlined, DashboardOutlined, ThunderboltOutlined, FileTextOutlined, SettingOutlined, SearchOutlined, FormOutlined, AreaChartOutlined, AccountBookOutlined, BarChartOutlined, PrinterOutlined, ScheduleOutlined, ProfileOutlined, PullRequestOutlined, AlertOutlined, DesktopOutlined } from '@ant-design/icons';
+import { Menu, Tooltip, Button } from 'antd';
+import { MailOutlined, HomeOutlined, InteractionOutlined, UserOutlined, BarsOutlined, DashboardOutlined, ThunderboltOutlined, FileTextOutlined, SettingOutlined, SearchOutlined, FormOutlined, AreaChartOutlined, AccountBookOutlined, BarChartOutlined, PrinterOutlined, ScheduleOutlined, ProfileOutlined, PullRequestOutlined, AlertOutlined, DesktopOutlined } from '@ant-design/icons';
 import style from './Menu.css';
 
 const { SubMenu } = Menu;
@@ -14,6 +14,7 @@ const IconsObj = {
     'agent_company':<BarsOutlined />,
     'user_manage':<UserOutlined />,
     'energy_manage':<AccountBookOutlined />,
+    'coal_manage':<InteractionOutlined />,
     'info_manage_menu':<FormOutlined />,
     'mach_manage':<PullRequestOutlined />,
     'system_log':<ProfileOutlined />,
@@ -25,9 +26,20 @@ const IconsObj = {
     'analyze_manage':<SearchOutlined />
 }
 
+// let stationMaps = {
+//     // 配电房子站
+//     '83':'localhost:8100',
+//     '121':'localhost:8003'
+// }
+let stationMaps = {
+    // 配电房子站
+    '83':'pr.h1dt.com',
+    '121':'acs.h1dt.com'
+}
+
 const MenuComponent = ({user, dispatch})=>{
     const [openKeys, setOpenKeys] = useState([]);
-    const { userMenu, currentMenu, currentPath, currentProject, containerWidth, collapsed, theme } = user;
+    const { userMenu, currentMenu, currentPath, userInfo, currentProject, containerWidth, collapsed, fromAgent, theme } = user;
     // console.log(currentMenu, currentPath);
     // let selectedKeys = currentMenu.children ? [currentMenu.children[0]+''] : [currentMenu.menu_id+''];
     // let openKeys = currentMenu.children ? [currentMenu.menu_id+''] : [currentMenu.parent+''];
@@ -44,9 +56,6 @@ const MenuComponent = ({user, dispatch})=>{
     if ( !collapsed ){
         option.openKeys = openKeys;
     }
-    // console.log(currentMenu);
-    // console.log(currentProject);
-    // console.log(userMenu);
     return (
             <Menu
                 {...option}
@@ -79,9 +88,28 @@ const MenuComponent = ({user, dispatch})=>{
                         } >                      
                             {
                                 item.child.map(sub => (
+                                    
                                     <Menu.Item key={sub.menu_id}>
-                                        <Link to={`/${currentProject}/${item.menu_code}/${sub.menu_code}`} >{sub.menu_name}</Link>                                      
+                                        {
+                                            item.menu_id === 79 && !fromAgent 
+                                            ?
+                                            <Tooltip placement="right" title={                                               
+                                                <Button type='primary' size='small' onClick={(e)=>{
+                                                    if ( stationMaps[sub.menu_id]){
+                                                        e.stopPropagation();
+                                                        window.open(`http://${stationMaps[sub.menu_id]}?pid=${Math.random()}&&userid=${userInfo.user_id}`);
+                                                    }                                          
+                                                }}>{`进入${sub.menu_name}`}</Button>
+                                            }>
+                                                <Link to={`/${currentProject}/${item.menu_code}/${sub.menu_code}`} >{sub.menu_name}</Link>
+                                            </Tooltip>
+                                            :
+                                            <Link to={`/${currentProject}/${item.menu_code}/${sub.menu_code}`} >{sub.menu_name}</Link>
+
+                                        }
+                                                                           
                                     </Menu.Item>
+                                   
                                 ))
                             }
                         </SubMenu>

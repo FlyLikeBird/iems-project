@@ -44,8 +44,9 @@ export default {
                 let { data } = yield call(getEleQualityIndex, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')});
                 if ( data && data.code === '0'){
                     yield put({ type:'getEleQualityIndex', payload:{ data:data.data }});              
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
-                
             }
         },
         *initEleBalance(action, { put }){
@@ -60,7 +61,9 @@ export default {
                 let { data } = yield call(getEleBalance, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType });
                 if ( data && data.code === '0'){
                     yield put({ type:'getEleBalance', payload:{ data:data.data }});
-                }             
+                } else if ( data && data.code === '1001' ){
+                    yield put({ type:'user/loginOut'});
+                }
             }
         },
         *initEleHarmonic(action, { put }){
@@ -75,7 +78,9 @@ export default {
                 let { data } = yield call(getEleHarmonic, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')});
                 if ( data && data.code === '0'){
                     yield put({ type:'getEleHarmonic', payload:{ data:data.data }});
-                }             
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
+                }  
             }
         }
     },
@@ -98,12 +103,12 @@ export default {
                     data.banlance.volt 
                     ?
                     [
-                        { key:'1', title:'三相电压不平衡', max:data.banlance.volt.max, min:data.banlance.volt.min, avg:data.banlance.volt.avg, fail:data.banlance.volt.fail, pass_rate:data.banlance.volt.pass_rate, is_pass:data.banlance.volt.is_pass },
-                        { key:'2', title:'三相电流不平衡', max:data.banlance.current.max, min:data.banlance.current.min, avg:data.banlance.current.avg, fail:data.banlance.current.fail, pass_rate:data.banlance.current.pass_rate, is_pass:data.banlance.current.is_pass }
+                        { key:'1', title:'三相电压不平衡', max:Math.round(data.banlance.volt.max * 100) + '%', min:Math.round(data.banlance.volt.min * 100) + '%', avg:Math.round(data.banlance.volt.avg * 100) + '%', fail:data.banlance.volt.fail, pass_rate:data.banlance.volt.pass_rate, is_pass:data.banlance.volt.is_pass },
+                        { key:'2', title:'三相电流不平衡', max:Math.round(data.banlance.current.max * 100) + '%', min:Math.round(data.banlance.current.min * 100) + '%', avg:Math.round(data.banlance.current.avg * 100) + '%', fail:data.banlance.current.fail, pass_rate:data.banlance.current.pass_rate, is_pass:data.banlance.current.is_pass }
                     ]
                     :
                     [
-                        { key:'1', title:'三相电压不平衡', max:data.banlance.max, min:data.banlance.min, avg:data.banlance.avg, fail:data.banlance.fail, pass_rate:data.banlance.pass_rate, is_pass:data.banlance.is_pass },
+                        { key:'1', title:'三相电压不平衡', max:Math.round(data.banlance.max * 100) + '%', min:Math.round(data.banlance.min * 100) + '%', avg:Math.round(data.banlance.avg * 100) + '%', fail:data.banlance.fail, pass_rate:data.banlance.pass_rate, is_pass:data.banlance.is_pass },
                     ]
                     return ;
                 }
@@ -114,9 +119,9 @@ export default {
                         obj[key].push({
                             key:subIndex,
                             title:phase === 'a' ? `A相${prefix}谐波畸变率` : phase === 'b' ? `B相${prefix}谐波畸变率` : `C相${prefix}谐波畸变率`,
-                            max:data[key][phase].max,
-                            min:data[key][phase].min,
-                            avg:data[key][phase].avg,
+                            max:data[key][phase].max + '%',
+                            min:data[key][phase].min + '%',
+                            avg:data[key][phase].avg + '%',
                             fail:data[key][phase].fail,
                             pass_rate:data[key][phase].pass_rate,
                             is_pass:data[key][phase].is_pass      
@@ -124,6 +129,7 @@ export default {
                     })
                 }
             });
+            console.log(obj);
             return { ...state, eleIndex:obj, isLoading:false };
         },
         getEleBalance(state, { payload :{ data }}){

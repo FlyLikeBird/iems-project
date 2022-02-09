@@ -45,7 +45,7 @@ function WarningTypePieChart({ data, type, statusData, theme }) {
             })
         })
     }
-    
+    console.log(statusData);
     return (   
                 seriesData.length 
                 ?  

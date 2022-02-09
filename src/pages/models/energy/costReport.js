@@ -1,4 +1,4 @@
-import { getCostReport, getCostAnalyze, getMeterReport, getEnergyType, getEleDocument, getWaterDocument, getAnalyzeReport, getCompanyFeeRate, exportReport, translateImgToBase64, createDocument, fetchImg } from '../../services/costReportService';
+import { getCostReport, getCostAnalyze, setProductTarget, getMeterReport, getEnergyType, getEleDocument, getWaterDocument, getAnalyzeReport, getCompanyFeeRate, exportReport, translateImgToBase64, createDocument, fetchImg } from '../../services/costReportService';
 import { flattern, getDeep } from '../../utils/array';
 import moment from 'moment';
 let date = new Date();
@@ -31,7 +31,7 @@ function formatTime(timeType, startTime, endTime){
 
 const initialState = {
     // 切换成本/能耗
-    dataType:'1',
+    dataType:'2',
     reportInfo:{},
     analyzeInfo:[],
     chartInfo:{},
@@ -55,26 +55,48 @@ export default {
             })
         },
         *cancelAll(action, { put }){
-            yield put({ type:'cancelCostReport'});
-            yield put({ type:'cancelCostAnalyze'});
+            // yield put({ type:'cancelCostReport'});
+            // yield put({ type:'cancelCostAnalyze'});
             yield put({ type:'reset'});
         },
         *initCostReport(action, { put }){
             yield put.resolve({ type:'fields/init'});
             yield put.resolve({ type:'fetchCostReport'});
         },
+        *setProduct(action, { put, call }){
+            try {
+                let { attr_id, time_type, target, year, month, day, resolve, reject } = action.payload || {};
+                let { data } = yield call(setProductTarget, { attr_id, time_type, year, month, day, target  });
+                if ( data && data.code === '0' ) {
+                    if ( resolve && typeof resolve === 'function' ) resolve();
+                } else if ( data && data.code === '1001'){
+                    yield put({ type:'user/loginOut'});
+                } else {
+                    if ( reject && typeof reject === 'function' ) reject(data.msg);
+                }
+            } catch(err){
+                console.log(err);
+            }
+        },
         *fetchCostReport(action, { call, put, select}){
             yield put.resolve({ type:'cancelCostReport'});
             yield put.resolve({ type:'cancelable', task:fetchCostReportCancelable, action:'cancelCostReport'});
             function* fetchCostReportCancelable(params){
                 try {
+                    let { startHour } = action.payload || {};
                     let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr, energyInfo }, costReport:{ dataType } } = yield select();
                     timeType = timeType === '3' ? '1' : timeType === '1' ? '3' : '2';
                     yield put({type:'toggleLoading'});
-                    let { data } = yield call(getCostReport, { data_type:dataType, company_id, time_type:timeType, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') })
+                    let obj = { data_type:dataType, company_id, time_type:timeType, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
+                    if ( startHour ) {
+                        obj.day_start_hour = startHour;
+                    }
+                    let { data } = yield call(getCostReport, obj );
                     if ( data && data.code === '0'){
                         yield put({type:'get', payload:{ data:data.data }});
-                    }   
+                    } else if ( data && data.code === '1001' ) {
+                        yield put({ type:'user/loginOut'});
+                    }
                 } catch(err){
                     console.log(err);
                 }
@@ -103,6 +125,8 @@ export default {
                     let { data } = yield call(getCostAnalyze, { company_id, time_type:timeType, type_id:energyInfo.type_id, attr_ids:checkedKeys, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') });
                     if ( data && data.code === '0'){
                         yield put({type:'getAnalyze', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);
@@ -125,6 +149,8 @@ export default {
             if ( documentData && documentData.data.code === '0' && bgData ) {
                 yield put({type:'getDocument', payload: { data:documentData.data.data, bgData }});
                 if ( action.payload.resolve ) action.payload.resolve();
+            } else if ( documentData.data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
         *translateImg(action, { call, put, all}){

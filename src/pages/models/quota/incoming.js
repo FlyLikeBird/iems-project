@@ -30,6 +30,8 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({type:'fetchIncoming' });
                     if ( resolve && typeof resolve === 'function') resolve();
+                } else if ( data && data.code === '1001'){
+                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject && typeof reject === 'function') reject(data.msg);
                 }
@@ -44,6 +46,8 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({type:'fetchIncoming'});
                     if ( resolve && typeof resolve === 'function') resolve();
+                } else if ( data && data.code === '1001' ) {
+                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject && typeof reject === 'function') reject(data.msg);
                 }
@@ -56,6 +60,8 @@ export default {
                 let { data } = yield call(deleteIncomingLine, { in_id:action.payload.in_id });
                 if ( data && data.code === '0'){
                     yield put({type:'fetchIncoming'});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);

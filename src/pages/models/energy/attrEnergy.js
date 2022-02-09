@@ -60,6 +60,8 @@ export default {
                         let obj = { attrMonthData:attrMonthData.data.data, attrDayData:attrDayData.data.data, attrHourData:attrHourData.data.data };
                         yield put({type:'get', payload:obj});
                         if ( resolve && typeof resolve === 'function') resolve();
+                    } else if ( attrMonthData.data.code === '1001' ) {
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);

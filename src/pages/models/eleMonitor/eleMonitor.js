@@ -1,4 +1,4 @@
-import { getEleMonitorInfo, getEleLines, getEleLinesDetail } from '../../services/eleMonitorService';
+import { getEleMonitorInfo, getEleLines, getLinesData, getEleLinesDetail } from '../../services/eleMonitorService';
 import moment from 'moment';
 let date = new Date();
 const initialState = {
@@ -10,9 +10,9 @@ const initialState = {
     chartInfo:{},
     eleScenes:[],
     currentScene:{},
-    eleLoading:true,
+    linePoints:[],
     eleDetail:{},
-    detailLoading:true,
+    eleLoading:true,
 }
 
 export default {
@@ -30,7 +30,10 @@ export default {
             yield put({ type:'cancelChartInfo'});
             yield put({ type:'reset'});
         },
-
+        *init(action, { put }){
+            yield put.resolve({ type:'fields/init'});
+            yield put({ type:'fetchChartInfo'});
+        },
         *fetchChartInfo(action, { call, put, select }){
             yield put({ type:'cancelChartInfo'});
             yield put.resolve({ type:'cancelable', task:fetchChartInfoCancelable, action:'cancelChartInfo' });
@@ -38,37 +41,42 @@ export default {
                 try {
                     yield put({ type:'toggleLoading'});
                     let { user:{ company_id }, fields:{ currentAttr } ,eleMonitor:{ optionType, startDate, endDate, timeType }} = yield select();
-                    if ( Object.keys(currentAttr).length ){
-                        let { data } = yield call(getEleMonitorInfo, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType, energy_type:optionType });
-                        if ( data && data.code === '0'){
-                            yield put({ type:'getChartInfo', payload:{ data:data.data }});
-                        } 
-                    } else {
-                        yield put.resolve({ type:'fields/init'});
-                        let { fields:{ currentAttr }} = yield select();
-                        let { data } = yield call(getEleMonitorInfo, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType, energy_type:optionType });
-                        if ( data && data.code === '0'){
-                            yield put({ type:'getChartInfo', payload:{ data:data.data }});
-                        } 
-                    } 
+                    let { data } = yield call(getEleMonitorInfo, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType, energy_type:optionType });
+                    if ( data && data.code === '0'){
+                        yield put({ type:'getChartInfo', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
+                    }
+                     
                 } catch(err){
                     console.log(err);
                 }
             }
         },
-        *fetchEleLines(action, { call, put, select }){
-            yield put.resolve({ type:'cancelable', task:fetchEleLinesCancelable, action:'cancelEleLines'});
-            function* fetchEleLinesCancelable(params){
-                try {
-                    yield put({ type:'toggleEleLoading' });
-                    let { user:{ company_id }} = yield select();
-                    let { data } = yield call(getEleLines, { company_id });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getEleScenes', payload:{ data:data.data }})
-                    }
-                } catch(err){
-                    console.log(err);
+        *fetchEleLines(action, { call, put, select, all }){      
+            try {
+                let { user:{ company_id }} = yield select();
+                let { data } = yield call(getEleLines, { company_id, scene_type:'2' });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getEleScenes', payload:{ data:data.data }});
+                    yield put({ type:'fetchLinesData'});
                 }
+            } catch(err){
+                console.log(err);
+            }
+        },
+        *fetchLinesData(action, { call, put, select }){
+            try {
+                // yield put({ type:'toggleEleLoading' });
+                let { user:{ company_id }, eleMonitor:{ currentScene }} = yield select();
+                let { data } = yield call(getLinesData, { company_id, scene_id:currentScene.scene_id });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getLinesData', payload:{ data:data.data } });
+                } else if ( data && data.code === '0'){
+                    yield put({ type:'user/loginOut'});
+                }
+            } catch(err){
+                console.log(err);
             }
         },
         *resetDetail(action, { put }){
@@ -85,6 +93,8 @@ export default {
                     let { data } = yield call(getEleLinesDetail, { company_id, mach_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType, energy_type:optionType });
                     if ( data && data.code === '0'){
                         yield put({ type:'getEleLinesDetail', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);
@@ -129,6 +139,9 @@ export default {
         getEleScenes(state, { payload:{ data }}){
             let temp = data.length ? data[0] : {};
             return { ...state, eleScenes:data, currentScene:temp, eleLoading:false };
+        },
+        getLinesData(state, { payload:{ data }}){
+            return { ...state, linePoints:data, eleLoading:false };
         },
         getEleLinesDetail(state, { payload:{ data }}){
             return { ...state, eleDetail:data, detailLoading:false };

@@ -1,5 +1,5 @@
 .container {
-    height:70px;
+    height:60px;
     background-color:#fff;
     /* 深色渐变 */
     /* background-image:linear-gradient(to right, #83ca40, #147bb3); */
@@ -8,12 +8,6 @@
     box-shadow: 0 3px 6px -4px rgba(0,0,0,.12), 0 6px 16px 0 rgba(0,0,0,.08), 0 9px 28px 8px rgba(0,0,0,.05);
 }
 
-
-@media ( max-width:1440px ){
-    .container {
-        height:50px;
-    }
-}
 .content-container {
     width:100%;
     height:100%;

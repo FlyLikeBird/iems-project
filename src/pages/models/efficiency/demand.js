@@ -99,6 +99,8 @@ export default {
                 let { data } = yield call(getDemandInfo, { company_id, attr_id:currentAttr.key, refer_time });
                 if ( data && data.code === '0'){
                     yield put({type:'getDemand', payload:{ data:data.data }});
+                } else if ( data && data.code === '1001' ) {
+                    yield put({ type:'user/loginOut'});
                 }          
             }
             
@@ -120,6 +122,8 @@ export default {
                     let { data } = yield call(getDemandAnalyz, { company_id, attr_id:finalAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') });
                     if ( data && data.code === '0'){
                         yield put({type:'getAnalyz', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);
@@ -151,6 +155,8 @@ export default {
                     let { data } = yield call(getUselessInfo, { company_id, attr_id:finalAttr.key, time_date:startDate.format('YYYY-MM-DD'), end_time_date:endDate.format('YYYY-MM-DD')  });
                     if ( data && data.code === '0'){
                         yield put({type:'getUseless', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
                     }
                     
                 } catch(err){
@@ -166,18 +172,11 @@ export default {
             try {
                 let { user:{ company_id, startDate, endDate }, fields:{ currentAttr}} = yield select();
                 yield put({ type:'toggleMachLoading'});
-                if ( Object.keys(currentAttr).length ){
-                    let { data } = yield call(getMachEfficiency, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getMachEfficiency', payload: { data:data.data }});
-                    }
-                } else {
-                    yield put.resolve({ type:'fields/init'});
-                    let { fields:{ currentAttr }} = yield select();
-                    let { data } = yield call(getMachEfficiency, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getMachEfficiency', payload: { data:data.data }});
-                    }
+                let { data } = yield call(getMachEfficiency, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getMachEfficiency', payload: { data:data.data }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
@@ -205,19 +204,13 @@ export default {
             try {
                 let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }, demand : { phaseDayTimeType, phaseOptionType }} = yield select();
                 yield put({ type:'togglePhaseLoading'});
-                if ( Object.keys(currentAttr).length){
-                    let { data } = yield call(getEnergyPhase, { company_id, attr_id:currentAttr.key, time_type:timeType, option_type:phaseOptionType, day_time_type:phaseDayTimeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
-                    if ( data && data.code ==='0'){
-                        yield put({type:'getPhase', payload:{ data:data.data }});
-                    }
-                } else {
-                    yield put.resolve({ type:'fields/init'});
-                    let { fields:{ currentAttr }} = yield select();
-                    let { data } = yield call(getEnergyPhase, { company_id, attr_id:currentAttr.key, time_type:timeType, option_type:phaseOptionType, day_time_type:phaseDayTimeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
-                    if ( data && data.code ==='0'){
-                        yield put({type:'getPhase', payload:{ data:data.data }});
-                    }
+                let { data } = yield call(getEnergyPhase, { company_id, attr_id:currentAttr.key, time_type:timeType, option_type:phaseOptionType, day_time_type:phaseDayTimeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
+                if ( data && data.code ==='0'){
+                    yield put({type:'getPhase', payload:{ data:data.data }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
+                
             } catch(err){
                 console.log(err);
             }

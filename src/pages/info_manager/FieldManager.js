@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react';
+import React, { useEffect, Component, useState } from 'react';
 import { connect } from 'dva';
 import { Link, Route, Switch  } from 'dva/router';
 import { Table, Tabs, Button, Modal, Card, Select, Popconfirm, Form, Input, Drawer, Spin, Skeleton, message } from 'antd';
@@ -20,13 +20,13 @@ function FieldManager({dispatch, fields, fieldDevice, user}){
         labelCol: { span: 6 },
         wrapperCol: { span: 18 },
     };
-
+   
     return (
             loaded 
             ?
             <div className={style['page-container']}>
                 <div className={style['card-container']}>
-                    <Tabs className={style['custom-tabs']} style={{ background:'transparent' }} activeKey={energyInfo.type_id} onChange={activeKey=>{
+                    <Tabs className={style['custom-tabs']} activeKey={energyInfo.type_id} onChange={activeKey=>{
                         let temp = energyList.filter(i=>i.type_id === activeKey)[0];
                         dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
                         dispatch({ type:'fields/fetchField'});
@@ -79,18 +79,7 @@ function FieldManager({dispatch, fields, fieldDevice, user}){
                         <Form.Item name="field_name" label="维度名称" rules={[{required:true, message:'维度名称不能为空!'}]}>
                             <Input />
                         </Form.Item>
-                        <Form.Item name="field_type" label="维度类型" rules={[{required:true, message:'必须选择一种维度类型'},{validator:(_rule, value, callback)=>{
-                            try {
-                                //  判断当前公司是否具有同类型维度 
-                                // if(fieldList.map(item=>item.field_type).includes(Number(value))){
-                                //     throw new Error('已存在同种类型维度!')
-                                // } else {
-                                    callback();                                   
-                                // }
-                            } catch (err){
-                                callback(err);
-                            }
-                        }}]}>
+                        <Form.Item name="field_type" label="维度类型" rules={[{required:true, message:'必须选择一种维度类型'}]}>
                             <Select>
                                 {
                                     fieldType.map(item=>(

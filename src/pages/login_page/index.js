@@ -15,7 +15,7 @@ const tailLayout = {
     wrapperCol: { offset: 0, span: 24 },
 };
 
-function LoginPage({ dispatch, user }) {  
+function LoginPage({ dispatch, user, location }) {  
     const { thirdAgent, newThirdAgent } = user;
     const [form] = Form.useForm();
     useEffect(()=>{
@@ -26,8 +26,9 @@ function LoginPage({ dispatch, user }) {
             });
         }
     },[thirdAgent]);
+    // console.log(location);
     return (
-        localStorage.getItem('user_id')
+        localStorage.getItem('user_id') && location.pathname === '/login'
         ?
         <Redirect to='/energy' />
         :
@@ -55,6 +56,10 @@ function LoginPage({ dispatch, user }) {
                             <Input.Password addonBefore={<LockOutlined />} bordered='false' />
                         </Form.Item>
                         <Form.Item>
+                            {/* <div style={{ display:'flex', justifyContent:'space-between', margin:'6px 0' }}>
+                                <Link target="_blank" to='/privacy'>隐私政策</Link>
+                                <Link target="_blank" to='/safety'>许可协议</Link>
+                            </div> */}
                             <Button type="primary" style={{width:'100%'}} onClick={()=>{
                                 form.validateFields()
                                 .then(values=>{

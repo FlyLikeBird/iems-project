@@ -40,7 +40,7 @@ const levelColors = {
 function EfficiencyMach({ dispatch, user, demand, fields }) {
     const { timeType, startDate, endDate, theme } = user;
     const { machEffInfo, machRatioList, machLoading, energyList, energyInfo  } = demand;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     const [editing, setEditing] = useState(false);
@@ -73,7 +73,10 @@ function EfficiencyMach({ dispatch, user, demand, fields }) {
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{

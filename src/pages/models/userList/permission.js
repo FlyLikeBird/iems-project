@@ -15,6 +15,8 @@ export default {
             let { data } = yield call(getUserPermission, { user_id:current });
             if ( data && data.code ==0){
                 yield put({type:'get', payload:{data:data.data }});
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         },
         *set(action, { call, put, select }){
@@ -22,6 +24,8 @@ export default {
             let { data } = yield call(setUserPermission, { menu_data:selectedMenu, user_id : current });
             if (data && data.code ==0){
                 yield put({type:'toggleVisible', payload:{ user_id:'', visible:false }});
+            } else if ( data && data.code === '1001') {
+                yield put({ type:'user/loginOut'});
             }
         }
     },

@@ -15,7 +15,7 @@ const { RangePicker } = DatePicker;
 function EleHarmonicManager({ dispatch, fields, eleQuality, user }){
     const inputRef = useRef();
     const { timeType, startDate, endDate, theme } = user;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { eleHarmonic } = eleQuality;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
@@ -52,7 +52,10 @@ function EleHarmonicManager({ dispatch, fields, eleQuality, user }){
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{

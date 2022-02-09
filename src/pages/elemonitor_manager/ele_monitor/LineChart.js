@@ -46,7 +46,7 @@ function LineChart({ theme, xData, energy, energyA, energyB, energyC, info, star
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     seriesData.push({
         type:'line',
-        name:'总' + info.title,
+        name: optionType === '8' ? 'N相' : '总' + info.title,
         data:energy,
         itemStyle:{
             color:'#1890ff'
@@ -184,7 +184,7 @@ function LineChart({ theme, xData, energy, energyA, energyB, energyC, info, star
                             }
                         },
                         formatter:name=>{
-                            let temp = findMaxAndMin( name === '总' + info.title ? energy  : name === 'A相' ? energyA : name === 'B相' ? energyB : name === 'C相' ? energyC : '', optionType === '5' ? true : false );
+                            let temp = findMaxAndMin( name === '总' + info.title || name === 'N相' ? energy  : name === 'A相' ? energyA : name === 'B相' ? energyB : name === 'C相' ? energyC : '', optionType === '5' ? true : false );
                             let prefixTime = timeType === '1' ? '' : timeType === '2' ? startDate.format('MM') : timeType === '3' ? startDate.format('YYYY') :'';
                             let maxTime = prefixTime + '-' + xData[temp.max ? temp.max.index : ''];                        
                             let minTime = prefixTime + '-' + xData[temp.min ? temp.min.index : '']; 

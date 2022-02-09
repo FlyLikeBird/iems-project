@@ -55,6 +55,19 @@ export function getElectricCostAnalysis(data={}){
         }); 
 }
 
+export function getAttrWaterCost(data={}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/energycost/getattrwatercost', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
 export function getTotalCostAnalysis(data={}){
     let token = apiToken();
     data.token = token;

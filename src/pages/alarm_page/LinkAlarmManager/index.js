@@ -16,7 +16,7 @@ const { RangePicker }= DatePicker;
 
 function LinkAlarmManager({ dispatch, user, linkAlarm, fields }){
     const { theme, timeType, startDate, endDate } = user;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { warningInfo, machAlarmInfo, machOfflineInfo, chartLoading } = linkAlarm;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
@@ -47,7 +47,10 @@ function LinkAlarmManager({ dispatch, user, linkAlarm, fields }){
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}                              
                                         onSelect={(selectedKeys, { selected, node})=>{
@@ -76,7 +79,7 @@ function LinkAlarmManager({ dispatch, user, linkAlarm, fields }){
             </div>
             <div style={{ height:'calc( 100% - 40px)'}}>
                 <InfoList data={machAlarmInfo} typeCode='link' />
-                <div className={style['card-container-wrapper']} style={{ height:'45%', paddingRight:'0' }}>
+                <div className={style['card-container-wrapper']} style={{ height:'43%', paddingRight:'0' }}>
                     <div className={style['card-container-wrapper']} style={{ width:'35%', paddingBottom:'0' }}>
                         <div className={style['card-container']}>
                             {
@@ -94,7 +97,7 @@ function LinkAlarmManager({ dispatch, user, linkAlarm, fields }){
                         </div>
                     </div>
                 </div>
-                <div className={style['card-container-wrapper']} style={{ height:'45%', paddingBottom:'0' }}>
+                <div className={style['card-container-wrapper']} style={{ height:'43%', paddingBottom:'0' }}>
                     <div className={style['card-container']}>
                         {
                             Object.keys(machOfflineInfo).length

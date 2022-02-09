@@ -7,7 +7,7 @@ import AdminManager from './AdminManager';
 import RoleManager from './RoleManager';
 import MachManager from '../DeviceManagerPage/MachManager';
 import GatewayManager from '../DeviceManagerPage/GatewayManager';
-
+import UpdatePassword from './UpdatePassword';
 function SystemConfig({ match }){
     return (       
         <Switch>
@@ -16,6 +16,7 @@ function SystemConfig({ match }){
             <Route exact path={`${match.url}/role_manage`} component={RoleManager}/>
             <Route exact path={`${match.url}/gateway_manage`} component={GatewayManager}/>
             <Route exact path={`${match.url}/meter_manage`} component={MachManager}/>
+            <Route exact path={`${match.url}/update_password`} component={UpdatePassword} />
         </Switch>       
     )
 };

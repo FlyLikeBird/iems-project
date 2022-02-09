@@ -173,6 +173,7 @@ function GlobalFullscreen( { dispatch, user, fields, efficiency, location }){
                                 theme='dark'
                                 chartLoading={chartLoading}
                                 dispatch={dispatch}
+                                energyInfo={energyInfo}
                             />
                         </div>
                     </div>

@@ -46,6 +46,7 @@
 .container .custom-date-picker:global(.ant-picker) :global(.ant-picker-input) > input {
     color:rgba(0, 0, 0, 0.65);
 }
+
 /* 日期组件深色模式 */
 .container.dark .custom-radio:global(.ant-radio-group) :global(.ant-radio-button-wrapper) {
     border-top:1px solid #7a79b3;
@@ -65,6 +66,12 @@
 }
 .container.dark .custom-date-picker:global(.ant-picker) :global(.ant-picker-input) > input {
     color:#7a79b3;
+}
+.container.dark .custom-date-picker:global(.ant-picker) :global(.ant-picker-clear) {
+    background:transparent;
+}
+.container.dark .custom-date-picker:global(.ant-picker) :global(.ant-picker-clear) > :global(.anticon) {
+    color:rgba(255, 255, 255, 0.8);
 }
 /* 
     日期控件左右切换button 样式

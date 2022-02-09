@@ -55,9 +55,11 @@ export const decryptBy = (word)=>{
 //  防止爬虫抓包模拟用户请求， 时效性2分钟
 export function apiToken(){
     let timestamp = parseInt((new Date().getTime())/1000).toString();
+    // let timestamp = localStorage.getItem('timestamp');
     let user_id = localStorage.getItem('user_id');
     let token = encryptBy( user_id ? `${timestamp}&${localStorage.getItem('user_id')}` : timestamp );
     return token;
+    
 }
 
 // 用户认证状态 有效期 一天

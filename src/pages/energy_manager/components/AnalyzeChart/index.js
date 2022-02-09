@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { connect } from 'dva';
 import { Radio, Card, Button, DatePicker } from 'antd';
-import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { downloadExcel } from '@/pages/utils/array';
@@ -124,7 +124,7 @@ function EnergyCostChart({ data, currentField, theme }) {
                 <Radio.Button value='line'><LineChartOutlined /></Radio.Button>
                 <Radio.Button value='bar'><BarChartOutlined /></Radio.Button>
                 <Radio.Button value='pie'><PieChartOutlined /></Radio.Button>
-                <Radio.Button value='download'><FileImageOutlined /></Radio.Button>
+                <Radio.Button value='download'><PictureOutlined /></Radio.Button>
                 { chartType === 'pie' ? null : <Radio.Button value='excel'><FileExcelOutlined /></Radio.Button> }
             </Radio.Group>
             <ReactEcharts

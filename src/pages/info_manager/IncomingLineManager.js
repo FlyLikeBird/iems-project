@@ -17,18 +17,18 @@ function IncomingLineManager({ dispatch, incoming }){
                         {
                             editing
                             ?
-                            <div className={style['button-container']}>
+                            <div style={{ display:'flex', alignItems:'center' }}>
                                 <Input
-                                    style={{ marginRight:'10px' }}  
+                                    style={{ width:'160px', marginRight:'10px' }}  
                                     placeholder='请输入进线名称'
                                     onChange={e=>setName(e.target.value)}
                                     />
                                 <Input
-                                    style={{ marginRight:'10px' }}  
+                                    style={{ width:'160px', marginRight:'10px' }}  
                                     placeholder='请输入变压器容量'
                                     onChange={e=>setValue(e.target.value)}
                                 />
-                                <Button type="primary" onClick={()=>{
+                                <Button type="primary" style={{ marginRight:'6px' }} onClick={()=>{
                                     if ( !name ){
                                         message.info('进线名称不能为空');
                                         return;

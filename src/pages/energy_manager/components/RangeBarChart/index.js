@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Card, Button, DatePicker } from 'antd';
-import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { downloadExcel } from '@/pages/utils/array';
@@ -26,7 +26,7 @@ let linearColor = {
     },
     barBorderRadius:6
 }
-function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoading, theme, forReport }) {
+function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoading, theme, forWater, forReport }) {
     const echartsRef = useRef();
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     let showTitle = showType === '0' ? '成本' :'能耗';    
@@ -57,7 +57,7 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
         ]
         :
         [ 
-            { type:'bar', barMaxWidth:'10', name:`${energyInfo.type_name}能源${showTitle}值`, data: showType === '0' ? data.cost : data.energy, itemStyle:linearColor }
+            { type:'bar', barMaxWidth:'10', name:`${energyInfo.type_name}能源${showTitle}`, data: showType === '0' ? data.cost : data.energy, itemStyle:linearColor }
         ];
         
     // 设置环比参考线
@@ -214,17 +214,24 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
                 :
                 null
             }
-            <Radio.Group style={{ top:'0', right:'unset', left:'0' }} className={style['float-button-group'] + ' ' + style['custom-radio']} size="small" value={timeType} onChange={e=>{
-                let value = e.target.value;
-                onDispatch({ type:'energy/toggleTimeType', payload:value } );        
-                onDispatch({ type:'energy/fetchCostByTime'});              
-            }}>
-                <Radio.Button key='1' value='1'>12M</Radio.Button>
-                <Radio.Button key='2' value='2'>30D</Radio.Button>
-                <Radio.Button key='3' value='3'>24H</Radio.Button>
-            </Radio.Group>
             {
-                forReport 
+                forWater
+                ?
+                null
+                :
+                <Radio.Group style={{ top:'0', right:'unset', left:'0' }} className={style['float-button-group'] + ' ' + style['custom-radio']} size="small" value={timeType} onChange={e=>{
+                    let value = e.target.value;
+                    onDispatch({ type:'energy/toggleTimeType', payload:value } );        
+                    onDispatch({ type:'energy/fetchCostByTime'});              
+                }}>
+                    <Radio.Button key='1' value='1'>12M</Radio.Button>
+                    <Radio.Button key='2' value='2'>30D</Radio.Button>
+                    <Radio.Button key='3' value='3'>24H</Radio.Button>
+                </Radio.Group>
+            }
+            
+            {
+                forWater, forReport 
                 ?
                 null
                 :         
@@ -252,8 +259,7 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
                     }
                     if ( value === 'excel' ) {
                         var aoa = [], thead = ['对比项'];
-
-                        data.categoryData.forEach(i=>{
+                        data.date.forEach(i=>{
                             thead.push(i);
                         });
                         aoa.push(thead);
@@ -268,8 +274,8 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
                         downloadExcel(sheet, fileTitle + '.xlsx' );
                     }
                 }}>
-                    <Radio.Button key='download' value='download'><IconFont style={{ fontSize:'1.2rem'}} type='icontupian'/></Radio.Button>
-                    <Radio.Button key='excel' value='excel'><IconFont style={{ fontSize:'1.2rem' }} type='iconexcel1' /></Radio.Button>
+                    <Radio.Button key='download' value='download'><PictureOutlined /></Radio.Button>
+                    <Radio.Button key='excel' value='excel'><FileExcelOutlined /></Radio.Button>
                 </Radio.Group>
             }
             <ReactEcharts ref={echartsRef} notMerge={true} style={{ width:'100%', height:'100%'}} option={option} />

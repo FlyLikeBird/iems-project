@@ -16,7 +16,7 @@ const { RangePicker }= DatePicker;
 
 function EleAlarmManager({ dispatch, user, eleAlarm, fields }){
     const { theme, timeType, startDate, endDate } = user;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { warningInfo, realTimeInfo, typeCode, dayTimeType, attrLoading, realLoading } = eleAlarm;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
@@ -47,7 +47,10 @@ function EleAlarmManager({ dispatch, user, eleAlarm, fields }){
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{
@@ -77,7 +80,7 @@ function EleAlarmManager({ dispatch, user, eleAlarm, fields }){
                     </div>
                     <div style={{ height:'calc( 100% - 40px)'}}>
                         <InfoList data={warningInfo.typeTmp} typeCode='ele' />
-                        <div className={style['card-container-wrapper']} style={{ height:'45%'}}>
+                        <div className={style['card-container-wrapper']} style={{ height:'43%'}}>
                             <div className={style['card-container']}>
                                 {
                                     attrLoading 
@@ -88,7 +91,7 @@ function EleAlarmManager({ dispatch, user, eleAlarm, fields }){
                                 }
                             </div>
                         </div>
-                        <div className={style['card-container-wrapper']} style={{ height:'45%', paddingBottom:'0' }}>
+                        <div className={style['card-container-wrapper']} style={{ height:'43%', paddingBottom:'0' }}>
                             <div className={style['card-container']}>
                                 {
                                     realLoading 

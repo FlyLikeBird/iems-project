@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { connect } from 'dva';
+import { history } from 'umi';
 import { Link, Route, Switch } from 'dva/router';
-import { Radio, Spin, Card, Tree, Tabs, Button, Modal, message, Skeleton } from 'antd';
+import { Radio, Spin, Card, Select, Tree, Tabs, Button, Modal, message, Skeleton } from 'antd';
 import { DoubleLeftOutlined , DoubleRightOutlined, PayCircleOutlined, ThunderboltOutlined, ExperimentOutlined, HourglassOutlined, FireOutlined  } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
@@ -10,19 +11,26 @@ import { energyIcons } from '@/pages/utils/energyIcons';
 import style from '../IndexPage.css';
 import MeterReportSelector from './components/MeterReportSelector';
 import MeterReportTable from './components/MeterReportTable';
+import Loading from '@/pages/components/Loading';
 import { downloadExcel } from '@/pages/utils/array';
 import moment from 'moment';
 
 const { TabPane } = Tabs;
-
+const { Option } = Select;
+let keepState = true;
+let hourData = [];
+for(var i=0;i<24;i++){
+    let temp = i < 10 ? '0' + i : i;
+    hourData.push({ key:i, value:temp + ' : 00'});
+}
 function MeterReportManager({ dispatch, user, meterReport, fields }) {
     const { list, isLoading, loaded } = meterReport;
-    const { allFields, energyList, energyInfo, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, energyList, energyInfo, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { currentCompany, pagesize, timeType, startDate, endDate, theme } = user;
     const [visible, toggleVisible] = useState(false);
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
-    
+    let [startHour, setStartHour] = useState(0);
     useEffect(()=>{
         return ()=>{
             dispatch({ type:'meterReport/cancelAll'});
@@ -76,7 +84,10 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
                                                     :
                                                     <Tree
                                                         className={style['custom-tree']}
-                                                        defaultExpandAll={true}
+                                                        expandedKeys={expandedKeys}
+                                                        onExpand={temp=>{
+                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                                        }}
                                                         selectedKeys={[currentAttr.key]}
                                                         treeData={fieldAttrs}
                                                         onSelect={(selectedKeys, { selected, node })=>{
@@ -89,7 +100,12 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
                                             </TabPane>
                                         ))
                                         :
-                                        <div className={style['text']} style={{ padding:'1rem'}}>该能源类型还没有设置维度</div>
+                                        <div className={style['text']} style={{ padding:'1rem' }}>
+                                            <div>{`${energyInfo.type_name}能源类型还没有设置维度`}</div>
+                                            <div style={{ padding:'1rem 0'}}><Button type='primary' onClick={()=>{
+                                                history.push(`/energy/info_manage_menu/field_manage?type=${energyInfo.type_code}`);
+                                            }} >设置维度</Button></div>
+                                        </div>
                                     }
                                 </Tabs>
                             </TabPane>
@@ -99,21 +115,48 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
             </div>
         </div>
     );
+    useEffect(()=>{
+        // 筛选时间段功能点击筛选Button才触发，默认不触发
+        if ( keepState ){
+            
+        } else {
+            setStartHour(0);
+        }
+        keepState = false;
+    },[list])
     const content = (
         loaded 
         ?
-        <div>
-            <div style={{ height:'40px' }}>
+        <div style={{ position:'relative' }}>
+            {
+                isLoading 
+                ?
+                <Loading />
+                :
+                null
+            }
+            <div style={{ height:'40px', display:'flex' }}>
                 <CustomDatePicker onDispatch={()=>{
-                    dispatch({type:'meterReport/fetchMeterReport'});                                            
+                    keepState = true;
+                    dispatch({type:'meterReport/fetchMeterReport', payload:{ startHour }});                                            
                 }} />
+                <div style={{ marginLeft:'1rem' }}>
+                    <span style={{ color: user.theme === 'dark' ? '#fff' : 'rgba(0, 0, 0, 0.8)' }}>起始基准点 : </span>
+                    <Select style={{ width:'140px' }} className={style['custom-select']} value={startHour} onChange={value=>{
+                        setStartHour(value);
+                        keepState = true;
+                        dispatch({ type:'meterReport/fetchMeterReport', payload:{ startHour:value }});
+                    }}>
+                        {
+                            hourData.map(item=>(
+                                <Option key={item.key} value={item.key}>{ item.value }</Option>
+                            ))
+                        }
+                    </Select>
+                </div>
             </div>
             <div className={style['card-container']} style={{ height:'calc(100% - 40px)'}}>
-                {
-                    isLoading
-                    ?
-                    <Skeleton active className={style['skeleton']} />
-                    :
+                
                     <MeterReportTable 
                         data={list} 
                         pagesize={pagesize}
@@ -129,7 +172,7 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
                         theme={theme}
                         companyName={user.currentCompany.company_name}
                     /> 
-                }
+                
             </div>
         </div>
         

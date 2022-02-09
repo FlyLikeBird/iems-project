@@ -63,7 +63,7 @@ function PageItem8({ baseCost, dispatch, user, companyName }){
                                 <div className={energyStyle['flex-item']} key={index} style={{ backgroundColor:'#f7f7f7' }}>
                                     <div className={energyStyle['title']}>
                                         <div className={energyStyle['text']}>{ timeInfo[item.time_type]}</div>
-                                        <div className={energyStyle['sub-text']}>电价：{ (+item.fee_rate).toFixed(2) } 元</div>
+                                        <div className={energyStyle['sub-text']}>电价：{ item.fee_rate } 元</div>
                                     </div>
                                     <div className={energyStyle['info']}>
                                         <div className={energyStyle['info-item']}>

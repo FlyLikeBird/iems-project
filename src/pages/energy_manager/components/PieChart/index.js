@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Card, Button, DatePicker } from 'antd';
-import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { downloadExcel } from '@/pages/utils/array';
@@ -11,7 +11,7 @@ import XLSX from 'xlsx';
 import { IconFont } from '@/pages/components/IconFont';
 
 function PieChart({ data, energyInfo, showType, theme, forReport }) {
-    let textColor = theme === 'dark' ? '#b0b0b0' : '#000';   
+    let textColor = theme === 'dark' ? '#b0b0b0' : 'rgba(0,0,0,0.8)';   
     let legendData = [];
     let total = 0;
     // 获取到能源饼图的数据
@@ -27,11 +27,8 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
             key === 'gas' ? '气' :
             key === 'hot' ? '热' : '';
         obj.value = showType === '0' ? ( data[key].cost || 0 ) : ( data[key].energy || 0);
-        obj.labelLine = {
-            show:obj.value === 0 ? false : true,
-            length:10,
-            length2:20
-        };
+        obj.label = { show:false };
+        obj.labelLine = { show:false };
         if ( obj.name ){
             total += +obj.value;
             legendData.push(obj.name);
@@ -40,7 +37,6 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
     });
     const echartsRef = useRef();
     let title = energyInfo.type_id === 0 ? `本月总${ showType === '0' ? '费用' : '能耗'}分解分析` : `本月${ energyInfo.type_name}${ showType === '0' ? '费用':'能耗'}分解分析`;
-   
     return (   
         <div style={{ height:'100%'}}>
             {
@@ -87,8 +83,8 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                         downloadExcel(sheet, fileTitle + '.xlsx' );
                     }
                 }}>
-                    <Radio.Button key='download' value='download'><IconFont style={{ fontSize:'1.2rem'}} type='icontupian'/></Radio.Button>
-                    <Radio.Button key='excel' value='excel'><IconFont style={{ fontSize:'1.2rem' }} type='iconexcel1' /></Radio.Button>
+                    <Radio.Button key='download' value='download'><PictureOutlined /></Radio.Button>
+                    <Radio.Button key='excel' value='excel'><FileExcelOutlined /></Radio.Button>
                 </Radio.Group>
             }
             <ReactEcharts
@@ -111,14 +107,14 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                         itemWidth:10,
                         itemHeight:10,
                         icon:'circle',
-                        right:'10%',
+                        right:'12%',
                         top:'middle',
                         orient:'vertical',
                         data:legendData,
                         textStyle:{ color:textColor },
                         formatter:(name)=>{
                             let temp = valueArr.filter(i=>i.name === name)[0];
-                            return `{title|本月${name}占比}\n{value|${total ? Math.round((temp.value / total) * 100) : 0 }%}`
+                            return `{title|本月${name}}\n{value|${Math.round(temp.value)}}{title|${showType === '0' ? '元' : energyInfo.unit }}    {value|${total ? (temp.value / total * 100).toFixed(1) : 0.0 }}{title|%}`
                         },
                         textStyle:{
                             rich: {
@@ -131,7 +127,8 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                                     fontSize: 16,
                                     fontWeight:'bold',
                                     lineHeight: 20,
-                                    color:textColor
+                                    color:textColor,
+                                    padding:[0,4,0,0]
                                 }
                             }
                         }
@@ -141,30 +138,21 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                     series: [
                         {
                             type: 'pie',
-                            center:['40%','55%'],
-                            radius: ['40%', '55%'],
+                            center:['30%','55%'],
+                            radius: ['42%', '55%'],
                             avoidLabelOverlap: true,
                             itemStyle:{
                                 borderColor: theme === 'dark' ? '#191932' : '#fff',
-                                borderWidth:4,
+                                borderWidth:2,
                             },
                             label:{
                                 // position:'inside',
-                                formatter:(params)=>{
-                                    
-                                    return params.data.value ? `${params.data.name} ${total ? Math.round(params.data.value/total*100) : 0 }%` : '';
+                                formatter:(params)=>{                                
+                                    return params.data.value ? `${params.data.name} ${total ? (params.data.value/total*100).toFixed(1) : 0.0 }%` : '';
                                 },
                                 fontSize:14,
                                 // color:'#000',
                                 fontWeight:'bold'
-                            },
-                            
-                            emphasis: {
-                                label: {
-                                    show: true,
-                                    fontSize: 14,
-                                    fontWeight: 'bold'
-                                }
                             },
                             data:valueArr
                         }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback, useMemo } from 'react';
 import { connect } from 'dva';
 import { history } from 'umi';
-import { Spin, Skeleton, Button, message } from 'antd';
-import { PieChartOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import { Spin, Skeleton, Button, Badge,  message } from 'antd';
+import { PieChartOutlined, AlertFilled, LeftOutlined, RightOutlined,  } from '@ant-design/icons';
 import headerBg from '../../../public/agent-header-bg.png';
 import agentBg from '../../../public/agent-bg.png';
 import style from './AgentMonitor.css';
@@ -32,9 +32,6 @@ function getImageInfo(url, container, layout, setLayout){
     container.appendChild(img);
 }
 
-const styleObj = {
-    position:'absolute'
-};
 
 const buttonStyle ={
     display:'inline-block',
@@ -47,13 +44,31 @@ const buttonStyle ={
     borderBottomRightRadius:'6px',
     cursor:'pointer'
 }
-
-let autoScroll = false;
+function getSum(data){
+    let sum = 0;
+    if ( data && Object.keys(data).length ){
+        Object.keys(data).forEach(key=>{
+            let province = data[key];
+            let provinceSum = 0;
+            if ( Object.keys(province).length ) {
+                Object.keys(province).forEach(cityKey=>{
+                    provinceSum += province[cityKey].reduce(( total, cur)=>{ total += cur.warning_cnt; return total }, 0);
+                })
+            };
+            sum += provinceSum;
+        });
+    }
+    return sum;
+}
 let subWindows = {}
 
 function AgentIndex({ dispatch, user, match, location, children }){
     const containerRef = useRef();
     const { userInfo } = user;
+    let [sumAlarm, setSumAlarm] = useState(0);
+    useEffect(()=>{
+        setSumAlarm(getSum(userInfo.city));
+    },[userInfo])
     // const [layout, setLayout] = useState({ head:56, content:0 });
     // useEffect(()=>{
     //     // 获取图片的原始尺寸，根据原始宽高和容器宽高比算出缩放比例，然后算出可用内容展示区
@@ -62,8 +77,10 @@ function AgentIndex({ dispatch, user, match, location, children }){
     // console.log(match);
     // console.log(location);
     useEffect(()=>{
-        window.handleTooltipClick = (companyId, projectCode)=>{ 
-            let url = `${window.location.origin}/energy?companyId=${companyId}`;
+        window.name = 'parent';
+        window.handleTooltipClick = (companyId)=>{ 
+            if ( !companyId ) return;
+            let url = `${window.location.origin}/energy?companyId=${companyId}&&pid=${Math.random()}`;
             if ( !subWindows[companyId] ) {
                 let sub = window.open(url);
                 subWindows[companyId] = sub;
@@ -77,20 +94,30 @@ function AgentIndex({ dispatch, user, match, location, children }){
             if ( e.data.type === 'close' ){
                 // 删除打开的企业子窗口项目
                 if ( subWindows[e.data.companyId] && subWindows[e.data.companyId].close ) {
-                    subWindows[e.data.companyId].close();
                     subWindows[e.data.companyId] = null;
                 }
-            }
-            if ( e.target && e.target.focus ){
-                e.target.focus();
-            } 
+            }      
         }
-        window.addEventListener('message', handleMessage)
+        function handleUnload(e){
+            Object.keys(subWindows).forEach(key=>{
+                if ( subWindows[key] && subWindows[key].close ){
+                    subWindows[key].close();
+                    subWindows[key] = null;
+                }
+            });
+        }
+        
+        window.addEventListener('message', handleMessage);
+        window.addEventListener('unload', handleUnload);
         return ()=>{
             window.handleTooltipClick = null;
             window.removeEventListener('message', handleMessage);
+            window.removeEventListener('unload', handleUnload);
             Object.keys(subWindows).forEach(key=>{
-                subWindows[key] = null;
+                if ( subWindows[key] && subWindows[key].close ){
+                    subWindows[key].close();
+                    subWindows[key] = null;
+                }
             });
             subWindows = {};
         }
@@ -118,6 +145,13 @@ function AgentIndex({ dispatch, user, match, location, children }){
                     }}>
                         <img src={headerBg} style={{ width:'100%' }} />
                         <div style={{ position:'absolute', left:'50%', top:'18px', fontSize:'2rem', letterSpacing:'0.8rem', transform:'translateX(-50%)' }}>AIOT物联感知系统监控中台</div>
+                        <div style={{ position:'absolute', right:'23%', top:'55px' }}>
+                            <Badge count={sumAlarm} overflowCount={999} style={{ cursor:'pointer' }} onClick={()=>{
+                                history.push('/agentMonitor/alarm');
+                            }}>
+                                <AlertFilled size='small' style={{ fontSize:'1.4rem', color:'#7dfffa' }} />
+                            </Badge>
+                        </div>
                         <div style={{ position:'absolute', right:'20px', top:'0' }}>
                             {/* <span style={buttonStyle} onClick={()=>{
                                 if ( containerRef.current ){
@@ -126,6 +160,7 @@ function AgentIndex({ dispatch, user, match, location, children }){
                             }}>分辨率</span>
                             
                             <span style={buttonStyle} onClick={()=>dispatch(routerRedux.push('/agentMonitor/test'))}>测试布局</span> */}
+                           
                             <span style={buttonStyle} onClick={()=>history.push('/agentMonitor/entry')}>快速入口</span>
                             <span style={buttonStyle} onClick={()=>{
                                 if ( location.pathname === '/agentMonitor' || location.pathname === '/agentMonitor/monitor') {

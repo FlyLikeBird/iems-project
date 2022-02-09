@@ -16,7 +16,7 @@ const { RangePicker }= DatePicker;
 
 function OverAlarmManager({ dispatch, user, overAlarm, fields }){
     const { timeType, startDate, endDate, theme } = user;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { warningInfo, regionAlarmInfo, chartLoading } = overAlarm;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
@@ -48,8 +48,11 @@ function OverAlarmManager({ dispatch, user, overAlarm, fields }){
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
-                                        defaultSelectedKeys={[currentAttr.key]}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
+                                        selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{
                                             dispatch({type:'fields/toggleAttr', payload:node});
@@ -78,14 +81,14 @@ function OverAlarmManager({ dispatch, user, overAlarm, fields }){
             </div>
             <div style={{ height:'calc( 100% - 40px)'}}>
                 <InfoList data={warningInfo.typeTmp} typeCode='over' />
-                <div className={style['card-container-wrapper']} style={{ height:'45%'}}>
+                <div className={style['card-container-wrapper']} style={{ height:'43%'}}>
                     <div className={style['card-container']}>
                         
                         <BarChart data={warningInfo} typeCode='over' timeType={timeType} theme={theme} />
                         
                     </div>
                 </div>
-                <div className={style['card-container-wrapper']} style={{ height:'45%', paddingBottom:'0' }}>
+                <div className={style['card-container-wrapper']} style={{ height:'43%', paddingBottom:'0' }}>
                     <div className={style['card-container']}>
                         {
                             Object.keys(regionAlarmInfo).length

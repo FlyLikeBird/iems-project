@@ -1,12 +1,45 @@
 import React from 'react';
 import ReactEcharts from 'echarts-for-react';
 
-function LineChart({ xData, yData, y2Data, y3Data }){
+function LineChart({ xData, yData, y2Data, y3Data, multi }){
     const seriesData = [];
-    if ( yData ) {
+    if ( multi ){
+        if ( yData ) {
+            seriesData.push({
+                type:'line',
+                name:'A相',
+                data:yData,
+                itemStyle:{
+                    color:'#eff400'
+                },
+                symbolSize:0
+            });
+        }
+        if ( y2Data ){
+            seriesData.push({
+                type:'line',
+                name:'B相',
+                data:y2Data,
+                itemStyle:{
+                    color:'#00ff00'
+                },
+                symbolSize:0
+            });
+        }
+        if ( y3Data ){
+            seriesData.push({
+                type:'line',
+                name:'C相',
+                data:y3Data,
+                itemStyle:{
+                    color:'#ff0000'
+                },
+                symbolSize:0
+            });
+        }
+    } else {
         seriesData.push({
             type:'line',
-            name:'A相',
             data:yData,
             itemStyle:{
                 color:'#eff400'
@@ -14,28 +47,7 @@ function LineChart({ xData, yData, y2Data, y3Data }){
             symbolSize:0
         });
     }
-    if ( y2Data ){
-        seriesData.push({
-            type:'line',
-            name:'B相',
-            data:y2Data,
-            itemStyle:{
-                color:'#00ff00'
-            },
-            symbolSize:0
-        });
-    }
-    if ( y3Data ){
-        seriesData.push({
-            type:'line',
-            name:'C相',
-            data:y3Data,
-            itemStyle:{
-                color:'#ff0000'
-            },
-            symbolSize:0
-        });
-    }
+    
     return (
         <ReactEcharts
             notMerge={true}
@@ -54,7 +66,7 @@ function LineChart({ xData, yData, y2Data, y3Data }){
                     show:seriesData.length > 1 ? true : false ,
                     data:seriesData.map(i=>i.name),
                     textStyle:{
-                        color:'#fff'
+                        color:'#000'
                     }
                 },
                 tooltip:{
@@ -69,7 +81,7 @@ function LineChart({ xData, yData, y2Data, y3Data }){
                         }
                     },
                     axisLabel:{
-                        color:'#fff'
+                        color:'#000'
                     },
                     data:xData
                 },
@@ -77,7 +89,7 @@ function LineChart({ xData, yData, y2Data, y3Data }){
                     type:'value',
                     splitLine:{
                         lineStyle:{
-                            color:'#4e6b91'
+                            color:'#e0e0e0'
                         }
                     },
                     axisTick:{
@@ -87,7 +99,7 @@ function LineChart({ xData, yData, y2Data, y3Data }){
                         show:false
                     },
                     axisLabel:{
-                        color:'#fff'
+                        color:'#000'
                     },
                 },
                 series:seriesData

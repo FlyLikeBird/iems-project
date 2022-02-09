@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { connect } from 'dva';
 import { Link, routerRedux } from 'dva/router';
 import { Dropdown, Menu, Button, Badge, Popover, Radio, Modal, Tag, Switch } from 'antd';
-import { createFromIconfontCN, DownOutlined, CloudOutlined, UserOutlined, MenuFoldOutlined, MenuUnfoldOutlined, AlertOutlined, AudioOutlined, AudioMutedOutlined, SoundOutlined  } from '@ant-design/icons';
+import { createFromIconfontCN, MenuFoldOutlined, MenuUnfoldOutlined, AlertOutlined, FullscreenOutlined, FullscreenExitOutlined  } from '@ant-design/icons';
 import ScrollTable from '@/pages/page_index/components/ScrollTable';
 import style from './Header.css';
 import { getToday } from '@/pages/utils/parseDate';
@@ -11,10 +11,10 @@ import avatarBg from '../../../../public/avatar-bg.png';
 import UploadLogo from './UploadLogo';
 
 let timer;
-let week = new Date().getDay();
 let firstMsg = true;
 let alarmTimer = null;
-
+let startTimer = 0;
+let gapTimer = 0;
 const weekObj = {
     0:'周日',
     1:'周一',
@@ -25,40 +25,82 @@ const weekObj = {
     6:'周六',
 }
 
+
+function isFullscreen(){
+    return document.fullscreenElement    ||
+           document.msFullscreenElement  ||
+           document.mozFullScreenElement ||
+           document.webkitFullscreenElement || false;
+}
+
+function enterFullScreen(el){
+    try {
+        if ( document.documentElement.requestFullscreen ) {
+            document.documentElement.requestFullscreen();
+        }
+        // let func = el.requestFullscreen || el.msRequestFullscreen || el.mozRequestFullscreen || el.webkitRequestFullscreen ;
+        // if ( func && typeof func === 'function' ) func.call(el);
+    } catch(err){
+        console.log(err);
+    }
+    
+}
+
+function cancelFullScreen(el ){
+    // let func = el.cancelFullsceen || el.msCancelFullsceen || el.mozCancelFullsceen || el.webkitCancelFullsceen 
+    //         || document.exitFullscreen || document.msExitFullscreen || document.mozExitFullscreen || document.webkitExitFullscreen ;
+    // if ( func && typeof func === 'function' ) func();
+    if ( typeof document.exitFullscreen === 'function' ) {
+        document.exitFullscreen();
+    }
+}
+
 const IconFont = createFromIconfontCN({
     scriptUrl:'//at.alicdn.com/t/font_2314993_bryih7jtrtn.js'
 });
 
 const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
-    let { userInfo, weatherInfo, thirdAgent, newThirdAgent, currentCompany, fromAgent, theme } = data;
+    let { userInfo, weatherInfo, thirdAgent, newThirdAgent, currentCompany, fromAgent, theme, currentMenu } = data;
+    let week = new Date().getDay();
     const [curTime, updateTime] = useState(getToday(2));
-    const [muted, setMuted] = useState(false);
+    const [muted, setMuted] = useState(true);
     const [visible, toggleVisible] = useState(false);
     const containerRef = useRef();
     useEffect(()=>{
         timer = setInterval(()=>{
             updateTime(getToday(2));
         },1000);
-        var video = document.createElement('video');
-        video.style.display = 'none';
-        video.id = 'my-audio';
-        video.src = '/alarm.mp4';
-        video.muted = true;
-        video.autoPlay = true;
-        video.loop = true;
-        containerRef.current.appendChild(video);
+        // var video = document.createElement('video');
+        // video.style.display = 'none';
+        // video.id = 'my-audio';
+        // video.src = '/alarm.mp4';
+        // video.muted = true;
+        // video.autoPlay = true;
+        // video.loop = true;
+        // containerRef.current.appendChild(video);
         function handleUnload(e){
-            window.opener.postMessage({ type:'close', companyId:currentCompany.company_id });
+            gapTimer = new Date().getTime() - startTimer;
+            if ( gapTimer <= 20 ){
+                window.opener.postMessage({ type:'close', companyId:currentCompany.company_id });
+            } else {
+                
+            }
         }
+        function handleBeforeUnload(e){
+            startTimer = new Date().getTime();
+        }
+        window.addEventListener('beforeunload', handleBeforeUnload);
         window.addEventListener('unload', handleUnload);
         return ()=>{
             firstMsg = true;
             clearInterval(timer);
             clearTimeout(alarmTimer);
+            startTimer = 0;
+            gapTimer = 0;
+            window.removeEventListener('beforeunload', handleBeforeUnload);
             window.removeEventListener('unload', handleUnload);
         }
     },[]);
-    
     useEffect(()=>{
         if ( Object.keys(msg).length ){
             if ( !firstMsg && !muted ){
@@ -67,9 +109,7 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                     if ( audio ){
                         audio.currentTime = 0;
                         audio.muted = false;
-                        alarmTimer = setTimeout(()=>{
-                            audio.muted = true;
-                        },5000);
+                      
                     }              
                 }
                 run();
@@ -77,8 +117,12 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
             firstMsg = false;
         }
     },[msg]);
+    // console.log(currentCompany);
+    let isFulled = isFullscreen();
     return (
-        <div ref={containerRef} className={ theme === 'dark' ? style['container'] + ' ' + style['dark'] : style['container']}>
+        <div ref={containerRef} className={ theme === 'dark' ? style['container'] + ' ' + style['dark'] : style['container']} style={{ 
+            display:isFulled && ( currentMenu.path === 'ai_gas_station' || currentMenu.path === 'power_room' ) ? 'none' : 'block'
+        }}>
             <UploadLogo visible={visible} onClose={()=>toggleVisible(false)} onDispatch={onDispatch} />
             <div className={style['content-container']}>
                 <div className={style['img-container']} style={{ width: sidebarWidth + 'px', cursor:'pointer' }} onClick={()=>{
@@ -87,7 +131,7 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                         toggleVisible(true);
                     }
                 }}>
-                    <img src={ currentCompany.head_logo_path || thirdAgent.logo_path || newThirdAgent.logo_path } style={{ width:'100%', display: collapsed ? 'none' : 'inline-block' }} />
+                    <img src={ currentCompany.head_logo_path  || thirdAgent.logo_path || newThirdAgent.logo_path } style={{ width:'100%', display: collapsed ? 'none' : 'inline-block' }} />
                     <img src={ currentCompany.mini_logo_path || thirdAgent.mini_logo_path || newThirdAgent.mini_logo_path } style={{ width:'100%', display: collapsed ? 'inline-block' : 'none'}} />
                 </div>
                 <div onClick={()=>onDispatch({type:'user/toggleCollapsed'})} className={style['collapse-button']} style={{ top:'50%', transform:'translateY(-50%)', left:sidebarWidth + 20 + 'px'}}>
@@ -109,9 +153,23 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                     }} />     
                 </div>
                 <div className={style['title-container']}>
-                    <div className={style['title']}>{ `${currentCompany.company_name}-智慧能源管理系统`}</div>
+                    <div className={style['title']}>
+                    {/* { `${currentCompany.company_name}-智慧能源管理系统`} */}
+                    { `${currentCompany.company_name}-企业智慧能源管理平台`}
+                    </div>
                 </div>
                 <div className={style['weather-container']}>
+                    {
+                        isFulled
+                        ?
+                        <FullscreenExitOutlined style={{ fontSize:'1.4rem', margin:'0 10px' }} onClick={()=>{
+                            cancelFullScreen();
+                        }} />
+                        :
+                        <FullscreenOutlined style={{ fontSize:'1.4rem', margin:'0 10px' }} onClick={()=>{
+                            enterFullScreen(document.getElementById('root'));
+                        }} />
+                    }
                     <div>
                         <span>{ curTime + '  '+ `(${weekObj[week]})` }</span>
                         <span style={{ margin:'0 10px'}}>{ weatherInfo.city }</span>
@@ -127,12 +185,20 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                         <IconFont style={{ fontSize:'1.2rem', margin:'0 10px'}} type={ muted ? 'iconsound-off' : 'iconsound'} onClick={()=>{
                             setMuted(!muted);
                             let audio = document.getElementById('my-audio');
-                            if ( muted ){
-                                audio.muted = false;
-                            } else {
-                                audio.muted = true;
+                            audio.currentTime = 0;
+                            if ( audio ){
+                                audio.currentTime = 0;
+                                if ( muted ){
+                                    audio.muted = false;
+                                } else {
+                                    audio.muted = true;
+                                }
                             }
-                        }}></IconFont>
+                            
+                        }}></IconFont> 
+                        <audio id='my-audio' preload='auto' autoPlay='autoplay' loop='loop' muted='muted' controls hidden={true} >
+                            <source src='/alarm.mp3' />
+                        </audio>
                         <span style={{ margin:'0 10px' }}>|</span>
                     </div>
                    
@@ -147,8 +213,9 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                             ?
                             <Tag color='#2db7f5' onClick={()=>{
                                 if ( window.opener ){
-                                    window.opener.postMessage({ type:'close', companyId:currentCompany.company_id });
-                                    
+                                    // 通过window.open可以跳转到指定name的窗口
+                                    window.open("javascript:;",window.opener.name);
+                                    // window.opener.postMessage({ type:'close', companyId:currentCompany.company_id });
                                 }
                             }}>返回中台</Tag>
                             :
@@ -167,6 +234,7 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
 function areEqual(prevProps, nextProps){
     if ( prevProps.data !== nextProps.data 
         || prevProps.collapsed !== nextProps.collapsed 
+        || prevProps.fullscreen !== nextProps.fullscreen
         || prevProps.sidebarWidth !== nextProps.sidebarWidth
         || prevProps.msg.count !== nextProps.msg.count    
     ) {

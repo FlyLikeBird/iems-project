@@ -33,7 +33,6 @@ function PageItem6({ demand, analyze, dispatch, companyName }){
     const infoData = demandInfo.info ? demandInfo.info : { };
     const [timeType, toggleTimeType] = useState('1');
     const inputRef = useRef();
-    console.log(analyzInfo);
     return (
         <PageItem title='能源效率分析-Energy Efficiency Analysis' companyName={companyName}>
             {   

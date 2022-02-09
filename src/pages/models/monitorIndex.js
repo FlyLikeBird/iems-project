@@ -1,7 +1,11 @@
-import { getMonitorInfo, getMachData } from '../services/monitorIndexService';
+import { getMonitorInfo, getScenes, getMachData } from '../services/monitorIndexService';
 
 const initialState = {
-    monitorInfo:{}
+    sceneList:[],
+    currentScene:{},
+    sceneLoading:true,
+    monitorInfo:{},
+    sceneIndex:1
 }
 
 export default {
@@ -18,14 +22,28 @@ export default {
         *cancelAll(action, { put }){
             yield put.resolve({ type:'reset'});
         },
+        *init(action, { put }){
+            yield put.resolve({ type:'fetchScenes'});
+            yield put.resolve({ type:'fetchMonitorInfo'});
+        },
+        *fetchScenes(action, { call, select, put }){
+            let { user:{ company_id }} = yield select();
+            let { data } = yield call(getScenes, { company_id, scene_type:'1' });
+            if ( data && data.code === '0'){
+                yield put({ type:'getScenes', payload:{ data:data.data }});
+            }
+        },
         *fetchMonitorInfo(action, { call, put, select }){         
             try {
-                let { user:{ company_id }} = yield select();
-                let { data } = yield call(getMonitorInfo, { company_id });
+                let { user:{ company_id }, monitorIndex:{ currentScene }} = yield select();
+                let { noLoading } = action.payload || {};
+                if ( !noLoading ){
+                    yield put({ type:'toggleSceneLoading', payload:true });
+                }
+                let { data } = yield call(getMonitorInfo, { company_id, scene_id:currentScene.scene_id });
                 if ( data && data.code === '0'){
                     yield put({ type:'getResult', payload:{ data:data.data }});
-                } else {
-                }
+                } 
             } catch(err){
                 console.log(err);
             }
@@ -37,6 +55,7 @@ export default {
                 try {
                     let { user:{ company_id }} = yield select();
                     let { register_code, mach_type, resolve, reject  } = action.payload || {};
+                    mach_type = mach_type || 'ele';
                     let { data } = yield call(getMachData, { company_id, register_code, mach_type });
                     if ( data && data.code === '0'){
                         if ( resolve && typeof resolve === 'function' ) resolve(data.data);
@@ -50,6 +69,9 @@ export default {
         }
     },
     reducers:{
+        toggleSceneLoading(state, { payload }){
+            return { ...state, sceneLoading:payload };
+        },
         getResult(state, { payload:{ data }}){
             let { realtime } = data;
             let totalInfoList = [], energyInfoList=[], envInfoList = [];
@@ -76,18 +98,17 @@ export default {
             // envInfoList.push({ title:'变压器温度', value:'60.2', unit:'℃' });
             // envInfoList.push({ title:'母排温度', value:'56.2', unit:'℃' });
             // data['envInfoList'] = envInfoList;
-            return { ...state, monitorInfo:data };
+            return { ...state, monitorInfo:data, sceneLoading:false };
+        },
+        toggleCurrentScene(state, { payload:{ currentScene, sceneIndex } }){
+            return { ...state, currentScene, sceneIndex };
+        },
+        getScenes(state, { payload:{ data }}){
+            let currentScene = data && data.length ? data[0] : {};
+            return { ...state, sceneList:data, currentScene };
         },
         reset(state){
             return initialState;
         }
     }
-}
-
-function delay(ms){
-    return new Promise((resolve ,reject)=>{
-        setTimeout(()=>{
-            resolve();
-        },ms)
-    })
 }

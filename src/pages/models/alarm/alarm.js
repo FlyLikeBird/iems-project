@@ -105,6 +105,8 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({type:'fetchRule'});
                     if ( resolve ) resolve();
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject ) reject(data.msg);
                 }
@@ -119,6 +121,8 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({type:'fetchRule'});
                     if ( resolve ) resolve();
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject ) reject(data.msg);
                 }
@@ -132,6 +136,8 @@ export default {
                 let { data } = yield call(deleteRule, { rule_id });
                 if ( data && data.code === '0'){
                     yield put({type:'fetchRule'});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
@@ -174,6 +180,8 @@ export default {
                 let { data } = yield call(getTodayInfo, { company_id });
                 if ( data && data.code === '0'){
                     yield put({ type:'getAlarmInfo', payload: { data:data.data }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch (err) {
                 console.log(err);
@@ -209,9 +217,9 @@ export default {
                 if ( sumData.data.code === '0' && typeData.data.code === '0' && machData.data.code === '0' && fieldData.data.code === '0' ){
                     yield put({type:'getSumInfo', payload:{ sumInfo:sumData.data.data, typeInfo:typeData.data.data, machWarning:machData.data.data, fieldWarning:fieldData.data.data }});
                     if ( resolve && typeof resolve === 'function') resolve();    
-                } else {
-                    if ( reject && typeof reject === 'function') reject();    
-                }       
+                } else if ( sumData.data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
+                }      
             } catch(err){
                 console.log(err);
             }
@@ -252,6 +260,8 @@ export default {
                 let { data } = yield call(getRecordList, params);
                 if ( data && data.code === '0'){
                     yield put({type:'getRecord', payload:{ list:data.data, count:data.count }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
@@ -271,6 +281,8 @@ export default {
                 let { data } = yield call(getExecuteType);
                 if ( data && data.code ==='0'){
                     yield put({type:'getExecuteType', payload:{ data: data.data }});
+                } else if ( data && data.code === '1001') {
+                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
@@ -314,6 +326,8 @@ export default {
                     resolve();
                     yield put({type:'fetchProgressInfo', payload:record_id });
                     yield put({type:'fetchRecordList', payload:{} });
+                } else if ( data && data.code === '1001'){
+                    yield put({ type:'user/loginOut'});
                 } else {
                     reject(data.msg);
                 }

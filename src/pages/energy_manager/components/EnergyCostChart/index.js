@@ -2,14 +2,14 @@ import React, { useState, useRef } from 'react';
 import { connect } from 'dva';
 import { routerRedux } from 'dva/router';
 import { Radio, Card, Button, DatePicker, Popover, Skeleton, Spin, message } from 'antd';
-import { BarsOutlined, LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { BarsOutlined, LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { downloadExcel } from '@/pages/utils/array';
 import XLSX from 'xlsx';
 import style from '../../../IndexPage.css';
 import { globalColors } from './colors';
-import { IconFont } from '@/pages/components/IconFont';
+// import { IconFont } from '@/pages/components/IconFont';
 let colorArr = [];
 // 14为一组色系，隔一个色系
 for(var i=0;i<globalColors.length;i++){
@@ -227,8 +227,8 @@ function EnergyCostChart({ data, energyInfo, showType, year, month, day, isLoadi
                                 }
                             }}>
 
-                                <Radio.Button value='download'><IconFont style={{ fontSize:'1.2rem'}} type='icontupian'/></Radio.Button>
-                                <Radio.Button value='excel'><IconFont style={{ fontSize:'1.2rem' }} type='iconexcel1' /></Radio.Button>
+                                <Radio.Button value='download'><PictureOutlined /></Radio.Button>
+                                <Radio.Button value='excel'><FileExcelOutlined /></Radio.Button>
                             </Radio.Group>
                         </div>
                     }

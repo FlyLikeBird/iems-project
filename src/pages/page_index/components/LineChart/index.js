@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { connect } from 'dva';
 import { Radio, Card, Button,  } from 'antd';
-import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileImageOutlined, FileExcelOutlined } from '@ant-design/icons';
+import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined, FileImageOutlined, PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas from 'html2canvas';
 import XLSX from 'xlsx';
@@ -100,8 +100,8 @@ function LineChart({ data, dispatch, energyList, energyInfo }) {
                         <Radio.Button key={item.type_code} value={item.type_id}>{ item.type_name }</Radio.Button>
                     ))
                 }
-                <Radio.Button key='download' value='download'><IconFont style={{ fontSize:'1.2rem'}} type='icontupian'/></Radio.Button>
-                <Radio.Button key='excel' value='excel'><IconFont style={{ fontSize:'1.2rem' }} type='iconexcel1' /></Radio.Button>
+                <Radio.Button key='download' value='download'><PictureOutlined /></Radio.Button>
+                <Radio.Button key='excel' value='excel'><FileExcelOutlined /></Radio.Button>
             </Radio.Group>
             <ReactEcharts
                 notMerge={true}
@@ -134,10 +134,6 @@ function LineChart({ data, dispatch, energyList, energyInfo }) {
                             lineStyle:{
                                 color:'#131f29'
                             }
-                        },
-                        name:'(单位:kw)',
-                        nameTextStyle:{
-                            color:'#fff'
                         },
                         axisLabel:{
                             color:'#fff'

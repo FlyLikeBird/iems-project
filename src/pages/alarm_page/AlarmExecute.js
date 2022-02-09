@@ -101,11 +101,11 @@ function AlarmExecute({ dispatch, user, alarm, location }){
                                 columns={columns}
                                 locale={{ emptyText:'没有电气告警记录' }}
                                 loading={isLoading}
-                                // pagination={{ total:recordListInfo.count, current:pageNum, pageSize:pagesize, showSizeChanger:false  }}
-                                // onChange={pagination=>{
-                                //     dispatch({ type:'alarm/setPageNum', payload:pagination.current });
-                                //     dispatch({ type:'alarm/fetchRecordList', payload:{ cate_code:activeKey, keywords:value }} )
-                                // }}
+                                pagination={{ total:recordListInfo.count, current:pageNum, pageSize:pagesize, showSizeChanger:false  }}
+                                onChange={pagination=>{
+                                    dispatch({ type:'alarm/setPageNum', payload:pagination.current });
+                                    dispatch({ type:'alarm/fetchRecordList', payload:{ cate_code:activeKey, keywords:value }} )
+                                }}
                             />
                         </TabPane>
                         <TabPane key='2' tab='越限告警'>

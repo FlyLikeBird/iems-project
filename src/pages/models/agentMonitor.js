@@ -1,6 +1,13 @@
 import { 
-    getMonitorInfo, 
+    getMonitorInfo,
+    getTotalAlarm, 
     getOutputRank, 
+    getLogType,
+    confirmRecord,
+    getProgressLog,
+    uploadImg,
+    getSumTrend,
+    getProjectTrend,
     getCoalRank, 
     getMeterMach, 
     getTodayEnergy, 
@@ -37,7 +44,18 @@ const initialState = {
     warningTrend:{},
     // 自动模式：根据socket数据自动更新状态
     // 手动模式：响应用户操作
-    autoMode:true
+    autoMode:true,
+    
+    currentPage:1,
+    total:0,
+    warningLoading:true,
+    warningList:[],
+    // 告警处理状态
+    logTypes:[],
+    progressLog:[],
+    historyLog:[],
+    chartInfo:{},
+    chartLoading:true
 };
 
 export default {
@@ -281,7 +299,95 @@ export default {
             } catch(err){
                 console.log(err);
             }
+        },
+        // 中台告警列表和分析功能页面
+        *fetchTotalAlarm(action, { call, put, select }){
+            try {
+                let { province, city, company_id, status, cate_code, startDate, endDate, currentPage } = action.payload || {};
+                let { user:{ userInfo }} = yield select();
+                currentPage = currentPage || 1;
+                let obj = { agent_id:userInfo.agent_id, province, city, page:currentPage, pagesize:12 };
+                if ( company_id ){
+                    obj.company_id = company_id;
+                }
+                if ( status ){
+                    obj.status = status;
+                }
+                if ( cate_code ){
+                    obj.cate_code = cate_code;
+                }
+                if ( startDate && startDate._isAMomentObject ) {
+                    obj.begin_date = startDate.format('YYYY-MM-DD');
+                }
+                if ( endDate && endDate._isAMomentObject ){
+                    obj.end_date = endDate.format('YYYY-MM-DD');
+                }
+                yield put({ type:'toggleAlarmLoading'});
+                let { data } = yield call(getTotalAlarm, obj);
+                if ( data && data.code === '0'){
+                    yield put({ type:'getTotalAlarmResult', payload:{ data:data.data, currentPage, total:data.count }})
+                }
+            } catch(err){
+                console.log(err);
+            }
+        },
+        *fetchLogType(action, { put, call }){
+            let { data } = yield call(getLogType);
+            if ( data && data.code === '0'){
+                yield put({ type:'getLogType', payload:{ data:data.data }});
+            }
+        },
+        *fetchProgressInfo(action, { call, put}){
+            try {
+                let { data } = yield call(getProgressLog, { record_id:action.payload });
+                if ( data && data.code === '0' ){
+                    yield put({type:'getProgress', payload:{ data:data.data }});
+                }
+            } catch(err){
+                console.log(err);
+            }
+        },
+        *confirmRecord(action, { select, call, put, all }){
+            try {
+                let { user:{ company_id }} = yield select();
+                let { resolve, reject, values } = action.payload;
+                // photos字段是上传到upload接口返回的路径
+                let uploadPaths;
+                if ( values.photos && values.photos.length ) {
+                    let imagePaths = yield all([
+                        ...values.photos.map(file=>call(uploadImg, { file }))
+                    ]);
+                    uploadPaths = imagePaths.map(i=>i.data.data.filePath);
+                } 
+                let { data } = yield call(confirmRecord, { company_id, record_id:values.record_id, photos:uploadPaths, log_desc:values.log_desc, oper_code:values.oper_code, type_id:values.type_id });                 
+                if ( data && data.code === '0'){
+                    resolve();
+                } else {
+                    reject(data.msg);
+                }
+            } catch(err){
+                console.log(err);
+            }
+        },
+        
+        *fetchSumTrend(action, { put, select, call, all }){
+            try {
+                let { user:{ userInfo, timeType, startDate, endDate }} = yield select();
+                let obj = { agent_id:userInfo.agent_id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') };
+                yield put({ type:'toggleChartLoading'});
+                let [sumData, trendData] = yield all([
+                    call(getSumTrend, obj),
+                    call(getProjectTrend, obj)
+                ]);
+                if ( sumData.data.code === '0' && trendData.data.code === '0'){
+                    yield put({ type:'getSumTrendResult', payload:{ data:{ sumInfo:sumData.data.data, trendInfo:trendData.data.data }}})
+                }
+               
+            } catch(err){
+                console.log(err);
+            }
         }
+        
     },
     reducers:{
         getTodayEnergy(state, { payload:{ data }}){
@@ -325,7 +431,6 @@ export default {
             return { ...state, warningMonitor:data }
         },
         getWarningStatus(state, { payload:{ data }}){
-            console.log(data);
             return { ...state, warningStatus:data };
         },
         toggleRunning(state, { payload }){
@@ -336,6 +441,27 @@ export default {
         },
         setCurrentCity(state, { payload:{ data }}){
             return { ...state, currentCity:data }
+        },
+        toggleAlarmLoading(state){
+            return { ...state, alarmLoading:true };
+        },
+        getTotalAlarmResult(state, { payload:{ data, currentPage, total }}){
+            return { ...state, warningList:data, currentPage, total, alarmLoading:false };
+        },
+        getLogType(state, { payload:{ data }}){
+            return { ...state, logTypes:data };
+        },
+        getProgress(state, { payload :{ data }}){
+            return { ...state, progressLog:data };
+        },
+        resetProgress(state){
+            return { ...state, progressLog:[] };
+        },
+        toggleChartLoading(state){
+            return { ...state, chartLoading:true };
+        },
+        getSumTrendResult(state, { payload:{ data }}){
+            return { ...state, chartInfo:data, chartLoading:false };
         }
     }
 }

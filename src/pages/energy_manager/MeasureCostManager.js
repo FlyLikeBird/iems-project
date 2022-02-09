@@ -40,10 +40,10 @@ function MeasureCostManager({ dispatch, user, baseCost }) {
                     ?
                     measureInfoList.map((item,index)=>(
                         <div key={index} className={style['card-container-wrapper']} style={{ width:100/measureInfoList.length + '%', paddingBottom:'0', paddingRight:index === measureInfoList.length - 1 ? '0' : '1rem' }}>
-                            <div className={style['card-container']} style={{ display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 20px' }}>
+                            <div className={style['card-container']} style={{ display:'flex', flexDirection:'column', justifyContent:'center', padding:'0 1rem' }}>
                                 <div style={{ display:'flex', justifyContent:'space-between' }}>
                                         <div style={{ fontSize:'1.2rem' }}>{ timeInfo[item.time_type]}</div>
-                                        <div className={style['sub-text']}>电价：{ (+item.fee_rate).toFixed(2) } 元</div>
+                                        <div className={style['sub-text']}>电价：{ item.fee_rate } 元</div>
                                 </div>
                                 <div style={{ display:'flex', justifyContent:'space-between', margin:'10px 0' }}>
                                     <div>
@@ -54,7 +54,7 @@ function MeasureCostManager({ dispatch, user, baseCost }) {
                                         <div className={style['sub-text']}>电费占比(%)</div>
                                         <div className={style['data']}>
                                             {
-                                                measureCostInfo.base.totalCost === 0 ? 0.00 : ((item.totalCost / measureCostInfo.base.totalCost)*100).toFixed(1)
+                                                measureCostInfo.base.totalCost ? ((item.totalCost / measureCostInfo.base.totalCost)*100).toFixed(1) : 0.00
                                             }
                                             %
                                         </div>

@@ -120,7 +120,7 @@ function ReportDocument({ currentField, currentAttr, companyInfo, documentInfo, 
                     null
                 }
                 {
-                    cost_mode === 'person' || energyInfo.type_id === '2'
+                    cost_mode === 'person' || energyInfo.type_id !== '1'
                     ?
                     <Form.Item name='person_price' label={`${energyInfo.type_name}费单价`} rules={[{ validator }]}>
                         <InputNumber style={{width:'100%'}}/>

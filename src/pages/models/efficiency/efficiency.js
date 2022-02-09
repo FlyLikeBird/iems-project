@@ -95,11 +95,19 @@ export default {
                     // console.log(clickNode);
                     let { data } = yield call(getEnergyFlow, { company_id, attr_id:finalAttr.key, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
                     if ( data && data.code === '0'){
-                        if ( data.data.children && data.data.children.length ) {
+                        if ( data.data.children && data.data.children.length && data.data.cost ) {
                             yield put({ type:'getChart', payload:{ data:data.data, parentChart:chartInfo, clickNode }});
                         } else {
-                            message.info('没有下一级节点');
+                            if ( clickNode ){
+                                message.info('没有下一级节点');
+                            } else {
+                                yield put({ type:'getChart', payload:{ data:{ empty:true } }});
+                            }
                         }
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
+                    } else {
+                        yield put({ type:'getChart', payload:{ data:{ empty:true } }});
                     }
                 } catch(err){
                     console.log(err);
@@ -189,6 +197,8 @@ export default {
                         let obj = { attrMonthData:attrMonthData.data.data, attrDayData:attrDayData.data.data, attrHourData:attrHourData.data.data };
                         yield put({type:'getAttrRatio', payload:obj});
                         if ( resolve && typeof resolve === 'function') resolve();
+                    } else if ( attrMonthData.data.code === '1001' ) {
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);
@@ -206,6 +216,8 @@ export default {
                     let { data } = yield call(getRegionOutput, { company_id, type_id:energyInfo.type_id });
                     if ( data && data.code === '0'){
                         yield put({type:'getRegionRatio', payload:{ data:data.data }});
+                    } else if ( data && data.code === '1001') {
+                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);
@@ -228,8 +240,7 @@ export default {
         },
         getRankInfo(state, { payload:{ rankInfo }}){
             return { ...state, rankInfo }
-        },
-        
+        },   
         // 用于打开新窗口时传递状态
         setFlowChartInfo(state, { payload:{ chartInfo, rankInfo }}){
             return { ...state, chartInfo, rankInfo, chartLoading:false };
@@ -241,7 +252,8 @@ export default {
                 temp = { ...parentChart };
             }
             // console.log(data);
-            // console.log(temp);
+            console.log(temp);
+            
             return { ...state, chartInfo:temp, chartLoading:false };
         },
         getCost(state, { payload : { data }}){
@@ -278,25 +290,6 @@ export default {
         getRegionRatio(state, { payload: { data }}){
             let regionData = data.sort((a,b)=>b.output_ratio-a.output_ratio);
             return { ...state, regionData:data, regionLoading:false };  
-        },
-        toggleEnergyType(state, { payload }){
-            return { ...state, energyInfo:payload };
-        },
-        setCostChart(state){
-            let currentEnergy = state.energyInfo.type_code;
-            let costChart;
-            if ( currentEnergy === 'total'){
-                // 如果是汇总能源
-                costChart = state.allCostChart;
-            } else {
-                // 具体某种类型的能源
-                costChart = {
-                    date:state.allCostChart.date,
-                    cost: { [currentEnergy] : state.allCostChart.cost[currentEnergy] },
-                    ratio: { [currentEnergy] : state.allCostChart.ratio[currentEnergy]}
-                };
-            }
-            return { ...state, costChart };
         },
         setDate(state, { payload }){
             return { ...state, currentDate:payload };

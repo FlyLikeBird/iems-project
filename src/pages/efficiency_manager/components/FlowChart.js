@@ -106,15 +106,13 @@ let levels = [{
     }
 }];
 
-function FlowChart({ data, theme,  dispatch }){
+function FlowChart({ data, theme, energyInfo, rankInfo, dispatch }){
     const echartsRef = useRef();
     let textColor = theme === 'dark' ? '#fff' : '#000';
     let nodes = [], links = [];
     getNodesDeep(data, nodes, links);
     // console.log(JSON.stringify(nodes));
     // console.log(JSON.stringify(links));
-    console.log(nodes);
-    console.log(links);
     const onEvents = {
         'click':(params)=>{
             // console.log(params);
@@ -123,7 +121,7 @@ function FlowChart({ data, theme,  dispatch }){
             }
         }
     };
-
+    
     return (
         
             <ReactEcharts
@@ -141,6 +139,21 @@ function FlowChart({ data, theme,  dispatch }){
                                 return `${params.data.name}:<br/>能耗值:${params.data.ele_energy}kwh<br/>成本:${params.data.ele_cost}元`;
                             }
                         }
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {
+                                backgroundColor:theme === 'dark' ? '#191a2f' : '#fff'
+                            }
+                        }
+                    },
+                    title:{
+                        text:`能源成本竞争力第${ rankInfo ? rankInfo.rank : '--' }位`,
+                        textStyle:{
+                            color:'#fff',
+                            fontSize:14
+                        },
+                        top:6
                     },
                     series:[
                         {
@@ -167,7 +180,7 @@ function FlowChart({ data, theme,  dispatch }){
                                 color:textColor,
                                 padding:[10,0,10,0],
                                 formatter:params=>{
-                                    return `${params.data.name}(${params.data.ele_energy}kwh)`
+                                    return `${params.data.name}(${params.data.ele_energy}${energyInfo.unit})`
                                 }
                             },
                             data:nodes,
@@ -185,7 +198,7 @@ function FlowChart({ data, theme,  dispatch }){
 }
 
 function areEqual(prevProps, nextProps){
-    if ( prevProps.data !== nextProps.data || prevProps.theme !== nextProps.theme ) {
+    if ( prevProps.data !== nextProps.data || prevProps.rankInfo !== nextProps.rankInfo ||  prevProps.theme !== nextProps.theme ) {
         return false;
     } else {
         return true;

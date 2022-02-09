@@ -13,7 +13,7 @@ const { TabPane } = Tabs;
 
 function ExtremeReport({ dispatch, user, extremeReport, fields }) {
     const { sourceData, eleType, isLoading } = extremeReport;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { currentCompany, pagesize, timeType, startDate, endDate } = user;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
@@ -43,7 +43,10 @@ function ExtremeReport({ dispatch, user, extremeReport, fields }) {
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, { selected, node})=>{
@@ -63,8 +66,10 @@ function ExtremeReport({ dispatch, user, extremeReport, fields }) {
     );
     const content = (
         
-                sourceData.length
+                isLoading
                 ?
+                <Skeleton className={style['skeleton']} />
+                :
                 <div>
                     <div style={{ height:'40px' }}>
                         <CustomDatePicker onDispatch={()=>{
@@ -84,9 +89,6 @@ function ExtremeReport({ dispatch, user, extremeReport, fields }) {
                         />
                     </div>
                 </div>
-                
-                :
-                <Skeleton className={style['skeleton']} />
            
     );
     useEffect(()=>{

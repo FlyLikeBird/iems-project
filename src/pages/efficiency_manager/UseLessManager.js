@@ -16,7 +16,7 @@ const { TabPane } = Tabs;
 
 function UseLessManager({ dispatch, user, fields, demand }) {
     const { machList, currentMach, uselessInfo, uselessTime, uselessLoading } = demand;
-    const { allFields, currentField, currentAttr, treeLoading } = fields;
+    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     const inputRef = useRef();
@@ -53,7 +53,10 @@ function UseLessManager({ dispatch, user, fields, demand }) {
                                     :
                                     <Tree
                                         className={style['custom-tree']}
-                                        defaultExpandAll={true}
+                                        expandedKeys={expandedKeys}
+                                        onExpand={temp=>{
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                        }}
                                         selectedKeys={[currentAttr.key]}
                                         treeData={fieldAttrs}
                                         onSelect={(selectedKeys, {node})=>{
@@ -83,7 +86,7 @@ function UseLessManager({ dispatch, user, fields, demand }) {
                 <div className={style['card-container-wrapper']} style={{ height:'20%', paddingRight:'0'}}>
                     <div className={style['card-container-wrapper']} style={{ width:'50%', paddingBottom:'0'}}>
                         <div className={style['card-container']}>
-                            <div className={style['card-title']}>本月概况</div>
+                            <div className={style['card-title']}>当前概况</div>
                             <div className={style['card-content']}>
                                 <div className={style['flex-container']}>
                                     <div className={style['flex-item']}>

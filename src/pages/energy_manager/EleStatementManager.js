@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { connect } from 'dva';
-import { Card, Spin, Tree, Tabs, Skeleton, DatePicker, Radio } from 'antd';
+import { history } from 'umi';
+import { Card, Spin, Tree, Tabs, Skeleton, DatePicker, Button, Radio } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import Loading from '@/pages/components/Loading';
@@ -13,20 +14,19 @@ const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
 
 function EleStatementManager({ dispatch, fields, costReport, user }){
-    const { energyList, energyInfo, allFields, currentField, currentAttr, treeLoading } = fields;
+    const { energyList, energyInfo, allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { reportInfo, documentInfo, rateInfo } = costReport;
     const { currentCompany } = user;
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
-    // console.log(allFields);
-    // console.log(fields);
+   
     const sidebar = (
         <div>
             <div className={style['card-container']}>
                 <Tabs className={style['custom-tabs']} activeKey={energyInfo.type_id} onChange={activeKey=>{
                     let temp = energyList.filter(i=>i.type_id === activeKey)[0];
                     dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
-                    dispatch({ type:'fields/init', payload:true });
+                    dispatch({ type:'fields/init' });
                 }}>
                     {
                         energyList.map((item,index)=>(
@@ -39,7 +39,7 @@ function EleStatementManager({ dispatch, fields, costReport, user }){
                                         let field = fieldList.filter(i=>i.field_id == fieldKey )[0];
                                         dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
                                         new Promise((resolve)=>{
-                                            dispatch({type:'fields/fetchFieldAttrs', resolve, needsUpdate:true })
+                                            dispatch({type:'fields/fetchFieldAttrs', resolve })
                                         })
                                         
                                 }}>
@@ -62,7 +62,10 @@ function EleStatementManager({ dispatch, fields, costReport, user }){
                                                     :
                                                     <Tree
                                                         className={style['custom-tree']}
-                                                        defaultExpandAll={true}
+                                                        expandedKeys={expandedKeys}
+                                                        onExpand={temp=>{
+                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                                        }}
                                                         selectedKeys={[currentAttr.key]}
                                                         treeData={fieldAttrs}
                                                         onSelect={(selectedKeys, {node})=>{
@@ -73,7 +76,12 @@ function EleStatementManager({ dispatch, fields, costReport, user }){
                                             </TabPane>
                                         ))
                                         :
-                                        <div className={style['text']} style={{ padding:'1rem'}}>该能源类型还没有设置维度</div>
+                                        <div className={style['text']} style={{ padding:'1rem'}}>
+                                            <div>{`${energyInfo.type_name}能源类型还没有设置维度`}</div>
+                                            <div style={{ padding:'1rem 0'}}><Button type='primary' onClick={()=>{
+                                                history.push(`/energy/info_manage_menu/field_manage?type=${energyInfo.type_code}`);
+                                            }} >设置维度</Button></div>
+                                        </div>
                                     }
                                 </Tabs>
                             </TabPane>

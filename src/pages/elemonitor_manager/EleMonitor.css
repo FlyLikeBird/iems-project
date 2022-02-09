@@ -284,6 +284,7 @@
 
 .inline-container .inline-item-wrapper .inline-item {
     height:100%;
+    position:relative;
 }
 
 .inline-container .inline-item-wrapper .inline-item .inline-item-title {
@@ -435,7 +436,6 @@
 
 .custom-modal:global(.ant-modal) :global(.ant-modal-content) :global(.ant-modal-body){
     height:100%;
-    background:#08172b;
     padding-bottom:0;
 }
 

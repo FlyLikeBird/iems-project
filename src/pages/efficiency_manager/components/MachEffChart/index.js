@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
 import { Radio } from 'antd';
-import { FileExcelOutlined, FileImageOutlined } from '@ant-design/icons';
+import { PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import { downloadExcel } from '@/pages/utils/array';
 import style from '@/pages/IndexPage.css';
 import XLSX from 'xlsx';
@@ -270,7 +270,7 @@ function MachEffChart({ data, rated_power, timeType, currentAttr, theme }) {
                     downloadExcel(sheet, fileTitle + '.xlsx' );
                 }
             }}>
-                <Radio.Button value='download'><FileImageOutlined /></Radio.Button>
+                <Radio.Button value='download'><PictureOutlined /></Radio.Button>
                 <Radio.Button value='excel'><FileExcelOutlined /></Radio.Button>
             </Radio.Group>
             <ReactEcharts

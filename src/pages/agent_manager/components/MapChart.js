@@ -103,17 +103,6 @@ function MapChart({ currentProvince, currentCity, companys, autoMode, agentMsg, 
                         }
                     }
                 },
-                toolbox: {
-                    show:false,
-                    orient: 'vertical',
-                    left: 'right',
-                    top: 'center',
-                    feature: {
-                        dataView: {readOnly: false},
-                        restore: {},
-                        saveAsImage:{}
-                    }
-                },
                 geo:{
                     map:'selfMap2',
                     show:false,
@@ -170,7 +159,7 @@ function MapChart({ currentProvince, currentCity, companys, autoMode, agentMsg, 
                     viewControl:{
                         alpha:5,
                         beta:0,
-                        animationDurationUpdate:2000
+                        animationDurationUpdate:1000
                     },
                     emphasis:{
                         label:{
@@ -198,9 +187,12 @@ function MapChart({ currentProvince, currentCity, companys, autoMode, agentMsg, 
                 companys.filter(item=>item.province === currentProvince.name ).map((item)=>({ name:item.company_name, value:[+item.lng, +item.lat, 2], selected:false, province:item.province, city:item.city }))
                 :
                 companys.map((item, index)=>({ name:item.company_name, value:[+item.lng, +item.lat, 2], selected:false, province:item.province, city:item.city }));
+                // console.log('----');
+                // console.log(currentProvince);
+                // console.log(currentCityRef);
                 if ( points.length ){
-                    points.push({ name:'', selected:false, value:[points[0].value.lng, points[0].value.lat, 1]});
-                    points.push({ name:'', selected:false, value:[points[0].value.lng, points[0].value.lat, 10]});
+                    points.push({ name:'', selected:false, value:[points[0].value[0], points[0].value[1], 1]});
+                    points.push({ name:'', selected:false, value:[points[0].value[0], points[0].value[1], 10]});
                 
                     let scatterChart = {
                         type:'scatter3D',
@@ -248,7 +240,7 @@ function MapChart({ currentProvince, currentCity, companys, autoMode, agentMsg, 
                 myChart.setOption(option);
                 warningTimer = setTimeout(()=>{
                     createTooltip(agentMsg);
-                },2500)
+                },1500)
 
             // },2000)
            

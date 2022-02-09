@@ -7,6 +7,13 @@ import { MailOutlined, UserOutlined, PropertySafetyOutlined, ScheduleOutlined, P
 import Menu from './components/Menu';
 import Header from './components/Header';
 
+function isFullscreen(){
+    return document.fullscreenElement    ||
+           document.msFullscreenElement  ||
+           document.mozFullScreenElement ||
+           document.webkitFullscreenElement || false;
+}
+
 function ProjectIndex({ dispatch, user, children }){
     let { routePath, currentPath, currentProject, currentMenu, userInfo, authorized, fromAgent, currentCompany, collapsed, containerWidth, msg, theme } = user;
     let sidebarWidth = collapsed ? 70 : containerWidth * 0.1 ;
@@ -21,8 +28,8 @@ function ProjectIndex({ dispatch, user, children }){
             
         }
     },[]);
-    return (
-        
+    let isFulled = isFullscreen();
+    return (  
         <div 
             ref={containerRef}
             className={
@@ -44,13 +51,13 @@ function ProjectIndex({ dispatch, user, children }){
                 :
                 authorized
                 ?
-                <div style={{ height:'100%' }}>
-                    <Header data={user} onDispatch={action=>dispatch(action)} collapsed={collapsed} sidebarWidth={sidebarWidth} msg={msg} />
-                    <div className={style['main-content']}>
-                        <div className={style['sidebar-container']} style={{ width: sidebarWidth + 'px' }} >
+                <div style={{ height:'100%'}}>
+                    <Header data={user} onDispatch={action=>dispatch(action)} collapsed={collapsed} sidebarWidth={sidebarWidth} msg={msg}  />
+                    <div className={style['main-content']} style={ isFulled && ( currentMenu.path === 'ai_gas_station' || currentMenu.path === 'power_room' ) ? { height:'100%' } : {} }>
+                        <div className={ theme==='dark' ? style['sidebar-container'] + ' ' + style['dark'] : style['sidebar-container']} style={{ width: sidebarWidth + 'px' }} >
                             <Menu />
                         </div>
-                        <div className={style['content-container']} style={{ left: sidebarWidth + 'px' }}>                  
+                        <div className={style['content-container']} style={{ left: isFulled && ( currentMenu.path === 'ai_gas_station' || currentMenu.path === 'power_room' ) ? '0' : sidebarWidth + 'px' }}>                  
                             { children }        
                         </div>
                     </div>
@@ -62,4 +69,4 @@ function ProjectIndex({ dispatch, user, children }){
     )
 }
 
-export default connect(({user}) => ({user}))( ProjectIndex );
+export default connect(({ user }) => ({ user }))( ProjectIndex );

@@ -14,11 +14,13 @@ function AdminManager({dispatch, user, userList, permission }){
     const [pageNum, setPageNum] = useState(1);
     const [currentUser, setCurrentUser] = useState();
     const columns = [
-        // {
-        //     title:'ID',
-        //     dataIndex:'user_id',
-        //     key:'user_id'
-        // },
+        {
+            title:'序号',
+            width:'60px',
+            render:(text,record,index)=>{
+                return `${ ( pageNum - 1) * pagesize + index + 1}`;
+            }
+        },
         {
             title:'用户名',
             dataIndex:'user_name',
@@ -41,6 +43,10 @@ function AdminManager({dispatch, user, userList, permission }){
         //     dataIndex:'company_name',
         //     key:'company_name'
         // },
+        {
+            title:'真实姓名',
+            dataIndex:'real_name',
+        },
         {
             title:'角色类型',
             dataIndex:'role_name',
@@ -92,9 +98,7 @@ function AdminManager({dispatch, user, userList, permission }){
             dispatch({ type:'userList/resetAdminManager'});
         }
     },[]);
-    useEffect(()=>{
-        setPageNum(1);
-    },[pagesize])
+    
     return (
             <div className={style['page-container']}>
                 <div className={style['card-container']}>

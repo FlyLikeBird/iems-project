@@ -3,24 +3,36 @@ import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Table, Button, Modal, Card, Select, Popconfirm, Tree, Spin, message, Input } from 'antd';
 import { EditOutlined, EllipsisOutlined, SettingOutlined, RadarChartOutlined, CloseOutlined } from '@ant-design/icons';
+import CalcVirtualNode from './CalcVirtualNode';
 import style from './FieldGroup.css'
 const { Option } = Select;
 
 function FieldGroup( { fields, fieldDevice, dispatch}) {
         const [value, setValue] = useState('');
-        let { allFields, energyInfo, treeLoading } = fields;
-        let { isRootAttr, selectedField, selectedAttr, deviceList, allDevice, forAddStatus, selectedRowKeys, isLoading  } = fieldDevice;
+        const [virtualNode, setVirtualNode] = useState(false);
+        let { allFields, energyInfo, expandedKeys, treeLoading } = fields;
+        let { isRootAttr, selectedField, selectedAttr, deviceList, allDevice, forAddStatus, selectedRowKeys, isLoading, calcRuleList  } = fieldDevice;
         let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][selectedField.field_name] : [];
-    
-        const columns = [
-            forAddStatus 
-            ?
+        const columns = forAddStatus 
+        ?
+        [
             {
                 title:'注册码',
-                dataIndex:'register_code',
-                key:'metey_id'
-            }
-            :
+                dataIndex:'register_code'
+            },
+            {
+                title:'设备名称',
+                dataIndex:'meter_name',
+                key:'meter_name'
+            },
+            {
+                title:'已关联属性',
+                dataIndex:'attr_name',
+                key:'attr_name'
+            },
+        ]
+        :
+        [
             {
                 title:'所属维度名称',
                 dataIndex:'attr_name',
@@ -34,18 +46,13 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
             {
                 title:'注册码',
                 dataIndex:'register_code'
-            },
-            {
-                title:'设备类型',
-                dataIndex:'type',
-                key:'type'
             }
         ];
         const rowSelection = {
             selectedRowKeys,
             onChange: selectedKeys => dispatch({type:'fieldDevice/select', payload:selectedKeys})
         };
-      
+        
         return (
             <div className={style['container']}>
                 <Card
@@ -65,12 +72,16 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
                         <Spin />
                         :
                         <Tree
-                            defaultExpandAll={true}
+                            expandedKeys={expandedKeys}
+                            onExpand={temp=>{
+                                dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                            }}
                             selectedKeys={[selectedAttr.key]}
                             treeData={fieldAttrs}
                             onSelect={(selectedKeys, {node})=>{
                                 dispatch({type:'fieldDevice/toggleAttr', payload:node});
                                 dispatch({type:'fieldDevice/fetchAttrDevice'});
+                                dispatch({ type:'fieldDevice/fetchCalcRule'});
                             }}
                         />
                     }
@@ -113,7 +124,7 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
                             :
                             null
                         }
-                        
+                        <Button style={{ margin:'0 20px'}} type='primary' onClick={()=>setVirtualNode(true)} >虚拟节点运算</Button>
                     </div>
                     {
                         isLoading 
@@ -143,13 +154,12 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
                                     <div>                                   
                                         <Button type="primary" onClick={()=>{
                                             if ( !selectedRowKeys.length ) {
-                                                message.info('没有可关联的设备')
+                                                message.info('请选择要关联的设备')
                                             } else {
                                                 new Promise((resolve, reject)=>{
                                                     dispatch({type:'fieldDevice/addDevice', payload:{ resolve, reject }})   
                                                 })
                                                 .then(()=>{
-                                                    console.log('----');
                                                     dispatch({ type:'fieldDevice/toggleStatus', payload:false });
                                                 })
                                                 .catch(msg=>{
@@ -168,9 +178,25 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
                             }: null } 
                         /> 
                     }
-                                       
+                                     
                 </Card>
-                
+                <Modal
+                    width='1400px'
+                    visible={virtualNode}
+                    onCancel={()=>setVirtualNode(false)}
+                    footer={null}
+                    closable={false}
+                    destroyOnClose={true}
+                >
+                    <CalcVirtualNode 
+                        fieldAttrs={fieldAttrs}
+                        selectedAttr={selectedAttr}
+                        calcRuleList={calcRuleList}
+                        dispatch={dispatch}
+                        onClose={()=>setVirtualNode(false)}
+                    />
+                </Modal>
+
             </div>
         )
 }

@@ -8,8 +8,24 @@ export default defineConfig({
   antd:{},
   dynamicImport:{
   },
+  metas: [
+    {
+      httpEquiv: 'Cache-Control',
+      content: 'no-cache',
+    },
+    {
+      httpEquiv: 'Pragma',
+      content: 'no-cache',
+    },
+    {
+      httpEquiv: 'Expires',
+      content: '0',
+    },
+  ],
   hash:true,
   routes: [
+    { path:'/privacy', component:'@/pages/login_page/PrivacyManager'},
+    { path:'/safety', component:'@/pages/login_page/SafeManager'},
     { path:'/login', component:'@/pages/login_page' },
     { path:'/login_spec', component:'@/pages/login_spec_page'},
     { path:'/login_mogu', component:'@/pages/login_mogu_page'},
@@ -20,16 +36,19 @@ export default defineConfig({
         routes:[
             { path:'/agentMonitor', component:'@/pages/agent_manager/AgentMonitor'},
             { path:'/agentMonitor/entry', component:'@/pages/agent_manager/SceneEntry'},
-            { path:'/agentMonitor/project', component:'@/pages/agent_manager/ProjectList'}
+            { path:'/agentMonitor/project', component:'@/pages/agent_manager/ProjectList'},
+            { path:'/agentMonitor/alarm', component:'@/pages/agent_manager/AlarmManager'}
         ]
     },
-    // 企业用户路由
+    // 监控主页及各个监控子站
     {
         path:'/energy/global_monitor',
         component:'@/pages/index',
         routes:[
             { path:'/energy/global_monitor', component:'@/pages/page_index/GlobalMonitor'},
-            { path:'/energy/global_monitor/power_room', component:'@/pages/page_index/monitor_index' }
+            { path:'/energy/global_monitor/power_room', component:'@/pages/page_index/powerroom_station' },
+            { path:'/energy/global_monitor/air_scene', component:'@/pages/page_index/air_station' },
+            { path:'/energy/global_monitor/ai_gas_station', component:'@/pages/page_index/smart_gas_station'}
         ]
     },
     // 匹配全屏子窗口
@@ -46,7 +65,9 @@ export default defineConfig({
             { path:'/energy/ele_monitor_menu/height_voltage_monitor', component:'@/pages/elemonitor_manager/high_vol/HighVolManager'},
             { path:'/energy/ele_monitor_menu/ele_son_monitor', component:'@/pages/elemonitor_manager/ele_monitor/EleMonitorManager'},
             { path:'/energy/ele_monitor_menu/ele_line_monitor', component:'@/pages/elemonitor_manager/line_monitor/LineMonitor'},
-            { path:'/energy/ele_monitor_menu/mach_monitor_menu', component:'@/pages/elemonitor_manager/terminal_mach/TerminalMach'}
+            { path:'/energy/ele_monitor_menu/mach_monitor_menu', component:'@/pages/elemonitor_manager/terminal_mach/TerminalMach'},
+            { path:'/energy/ele_monitor_menu/useless_manage', component:'@/pages/efficiency_manager/UseLessManager'},
+            { path:'/energy/ele_monitor_menu/demand_manage', component:'@/pages/efficiency_manager/DemandManager'}
         ]
     },
     // 能源成本模块
@@ -58,6 +79,7 @@ export default defineConfig({
             { path:'/energy/energy_manage/cost_trend', component:'@/pages/energy_manager/CostTrendManager'},
             { path:'/energy/energy_manage/cost_analyz', component:'@/pages/energy_manager/CostAnalyze'},
             { path:'/energy/energy_manage/ele_cost', component:'@/pages/energy_manager/EleCostManager'},
+            { path:'/energy/energy_manage/water_cost_menu', component:'@/pages/energy_manager/WaterCostManager'},
             { path:'/energy/energy_manage/ele_statement', component:'@/pages/energy_manager/EleStatementManager'}
         ]
     },
@@ -69,8 +91,24 @@ export default defineConfig({
             { path:'/energy/energy_eff', component:'@/pages/efficiency_manager/EfficiencyManager'},
             { path:'/energy/energy_eff/eff_trend', component:'@/pages/efficiency_manager/EfficiencyTrendManager'},
             { path:'/energy/energy_eff/energy_eff_quota', component:'@/pages/efficiency_manager/EfficiencyQuotaManager'},
-            { path:'/energy/energy_eff/useless_manage', component:'@/pages/efficiency_manager/UseLessManager'},
-            { path:'/energy/energy_eff/demand_manage', component:'@/pages/efficiency_manager/DemandManager'}
+            { path:'/energy/energy_eff/energy_eff_ratio', component:'@/pages/coal_manager/RatioRank'},
+            { path:'/energy/energy_eff/energy_eff_person', component:'@/pages/coal_manager/PersonRank'},
+            { path:'/energy/energy_eff/energy_eff_area', component:'@/pages/coal_manager/AreaRank'},
+            { path:'/energy/energy_eff/energy_eff_output', component:'@/pages/coal_manager/OutputRank'},
+            // { path:'/energy/energy_eff/useless_manage', component:'@/pages/efficiency_manager/UseLessManager'},
+            // { path:'/energy/energy_eff/demand_manage', component:'@/pages/efficiency_manager/DemandManager'},
+            // { path:'/energy/energy_eff/energy_eff_power', component:'@/pages/coal_manager/EffRank'},
+            // { path:'/energy/energy_eff/coal_trend', component:'@/pages/coal_manager/CoalTrend'},
+            // { path:'/energy/energy_eff/coal_esay_managy', component:'@/pages/coal_manager/CoalManager'},
+        ]
+    },
+    // 碳指标模块
+    {
+        path:'/energy/coal_manage',
+        component:'@/pages/index',
+        routes:[
+            { path:'/energy/coal_manage/coal_manage_deal', component:'@/pages/coal_manager/CoalManager'},
+            { path:'/energy/coal_manage/coal_manage_trend', component:'@/pages/coal_manager/CoalTrend' }
         ]
     },
     // 电能质量模块
@@ -145,6 +183,7 @@ export default defineConfig({
             { path:'/energy/system_config/role_manage', component:'@/pages/system_config/RoleManager'},
             { path:'/energy/system_config/user_manage', component:'@/pages/system_config/AdminManager'},
             { path:'/energy/system_config/system_log', component:'@/pages/system_config/SystemLog'},
+            { path:'/energy/system_config/update_password', component:'@/pages/system_config/UpdatePassword'}
         ]
     },
     {

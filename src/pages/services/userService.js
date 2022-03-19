@@ -4,7 +4,8 @@ import { authToken, apiToken } from '../utils/encryption';
 import config from '../../../config';
 
 export function userAuth(data = {}){
-    let token = authToken(localStorage.getItem('timestamp'), localStorage.getItem('user_id'));
+    // let token = authToken(localStorage.getItem('timestamp'), localStorage.getItem('user_id'));
+    let token = apiToken();
     data.token = token;
     let str = translateObj(data);
     return request('/login/getuser', { 
@@ -17,7 +18,7 @@ export function userAuth(data = {}){
 }
 
 export function agentUserAuth(data = {}){
-    let token = authToken(localStorage.getItem('timestamp'), localStorage.getItem('user_id'));
+    let token = apiToken();
     data.token = token;
     let str = translateObj(data);
     return request('/agent/getcompanymenu', { 

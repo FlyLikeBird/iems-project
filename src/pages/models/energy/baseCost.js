@@ -1,5 +1,4 @@
-import { getEnergyType, getBaseCost, setMachKva, getAdjustCost, getMeasureCost, getCostAreaTrend } from '../../services/energyService';
-import { getMachs } from '../../services/demandService';
+import {  getTotalCost, getBaseCost, setMachKva, getAdjustCost, getMeasureCost, getCostAreaTrend } from '../../services/energyService';
 import moment from 'moment';
 
 let date = new Date();
@@ -12,7 +11,10 @@ const initialState = {
     measureInfoList:[],
     measureReferList:[],
     treeLoading:true,
-    isLoading:true
+    isLoading:true,
+    // 成本日历模块
+    calendarInfo:{},
+    calendarLoading:true
 };
 
 export default {
@@ -106,6 +108,9 @@ export default {
             } catch(err){
                 console.log(err);
             }
+        },
+        // 成本日历相关接口
+        *fetchCalendar(action, { call, put, select }){
         }
     },
     reducers:{

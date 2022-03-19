@@ -59,9 +59,18 @@ export default {
             // yield put({ type:'cancelCostAnalyze'});
             yield put({ type:'reset'});
         },
-        *initCostReport(action, { put }){
+        *initCostReport(action, { put, select }){
             yield put.resolve({ type:'fields/init'});
-            yield put.resolve({ type:'fetchCostReport'});
+            let { fields:{ allFields, energyInfo, currentAttr, fieldAttrs }} = yield select();
+            let temp = [];
+            if ( currentAttr.children && currentAttr.children.length ) {
+                temp.push(currentAttr.key);
+                currentAttr.children.map(i=>temp.push(i.key));
+            } else {
+                temp.push(currentAttr.key);
+            }
+            yield put({ type:'select', payload:temp });
+            yield put({ type:'fetchCostReport'});
         },
         *setProduct(action, { put, call }){
             try {
@@ -84,19 +93,17 @@ export default {
             function* fetchCostReportCancelable(params){
                 try {
                     let { startHour } = action.payload || {};
-                    let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr, energyInfo }, costReport:{ dataType } } = yield select();
+                    let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo }, costReport:{ dataType, checkedKeys } } = yield select();
                     timeType = timeType === '3' ? '1' : timeType === '1' ? '3' : '2';
                     yield put({type:'toggleLoading'});
-                    let obj = { data_type:dataType, company_id, time_type:timeType, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
+                    let obj = { data_type:dataType, company_id, time_type:timeType, type_id:energyInfo.type_id, attr_ids:checkedKeys, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
                     if ( startHour ) {
                         obj.day_start_hour = startHour;
                     }
                     let { data } = yield call(getCostReport, obj );
                     if ( data && data.code === '0'){
                         yield put({type:'get', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001' ) {
-                        yield put({ type:'user/loginOut'});
-                    }
+                    } 
                 } catch(err){
                     console.log(err);
                 }
@@ -110,7 +117,7 @@ export default {
                 temp.push(currentAttr.key);
                 currentAttr.children.map(i=>temp.push(i.key));
             } else {
-                temp.push(node.key);
+                temp.push(currentAttr.key);
             }
             yield put.resolve({ type:'select', payload:temp });
             yield put.resolve({ type:'fetchCostAnalyze'});  

@@ -1,6 +1,6 @@
 window.g = {
     protocol:'http',
-    host:'localhost',
+    host:'h1dt',
     // 开发环境接口
     // apiHost:'192.168.20.33:8880',
     // socketHost:'120.25.168.203',

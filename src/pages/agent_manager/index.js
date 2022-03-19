@@ -61,7 +61,13 @@ function getSum(data){
     return sum;
 }
 let subWindows = {}
-
+const projectsMap = {
+    energy_manage:'iot',
+    aiot:'e',
+    air_compressor:'acs',
+    hy_switch_system:'safe',
+    hy_ele_room:'pr'
+};
 function AgentIndex({ dispatch, user, match, location, children }){
     const containerRef = useRef();
     const { userInfo } = user;
@@ -78,9 +84,12 @@ function AgentIndex({ dispatch, user, match, location, children }){
     // console.log(location);
     useEffect(()=>{
         window.name = 'parent';
-        window.handleTooltipClick = (companyId)=>{ 
+        window.handleTooltipClick = (userId, companyId)=>{ 
             if ( !companyId ) return;
-            let url = `${window.location.origin}/energy?companyId=${companyId}&&pid=${Math.random()}`;
+            let temp = window.location.host.split('-');
+            let prefix = temp.length === 2 ? temp[1].split('.')[0] : '';
+            let linkPath = ( prefix ? projectsMap['energy_manage'] + '-' + prefix : projectsMap['energy_manage'] ) + '.' + window.g.host + '.com';
+            let url = `http://${linkPath}?pid=${Math.random()}&&userId=${userId}&&companyId=${companyId}`;
             if ( !subWindows[companyId] ) {
                 let sub = window.open(url);
                 subWindows[companyId] = sub;
@@ -160,15 +169,17 @@ function AgentIndex({ dispatch, user, match, location, children }){
                             }}>分辨率</span>
                             
                             <span style={buttonStyle} onClick={()=>dispatch(routerRedux.push('/agentMonitor/test'))}>测试布局</span> */}
-                           
-                            <span style={buttonStyle} onClick={()=>history.push('/agentMonitor/entry')}>快速入口</span>
-                            <span style={buttonStyle} onClick={()=>{
-                                if ( location.pathname === '/agentMonitor' || location.pathname === '/agentMonitor/monitor') {
-                                    history.push('/agentMonitor/project');
-                                } else {
+                            {
+                                location.pathname !== '/agentMonitor' 
+                                ?
+                                <span style={buttonStyle} onClick={()=>{
                                     history.push('/agentMonitor');
-                                }
-                            }}>{ location.pathname === '/agentMonitor' || location.pathname === '/agentMonitor/monitor' ? '项目列表' : '返回主页' }</span>
+                                }}>返回主页</span>
+                                :
+                                null
+                            }
+                            <span style={buttonStyle} onClick={()=>history.push('/agentMonitor/entry')}>快速入口</span>
+                            <span style={buttonStyle} onClick={()=>history.push('/agentMonitor/project')}>项目列表</span>
                             <span style={buttonStyle} onClick={()=>{
                                 dispatch({type:'user/loginOut'});
                             }}>退出登录</span>

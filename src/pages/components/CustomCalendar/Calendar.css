@@ -1,0 +1,104 @@
+.custom-calendar {
+    height:100%;
+}
+.custom-calendar :global(.ant-picker-panel){
+    height:100%;
+}
+.custom-calendar :global(.ant-picker-date-panel), .custom-calendar :global(.ant-picker-month-panel) {
+    height:100%;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body){
+    padding:0;
+    height:100%;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table  {
+    height:100%;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > thead > tr > th {
+    background:#ebebeb;
+    height:4rem;
+    text-align: center;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper {
+    height:100%;
+    padding:1rem 0.8rem 0.4rem 0.8rem;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper > .content {
+    height:100%;
+    display:flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: flex-start;
+    border-radius:6px;
+    color:rgba(0, 0, 0, 0.65);
+    border:1px solid #ebebeb;
+    padding:0.5rem;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper.in-month > .content {
+    background:#ebebeb;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper.in-month > .content:hover {
+    border:1px solid #fff;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td:global(.ant-picker-cell-today) > .content-wrapper > .content {
+    
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper > .content > .content-head {
+    text-align: center;
+    font-size:1.4rem;
+    font-weight:bold;
+    color:#47475b;
+
+}
+/* 日历模式下标签 */
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-date-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper.in-month > .content > .content-head {
+    width:30px;
+    height:30px;
+    line-height:30px;
+    border-radius:50%;
+    background:#1545ff;
+    font-size:1.2rem;
+    color:#fff;
+}
+/* 月历模式下标签 */
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-month-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper.in-month > .content > .content-head {
+    font-size:1.4rem;
+    color:rgba(0, 0, 0, 0.65);
+}
+.custom-calendar.dark :global(.ant-picker-panel) :global(.ant-picker-month-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper.in-month > .content > .content-head {
+    font-size:1.4rem;
+    color:#fff;
+}
+
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper > .content .text {
+    font-size:1.6rem;
+    font-weight:bold;
+}
+.custom-calendar :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper > .content .unit {
+    font-size:0.8rem;
+}
+/* 浅色组件样式 */
+
+/* 深色组件样式 */
+.custom-calendar.dark:global(.ant-picker-calendar) {
+    background:#191932;
+}
+.custom-calendar.dark :global(.ant-picker-panel) :global(.ant-picker-body){
+    background:#191932;
+}
+.custom-calendar.dark :global(.ant-picker-panel) :global(.ant-picker-body) table > thead > tr > th {
+    background:#22264b;
+    color:rgba(255, 255, 255, 0.8);
+}
+.custom-calendar.dark :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper > .content {
+    background:transparent;
+    border:1px solid #303046;
+    color:#47475b !important;
+}
+.custom-calendar.dark :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td > .content-wrapper.in-month > .content {
+    background:#303046;
+    color:#fff !important;
+}
+.custom-calendar.dark :global(.ant-picker-panel) :global(.ant-picker-body) table > tbody > tr > td:global(.ant-picker-cell-today) > .content-wrapper > .content {
+    border:2px solid #fff;
+}

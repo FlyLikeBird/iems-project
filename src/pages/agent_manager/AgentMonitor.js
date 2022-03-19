@@ -73,7 +73,6 @@ const dotStyle = {
 function AgentIndex({ dispatch, agentMonitor, user }){
     const { monitorInfo, todayEnergy, rankInfo, meterInfo, dataLoad, activeDevice, projects, warningRank, warningPercent, warningStatus, finishTrendInfo, currentProvince, currentCity, autoMode } = agentMonitor;
     const containerRef = useRef();
-    // console.log(warningStatus);
     return (
         <div ref={containerRef} style={{ 
             width:'100%', 
@@ -173,13 +172,13 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                         }
                     </div>
                 </div> */}
-                {/* 日活设备数 */}
+                {/* 数据流量 */}
                 <div className={style['item-container']} style={{ height:'20%'}}>
                     <div className={style['item-title']}>
                         <div className={style['item-title-bg']}></div>
                         <div className={style['item-title-text']}>
                             <LineChartOutlined />
-                            日活设备数<span style={{ fontSize:'0.8rem' }}>(/个)</span>
+                            数据流量<span style={{ fontSize:'0.8rem' }}>(/条)</span>
                         </div>
                     </div>
                     <div className={style['item-content']}>
@@ -213,7 +212,7 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                             <Spin className={style['spin']}/>
                         }
                     </div>
-                </div>
+                </div> 
                 {/* 采集器在线数 */}
                 <div className={style['item-container']} style={{ height:'34%' }}>
                     <div className={style['item-title']}>
@@ -241,16 +240,6 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                                         }}>
                                             <div className={style['layout-content']}>
                                                 <img src={collectIconsPosition[key]} style={{ width:'30%', height:'auto' }} />
-                                                {/* <div style={{
-                                                    display:'inline-block',
-                                                    verticalAlign:'top',
-                                                    backgroundRepeat:'no-repeat',
-                                                    // backgroundSize:'cover',
-                                                    backgroundImage:`url(${collectIcons})`,
-                                                    width:'40px',
-                                                    height:'60px',
-                                                    backgroundPosition:`-${iconsPos[key] * 40}px 0`
-                                                }}></div> */}
                                                 <div style={{ marginLeft:'6px' }}>
                                                     <div className={style['sub-text']}>{ meterInfo.codeArr[key] }</div>
                                                     <div style={{ color:'#7dfffa'}}>{ meterInfo.info[key] }</div>
@@ -277,7 +266,7 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> 
             </div>
             {/* 右侧悬浮窗 */}
             <div className={style['right']} style={{ right:'0', padding:'0 20px' }}>
@@ -365,10 +354,8 @@ function AgentIndex({ dispatch, agentMonitor, user }){
             {/* 项目和场景入口 */}
             {/* <ProjectContainer data={projects} /> */}
             {
-                !Object.keys(monitorInfo).length
+                Object.keys(monitorInfo).length && user.authorized
                 ?
-                <Spin className={style['spin']} size='large' />
-                :
                 <MapChart 
                     currentProvince={currentProvince}
                     currentCity={currentCity}
@@ -376,7 +363,10 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                     companys={monitorInfo.companys}
                     autoMode={autoMode}
                     agentMsg={user.agentMsg}
+                    userId={user.userInfo.user_id}
                 />
+                :
+                <Spin className={style['spin']} size='large' />
             }
         </div>
               

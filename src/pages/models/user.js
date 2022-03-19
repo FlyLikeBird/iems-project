@@ -7,7 +7,7 @@ import { getCompanyId } from '../utils/storage';
 import moment from 'moment';
 
 const reg = /\/info_manage_menu\/manual_input\/([^\/]+)\/(\d+)/;
-const companyReg = /\?companyId=(\d*)/;
+const companyReg =  /\?pid\=0\.\d+&&userId=(\d+)&&companyId=(\d+)/;
 const agentReg = /\?agent=(.*)/;
 const agentReg2 = /iot-(.*)/;
 const sessionReg = /\?sid=(.*)/;
@@ -18,14 +18,15 @@ let energyList = [
 ];
 let date = new Date();
 // 初始化socket对象，并且添加监听事件
-function createWebSocket(url, data, companyId, dispatch){
+function createWebSocket(url, data, companyId, fromAgent, dispatch){
     let ws = new WebSocket(url);
     // console.log(data);
     ws.onopen = function(){
-        if ( data.agent_id){
+        if ( data.agent_id && !fromAgent ){
             ws.send(`agent:${data.agent_id}`);
+        } else {
+            ws.send(`com:${companyId}`);
         }
-        ws.send(`com:${companyId}`);
     };
     // ws.onclose = function(){
     //     console.log('socket close...');
@@ -93,8 +94,8 @@ const initialState = {
     startDate:moment(date),
     endDate:moment(date),
     timeType:'1',
-    // 判断是否是全屏模式
-    fullscreen:false
+    // 打开用户音频权限
+    audioAllowed:false
 };
 
 function checkIsLTUser(){
@@ -156,7 +157,7 @@ export default {
                         }
                         // 抄表记录
                         if ( pathname === '/energy/stat_report/energy_code_report') {                           
-                            dispatch({type:'meterReport/init'});
+                            dispatch({type:'meterReport/initMeterReport'});
                             return;
                         }
                         // 成本报表和复合计费报表
@@ -170,6 +171,10 @@ export default {
                             dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
                             dispatch({ type:'costReport/initCostAnalyze'});
                             return;
+                        }
+                        // 成本日历页面
+                        if ( pathname === '/energy/energy_manage/cost_calendar'){
+                            // dispatch({ type:'baseCost/'})
                         }
                         // 极值报表
                         if ( pathname === '/energy/stat_report/extreme') {     
@@ -431,14 +436,12 @@ export default {
                 if ( !authorized ){
                     // 判断是否是服务商用户新开的公司标签页
                     let matchResult = companyReg.exec(query);
-                    let companysMap = JSON.parse(localStorage.getItem('companysMap'));
-                    let defaultCompany, defaultCompanyId;
-                    if ( companysMap && companysMap.length ){
-                        defaultCompany = companysMap[0];
-                        defaultCompanyId = defaultCompany[Object.keys(defaultCompany)[0]];
+                    let company_id = matchResult ? matchResult[2] : null;
+                    let user_id = matchResult ? matchResult[1] : null;
+                    if ( user_id ){
+                        localStorage.setItem('user_id', user_id);
                     }
-                    let company_id = matchResult ? matchResult[1] : defaultCompanyId;
-                    let { data } = yield call( matchResult ? agentUserAuth : userAuth);
+                    let { data } = yield call( matchResult ? agentUserAuth : userAuth, matchResult ? { app_type:1, company_id } : { app_type:1 } );
                     if ( data && data.code === '0' ){
                         // 先判断是否是第三方代理商账户
                         if ( !Object.keys(newThirdAgent).length ) {
@@ -457,7 +460,9 @@ export default {
                             return ;
                         }
                         let config = window.g;
-                        socket = createWebSocket(`ws://${config.socketHost}:${config.socketPort}`, data.data, company_id, dispatch);
+                        let socketCompanyId = company_id ? company_id : data.data.companys.length ? data.data.companys[0].company_id : null ;
+                        socket = createWebSocket(`ws://${config.socketHost}:${config.socketPort}`, data.data, socketCompanyId, matchResult ? true : false, dispatch);
+                        
                     } else {
                         // 登录状态过期，跳转到登录页重新登录(特殊账号跳转到特殊登录页)
                         yield put({ type:'loginOut'});
@@ -500,6 +505,7 @@ export default {
                     localStorage.setItem('companysMap', JSON.stringify(companysMap));
                     localStorage.setItem('agent_id', agent_id);
                     localStorage.setItem('third_agent', JSON.stringify(thirdAgent));
+                    yield put({ type:'setAudioAllowed' });
                     //  登录后跳转到默认页面
                     // 如果是服务商用户则跳转到中台监控页
                     if ( agent_id ) {
@@ -543,6 +549,10 @@ export default {
                 yield put({type:'clearUserInfo'});
                 yield put({ type:'fields/cancelAll'});
                 yield put(routerRedux.push('/login'));
+            }
+            let audio = document.getElementById('my-audio');
+            if ( audio && audio.pause ){
+                audio.pause();
             }
             if ( socket && socket.close ){
                 socket.close();
@@ -745,8 +755,8 @@ export default {
         setFromWindow(state, { payload:{ timeType, beginDate, endDate }}) {
             return { ...state, timeType, startDate:moment(new Date(beginDate)), endDate:moment(new Date(endDate))};
         },
-        toggleFullscreen(state, { payload }){
-            return { ...state, fullscreen:payload };
+        setAudioAllowed(state){
+            return { ...state, audioAllowed:true };
         },
         clearUserInfo(state){
             localStorage.clear();

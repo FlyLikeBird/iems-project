@@ -84,7 +84,7 @@ function ProjectList({ dispatch, agentMonitor, user }){
                                 <div className={style['item-wrapper']} key={item.company_id} >
                                     <div className={style['item']} onClick={()=>{
                                         if(window.handleTooltipClick){
-                                            window.handleTooltipClick(item.company_id);
+                                            window.handleTooltipClick(userInfo.user_id, item.company_id);
                                         }
                                     }}>
                                         <img src={item.logo_path} style={{ height:'60%' }} />

@@ -78,7 +78,7 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
         <Table
             columns={columns}
             dataSource={data}
-            rowKey={(text,record)=>text.attr_name}
+            rowKey='attr_id'
             className={style['self-table-container']}
             bordered={true}
             title={()=>{

@@ -24,7 +24,7 @@ for(var i=0;i<24;i++){
     hourData.push({ key:i, value:temp + ' : 00'});
 }
 function MeterReportManager({ dispatch, user, meterReport, fields }) {
-    const { list, isLoading, loaded } = meterReport;
+    const { list, isLoading, checkedKeys } = meterReport;
     const { allFields, energyList, energyInfo, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { currentCompany, pagesize, timeType, startDate, endDate, theme } = user;
     const [visible, toggleVisible] = useState(false);
@@ -39,14 +39,22 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
     const sidebar = (
         <div>
             <div className={style['card-container']} >
-                <Tabs className={style['custom-tabs']} activeKey={energyInfo.type_id} onChange={activeKey=>{
+                <Tabs className={style['custom-tabs']} activeKey={energyInfo.type_id} onChange={activeKey=>{                 
                     let temp = energyList.filter(i=>i.type_id === activeKey)[0];
                     dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
                     new Promise((resolve, reject)=>{
                         dispatch({ type:'fields/init', payload:{ resolve, reject }});
                     })
-                    .then(()=>{
-                        dispatch({type:'meterReport/fetchMeterReport'});
+                    .then((node)=>{
+                        let temp = [];
+                        if ( node.children ) {
+                            temp.push(node.key);
+                            node.children.map(i=>temp.push(i.key));
+                        } else if ( node.key ) {
+                            temp.push(node.key);
+                        }
+                        dispatch({type:'meterReport/select', payload:temp });
+                        dispatch({type:'meterReport/fetchMeterReport'}); 
                     })
                 }}>
                     {
@@ -61,9 +69,17 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
                                         dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
                                         new Promise((resolve, reject)=>{
                                             dispatch({type:'fields/fetchFieldAttrs', resolve, reject })
-                                        }).then(()=>{
-                                            dispatch({type:'meterReport/fetchMeterReport'});
-                                        })                                
+                                        }).then((attrs)=>{
+                                            let temp = [];
+                                            if ( attrs.length && attrs[0].children ) {
+                                                temp.push(attrs[0].key);
+                                                attrs[0].children.map(i=>temp.push(i.key));
+                                            } else if ( attrs.length ) {
+                                                temp.push(attrs[0].key);
+                                            }
+                                            dispatch({type:'meterReport/select', payload:temp });
+                                            dispatch({type:'meterReport/fetchMeterReport'});  
+                                        })
                                 }}>
                                     {   
                                         fields.isLoading
@@ -84,17 +100,33 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
                                                     :
                                                     <Tree
                                                         className={style['custom-tree']}
+                                                        checkable
+                                                        checkStrictly
                                                         expandedKeys={expandedKeys}
                                                         onExpand={temp=>{
-                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });                                                     
                                                         }}
-                                                        selectedKeys={[currentAttr.key]}
+                                                        checkedKeys={checkedKeys}
+                                                        onCheck={(checkedKeys, e)=>{
+                                                            let { checked, checkedNodes, node }  = e;
+                                                            if ( node.children && node.children.length  ){
+                                                                if ( checked ){
+                                                                    node.children.map(i=>{
+                                                                        if(!checkedKeys.checked.includes(i.key)) {
+                                                                            checkedKeys.checked.push(i.key);
+                                                                        }
+                                                                    });
+                                                                } else {
+                                                                    let childKeys = node.children.map(i=>i.key);
+                                                                    checkedKeys.checked = checkedKeys.checked.filter(key=>{
+                                                                        return !childKeys.includes(key);
+                                                                    });
+                                                                }
+                                                            }
+                                                            dispatch({type:'meterReport/select', payload:checkedKeys.checked });
+                                                            dispatch({type:'meterReport/fetchMeterReport'});                                            
+                                                        }}
                                                         treeData={fieldAttrs}
-                                                        onSelect={(selectedKeys, { selected, node })=>{
-                                                            if(!selected) return;
-                                                            dispatch({type:'fields/toggleAttr', payload:node});
-                                                            dispatch({type:'meterReport/fetchMeterReport'});
-                                                        }}
                                                     />
                                                 }
                                             </TabPane>
@@ -125,8 +157,6 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
         keepState = false;
     },[list])
     const content = (
-        loaded 
-        ?
         <div style={{ position:'relative' }}>
             {
                 isLoading 
@@ -155,8 +185,7 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
                     </Select>
                 </div>
             </div>
-            <div className={style['card-container']} style={{ height:'calc(100% - 40px)'}}>
-                
+            <div className={style['card-container']} style={{ height:'calc(100% - 40px)'}}>            
                     <MeterReportTable 
                         data={list} 
                         pagesize={pagesize}
@@ -170,14 +199,10 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
                         startTime={startDate}
                         endTime={endDate}
                         theme={theme}
-                        companyName={user.currentCompany.company_name}
                     /> 
                 
             </div>
         </div>
-        
-        :
-        <Skeleton active className={style['skeleton']} />
     );
     return (  
         <ColumnCollapse sidebar={sidebar} content={content} />

@@ -1,18 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { connect } from 'dva';
-import { Card, Spin, Tree, Tabs, Skeleton, DatePicker, Radio } from 'antd';
+import { Card, Spin, Tree, Tabs, Skeleton, Calendar, DatePicker, Radio } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
-import CustomDatePicker from '@/pages/components/CustomDatePicker';
+import CalendarContainer from './components/CalendarContainer';
 import style from '../IndexPage.css';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
-import moment from 'moment';
 
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
 
 function CostCalendarManager({ dispatch, user, fields, baseCost }){
-    const { timeType, startDate, endDate } = user;
+    const { timeType, startDate, endDate, theme } = user;
     const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const inputRef = useRef();
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
@@ -67,30 +65,15 @@ function CostCalendarManager({ dispatch, user, fields, baseCost }){
         </div>
     );
     const content = (
-        Object.keys(measureCostInfo).length
-        ?
-        <div>
-            <div style={{ height:'40px' }}>
-                {
-                    activeKey === 'measure'
-                    ?
-                    <CustomDatePicker noDay onDispatch={()=>dispatch({ type:'baseCost/fetchMeasureCost' })} />
-                    :
-                    <CustomDatePicker noToggle onDispatch={()=>{
-                        dispatch({type:'baseCost/fetchEleCost', payload:{ eleCostType:activeKey }});
-                    }} />
-                }
-                
-            </div>
-            <div style={{ height:'calc( 100% - 40px)'}}>
-                
-            </div>
-        </div>
-        :
-        <Skeleton active className={style['skeleton']} />     
+        // Object.keys(measureCostInfo).length
+        // ?
+            <CalendarContainer theme={theme} />
+        // :
+        // <Skeleton active className={style['skeleton']} />     
             
     );
     useEffect(()=>{
+
         return ()=>{
             
         }

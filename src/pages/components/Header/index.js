@@ -11,10 +11,10 @@ import avatarBg from '../../../../public/avatar-bg.png';
 import UploadLogo from './UploadLogo';
 
 let timer;
-let firstMsg = true;
 let alarmTimer = null;
 let startTimer = 0;
 let gapTimer = 0;
+let closeTimer = null;
 const weekObj = {
     0:'周日',
     1:'周一',
@@ -60,24 +60,27 @@ const IconFont = createFromIconfontCN({
 });
 
 const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
-    let { userInfo, weatherInfo, thirdAgent, newThirdAgent, currentCompany, fromAgent, theme, currentMenu } = data;
+    let { userInfo, weatherInfo, thirdAgent, newThirdAgent, currentCompany, fromAgent, theme, currentMenu, audioAllowed } = data;
     let week = new Date().getDay();
     const [curTime, updateTime] = useState(getToday(2));
-    const [muted, setMuted] = useState(true);
+    const [muted, setMuted] = useState(false);
     const [visible, toggleVisible] = useState(false);
     const containerRef = useRef();
     useEffect(()=>{
         timer = setInterval(()=>{
             updateTime(getToday(2));
         },1000);
-        // var video = document.createElement('video');
-        // video.style.display = 'none';
-        // video.id = 'my-audio';
-        // video.src = '/alarm.mp4';
-        // video.muted = true;
-        // video.autoPlay = true;
-        // video.loop = true;
-        // containerRef.current.appendChild(video);
+        if ( !audioAllowed ) {
+            function handleAudio(){
+                onDispatch({ type:'user/setAudioAllowed'});
+                setMuted(true);
+                alarmTimer = setTimeout(()=>{
+                    setMuted(false);
+                    document.onclick = null;
+                },100);  
+            }
+            document.onclick = handleAudio;
+        }   
         function handleUnload(e){
             gapTimer = new Date().getTime() - startTimer;
             if ( gapTimer <= 20 ){
@@ -92,31 +95,40 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
         window.addEventListener('beforeunload', handleBeforeUnload);
         window.addEventListener('unload', handleUnload);
         return ()=>{
-            firstMsg = true;
             clearInterval(timer);
             clearTimeout(alarmTimer);
+            clearTimeout(closeTimer);
             startTimer = 0;
             gapTimer = 0;
+            closeTimer = null;
             window.removeEventListener('beforeunload', handleBeforeUnload);
             window.removeEventListener('unload', handleUnload);
         }
     },[]);
     useEffect(()=>{
-        if ( Object.keys(msg).length ){
-            if ( !firstMsg && !muted ){
-                function run(){   
-                    let audio = document.getElementById('my-audio');
-                    if ( audio ){
-                        audio.currentTime = 0;
-                        audio.muted = false;
-                      
-                    }              
+        // 兼容两种情况：
+        //  1.登录时通过登录button获取到交互权限
+        //  2.刷新时监听整个文档的click事件，当有click时才触发audio的play();
+        let audio = document.getElementById('my-audio');
+        if ( msg.count ){
+            try {           
+                if ( !audio ) return;         
+                if ( !muted && audioAllowed ){
+                    audio.currentTime = 0;
+                    audio.play(); 
+                    closeTimer = setTimeout(()=>{
+                        audio.pause();
+                    },5000)                              
+                } else {
+                    audio.pause();
                 }
-                run();
-            } 
-            firstMsg = false;
+            } catch(err){
+                console.log(err);
+            }
+        } else {
+            if ( audio && audio.pause ) audio.pause();
         }
-    },[msg]);
+    },[msg, muted]);
     // console.log(currentCompany);
     let isFulled = isFullscreen();
     return (
@@ -184,21 +196,7 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                         </Popover>
                         <IconFont style={{ fontSize:'1.2rem', margin:'0 10px'}} type={ muted ? 'iconsound-off' : 'iconsound'} onClick={()=>{
                             setMuted(!muted);
-                            let audio = document.getElementById('my-audio');
-                            audio.currentTime = 0;
-                            if ( audio ){
-                                audio.currentTime = 0;
-                                if ( muted ){
-                                    audio.muted = false;
-                                } else {
-                                    audio.muted = true;
-                                }
-                            }
-                            
                         }}></IconFont> 
-                        <audio id='my-audio' preload='auto' autoPlay='autoplay' loop='loop' muted='muted' controls hidden={true} >
-                            <source src='/alarm.mp3' />
-                        </audio>
                         <span style={{ margin:'0 10px' }}>|</span>
                     </div>
                    

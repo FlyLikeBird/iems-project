@@ -128,14 +128,10 @@ function EnergyTable({ dispatch, data, timeType, pagesize, companyName, eleType,
         setCurrentPage(1);
     },[data, pagesize])
     return (
-        isLoading
-        ?
-        <Skeleton active className={style['skeleton']} />
-        :
         <Table
             columns={columns}
             dataSource={data}
-            rowKey={(text,record)=>text.attr_name}
+            rowKey='attr_name'
             className={style['self-table-container']}
             title={()=>{
                 return (

@@ -33,13 +33,13 @@ const IconsObj = {
 // }
 let stationMaps = {
     // 配电房子站
-    '83':'pr.h1dt.com',
-    '121':'acs.h1dt.com'
+    '83':'pr',
+    '121':'acs'
 }
 
 const MenuComponent = ({user, dispatch})=>{
     const [openKeys, setOpenKeys] = useState([]);
-    const { userMenu, currentMenu, currentPath, userInfo, currentProject, containerWidth, collapsed, fromAgent, theme } = user;
+    const { userMenu, currentMenu, currentPath, userInfo, company_id, currentProject, containerWidth, collapsed, fromAgent, theme } = user;
     // console.log(currentMenu, currentPath);
     // let selectedKeys = currentMenu.children ? [currentMenu.children[0]+''] : [currentMenu.menu_id+''];
     // let openKeys = currentMenu.children ? [currentMenu.menu_id+''] : [currentMenu.parent+''];
@@ -91,13 +91,17 @@ const MenuComponent = ({user, dispatch})=>{
                                     
                                     <Menu.Item key={sub.menu_id}>
                                         {
-                                            item.menu_id === 79 && !fromAgent 
+                                            item.menu_id === 79 
                                             ?
                                             <Tooltip placement="right" title={                                               
                                                 <Button type='primary' size='small' onClick={(e)=>{
                                                     if ( stationMaps[sub.menu_id]){
                                                         e.stopPropagation();
-                                                        window.open(`http://${stationMaps[sub.menu_id]}?pid=${Math.random()}&&userid=${userInfo.user_id}`);
+                                                        // 兼容第三方服务商的location跳转
+                                                        let temp = location.host.split('-');
+                                                        let prefix = temp.length === 2 ? temp[1].split('.')[0] : '';
+                                                        let linkPath = ( prefix ? stationMaps[sub.menu_id] + '-' + prefix : stationMaps[sub.menu_id] ) + '.h1dt.com';
+                                                        window.open(`http://${linkPath}?pid=${Math.random()}&&userId=${userInfo.user_id}&&companyId=${company_id}`);
                                                     }                                          
                                                 }}>{`进入${sub.menu_name}`}</Button>
                                             }>

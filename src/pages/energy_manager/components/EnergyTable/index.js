@@ -85,6 +85,7 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
     useEffect(()=>{
         setSourceData(data.value);
         setCurrentPage(1);
+        
     },[data])
     let dateColumns = [];
     // console.log(energyInfo);
@@ -140,7 +141,7 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
         },
         {
             title:'目标单耗',
-            width:'100px',
+            width:'120px',
             dataIndex:'target',
             editable:true,
             render:value=>(<span>{ value || '-- --'}</span>)
@@ -280,7 +281,7 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
         <Table
             columns={mergedColumns}
             dataSource={sourceData}
-            rowKey={(text,record)=>text.attr_name}
+            rowKey={(text,record)=>text.attr_id}
             className={style['self-table-container']}
             bordered={true}
             components={{

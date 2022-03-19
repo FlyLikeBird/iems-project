@@ -46,10 +46,6 @@ function EnergyTable({ dispatch, data, pagesize, companyName, timeType, startDat
         setCurrentPage(1);
     },[data, pagesize])
     return (
-        isLoading
-        ?
-        <Skeleton active className={style['skeleton']} />
-        :
         <Table
             columns={columns}
             dataSource={data}

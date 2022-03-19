@@ -21,26 +21,34 @@ for(var i=0;i<24;i++){
 }
 function TimeEnergyReport({ dispatch, user, costReport, fields }) {
     let [startHour, setStartHour] = useState(0);
-    const { reportInfo, dataType, isLoading } = costReport;
-    const { allFields, energyList, energyInfo, currentField, currentAttr, expandedKeys, treeLoading } = fields;
+    const { reportInfo, dataType, checkedKeys, isLoading } = costReport;
+    const { allFields, currentField, energyInfo, currentAttr, expandedKeys, treeLoading } = fields;
     const { currentCompany, pagesize, timeType, startDate, endDate } = user;
-    let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
-    let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
+    let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
+    let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     const sidebar = (
         <div>
-            <div className={style['card-container']}>            
+            <div className={style['card-container']}>                         
                 <Tabs  
                     className={style['custom-tabs']}
                     activeKey={currentField.field_id + ''}  
+                    type='card'                      
                     onChange={fieldKey=>{
                         let field = fieldList.filter(i=>i.field_id == fieldKey )[0];
                         dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
                         new Promise((resolve, reject)=>{
                             dispatch({type:'fields/fetchFieldAttrs', resolve, reject })
-                        }).then(()=>{
-                            dispatch({type:'costReport/fetchCostReport'});
+                        }).then((attrs)=>{
+                            let temp = [];
+                            if ( attrs.length && attrs[0].children ) {
+                                temp.push(attrs[0].key);
+                                attrs[0].children.map(i=>temp.push(i.key));
+                            } else if ( attrs.length ) {
+                                temp.push(attrs[0].key);
+                            }
+                            dispatch({type:'costReport/select', payload:temp });
+                            dispatch({ type:'costReport/fetchCostReport', payload:{ startHour }});
                         })
-                        
                 }}>
                     {   
                         fields.isLoading
@@ -61,26 +69,46 @@ function TimeEnergyReport({ dispatch, user, costReport, fields }) {
                                     :
                                     <Tree
                                         className={style['custom-tree']}
+                                        checkable
+                                        checkStrictly
                                         expandedKeys={expandedKeys}
                                         onExpand={temp=>{
-                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });                                                     
                                         }}
-                                        selectedKeys={[currentAttr.key]}
+                                        checkedKeys={checkedKeys}
+                                        onCheck={(checkedKeys, e)=>{
+                                            let { checked, checkedNodes, node }  = e;
+                                            if ( node.children && node.children.length  ){
+                                                if ( checked ){
+                                                    node.children.map(i=>{
+                                                        if(!checkedKeys.checked.includes(i.key)) {
+                                                            checkedKeys.checked.push(i.key);
+                                                        }
+                                                    });
+                                                } else {
+                                                    let childKeys = node.children.map(i=>i.key);
+                                                    checkedKeys.checked = checkedKeys.checked.filter(key=>{
+                                                        return !childKeys.includes(key);
+                                                    });
+                                                }
+                                            }
+                                            dispatch({type:'costReport/select', payload:checkedKeys.checked });
+                                            dispatch({ type:'costReport/fetchCostReport', payload:{ startHour }});
+                                        }}
                                         treeData={fieldAttrs}
-                                        onSelect={(selectedKeys, { selected, node })=>{
-                                            if(!selected) return;
-                                            dispatch({type:'fields/toggleAttr', payload:node});
-                                            dispatch({type:'costReport/fetchCostReport'}); 
-                                        }}
                                     />
                                 }
                             </TabPane>
                         ))
                         :
-                        <div className={style['text']} style={{ padding:'1rem'}}>该能源类型还没有设置维度</div>
+                        <div className={style['text']} style={{ padding:'1rem' }}>
+                            <div>{`${energyInfo.type_name}能源类型还没有设置维度`}</div>
+                            <div style={{ padding:'1rem 0'}}><Button type='primary' onClick={()=>{
+                                history.push(`/energy/info_manage_menu/field_manage?type=${energyInfo.type_code}`);
+                            }} >设置维度</Button></div>
+                        </div>
                     }
-                </Tabs>
-                           
+                </Tabs>                                            
             </div>                
         </div>
     );
@@ -95,8 +123,6 @@ function TimeEnergyReport({ dispatch, user, costReport, fields }) {
     },[reportInfo])
     const content = (
         
-                Object.keys(reportInfo).length
-                ?
                 <div style={{ position:'relative' }}>
                     {
                         isLoading 
@@ -147,15 +173,10 @@ function TimeEnergyReport({ dispatch, user, costReport, fields }) {
                         />
                     </div>
                 </div>         
-                :
-                <Skeleton className={style['skeleton']} />
+               
             
     );
-    useEffect(()=>{
-        return ()=>{
-            dispatch({ type:'costReport/cancelAll'});
-        }
-    },[])
+  
     return (  
         <ColumnCollapse sidebar={sidebar} content={content} />
             

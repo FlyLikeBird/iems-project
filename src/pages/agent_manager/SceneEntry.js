@@ -1,59 +1,25 @@
 import React from 'react';
 import { connect } from 'dva';
 import { routerRedux } from 'dva/router';
-import { Spin, message } from 'antd';
+import { Spin, Tooltip, Badge, message } from 'antd';
 import style from './AgentMonitor.css';
-import entryBg from '../../../public/agent/entry-icons.png';
 
-import sceneBg0 from '../../../public/agent/entry-icons-scene/0.png';
-import sceneBg1 from '../../../public/agent/entry-icons-scene/1.png';
 import sceneBg2 from '../../../public/agent/entry-icons-scene/2.png';
-import sceneBg3 from '../../../public/agent/entry-icons-scene/3.png';
 import sceneBg4 from '../../../public/agent/entry-icons-scene/4.png';
-import sceneBg5 from '../../../public/agent/entry-icons-scene/5.png';
-import sceneBg6 from '../../../public/agent/entry-icons-scene/6.png';
-import sceneBg7 from '../../../public/agent/entry-icons-scene/7.png';
-import sceneBg8 from '../../../public/agent/entry-icons-scene/8.png';
-import sceneBg9 from '../../../public/agent/entry-icons-scene/9.png';
-import sceneBg10 from '../../../public/agent/entry-icons-scene/10.png';
-import sceneBg11 from '../../../public/agent/entry-icons-scene/11.png';
-import sceneBg12 from '../../../public/agent/entry-icons-scene/12.png';
+
 
 import projectBg0 from '../../../public/agent/entry-icons-project/0.png';
 import projectBg1 from '../../../public/agent/entry-icons-project/1.png';
-import projectBg2 from '../../../public/agent/entry-icons-project/2.png';
-import projectBg3 from '../../../public/agent/entry-icons-project/3.png';
-import projectBg4 from '../../../public/agent/entry-icons-project/4.png';
-import projectBg5 from '../../../public/agent/entry-icons-project/5.png';
-import projectBg6 from '../../../public/agent/entry-icons-project/6.png';
-import projectBg7 from '../../../public/agent/entry-icons-project/7.png';
-import projectBg8 from '../../../public/agent/entry-icons-project/8.png';
-import projectBg9 from '../../../public/agent/entry-icons-project/9.png';
-import projectBg10 from '../../../public/agent/entry-icons-project/10.png';
-const sceneIconsMap = {
-    'store':sceneBg1,
-    'ele_room':sceneBg2,
-    'parking':sceneBg6,
-    'air_conditioning':sceneBg3,
-    'it_room':sceneBg11,
-    'air_compressor':sceneBg4,
-    'street_lamp':sceneBg8,
-    'elevator':sceneBg9,
-    'light':sceneBg10,
-    'workshop':sceneBg5,
-    'shop_warning':sceneBg12
-};
+import projectBg11 from '../../../public/agent/entry-icons-project/11.png';
+import projectBg12 from '../../../public/agent/entry-icons-project/12.png';
+
 const projectIconsMap = {
     'energy_manage':projectBg1,
     'aiot':projectBg0,
-    'prepaid':projectBg8,
-    'build':projectBg9,
-    'water':projectBg10,
-    'ele_safe':projectBg2,
-    'perception_system':projectBg3,
-    'environment':projectBg4,
-    'camera':projectBg5,
-    'environment':projectBg6
+    'air_compressor':sceneBg4,
+    'hy_switch_system':projectBg11,
+    'hy_ele_room':sceneBg2,
+    'hy_combust':projectBg12
 }
 // const sceneIconsMap = {
 //     'store':1,
@@ -80,36 +46,70 @@ const projectIconsMap = {
 //     'camera':5,
 //     'environment':6
 // }
-function SceneEntry({ dispatch, agentMonitor }){
+const projectsMap = {
+    energy_manage:'iot',
+    aiot:'e',
+    air_compressor:'acs',
+    hy_switch_system:'safe',
+    hy_ele_room:'pr',
+    hy_combust:'fab'
+};
+function SceneEntry({ dispatch, user, agentMonitor }){
     const { projects } = agentMonitor;
-
+    const { newThirdAgent, userInfo } = user;
     return (
         
         <div className={style['scene-container']} >
-            <div className={style['scene-title']}>快速入口</div>
+            <div className={style['scene-title']}>能耗云模块入口</div>
             {
                 Object.keys(projects).length 
                 ?
                 Object.keys(projects).map((key,index)=>(
                     <div key={key} style={{ marginBottom:'20px' }}>
                         <div className={style['scene-item-container']}>
-                            <div className={style['scene-item-entry']} style={{ backgroundImage:`url(${entryBg})`, backgroundPosition:`-${key==='scene' ? 0 : 301}px 0`}}></div>
                             <div className={style['scene-item-child']}>
                                 {
                                     projects[key] && projects[key].length 
                                     ?
-                                    projects[key].map((item)=>(
-                                        <div key={item.code} style={{
-                                            backgroundImage:`url(${key === 'scene' ? sceneIconsMap[item.code] : projectIconsMap[item.code]})`,  
+                                    projects[key].map((item, index)=>(
+                                        <Tooltip key={item.code} placement="right" overlayClassName={style['custom-tooltip']} title={(
+                                            item.list && item.list.length 
+                                            ?
+                                            <div className={style['item-container']} style={{ height:'400px', overflow:'hidden auto' }}>
+                                                {
+                                                    item.list.map((sub)=>(
+                                                        <div key={sub.company_id} className={style['item-wrapper']} style={{ width:'33.3%'}}>
+                                                            <div className={style['item']} onClick={()=>{
+                                                                // 兼容第三方服务商的location跳转
+                                                                let temp = location.host.split('-');
+                                                                let prefix = temp.length === 2 ? temp[1].split('.')[0] : '';
+                                                                let linkPath = ( prefix ? projectsMap[item.code] + '-' + prefix : projectsMap[item.code] ) + '.' + window.g.host + '.com';                                                                
+                                                                window.open(`http://${linkPath}?pid=${Math.random()}&&userId=${userInfo.user_id}&&companyId=${sub.company_id}`);
+                                                            }}>
+                                                                <img src={ 'http://api.h1dt.com' + sub.logo_path} style={{ height:'50%' }} />
+                                                                <div>{ sub.company_name }</div>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                }
+                                            </div>
+                                            :
+                                            null
+                                        )}><div key={item.code} style={{
+                                            backgroundImage:`url(${key === 'project' ? projectIconsMap[item.code] : ''})`,  
                                             // backgroundPosition:`-${key === 'scene' ? sceneIconsMap[item.code] * 168 : projectIconsMap[item.code] * 168 }px 0`
                                             // backgroundPosition:`-${key === 'scene' ? 166: 166 }px 0`
-                                        }} onClick={()=>{
-                                            if ( item.code ==='energy_manage') {
-                                                dispatch(routerRedux.push('/agentMonitor/project'));
-                                            } else {
-                                                message.info('该项目还没有开放');
-                                            }
-                                        }}></div>
+                                        }}>
+                                            <Badge
+                                                className={style['custom-badge']}
+                                                count={item.list.length}
+                                                
+                                                overflowCount={99}
+                                                style={{ backgroundColor: '#1890ff' }}
+                                            />
+                                            <div style={{ position:'absolute', bottom:'12px', fontSize:'1.2rem', letterSpacing:'2px', whiteSpace:'nowrap', left:'50%', transform:'translateX(-50%)' }}>{ item.name }</div>    
+                                        </div>
+                                        </Tooltip>
                                     ))
                                     :
                                     null
@@ -126,4 +126,4 @@ function SceneEntry({ dispatch, agentMonitor }){
     )
 }
 
-export default connect(({ agentMonitor })=>({ agentMonitor }))(SceneEntry);
+export default connect(({ user, agentMonitor })=>({ user, agentMonitor }))(SceneEntry);

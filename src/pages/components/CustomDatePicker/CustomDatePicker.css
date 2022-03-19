@@ -3,8 +3,7 @@
 }
 
 .container .custom-radio:global(.ant-radio-group) :global(.ant-radio-button-wrapper) {
-    background:transparent;
-    background:transparent;
+    background:#fff;
     border-top:1px solid #d9d9d9;
     border-bottom:1px solid #d9d9d9;
     border-left:1px solid #d9d9d9;
@@ -49,14 +48,13 @@
 
 /* 日期组件深色模式 */
 .container.dark .custom-radio:global(.ant-radio-group) :global(.ant-radio-button-wrapper) {
-    border-top:1px solid #7a79b3;
-    border-bottom:1px solid #7a79b3;
-    border-left:1px solid #7a79b3;
-    border-right:none;
-    color:#7a79b3;
+    background:#22264b;
+    border:none;
+    color:rgba(255, 255, 255, 0.65);
 }
-.container.dark .custom-radio:global(.ant-radio-group) :global(.ant-radio-button-wrapper):last-child {
-    border-right:1px solid #7a79b3;
+.container.dark .custom-radio:global(.ant-radio-group) :global(.ant-radio-button-wrapper):global(.ant-radio-button-wrapper-checked) {
+    background:#1545ff;
+    color:#fff;
 }
 .container.dark .custom-date-picker:global(.ant-picker) {
     border:1px solid #7a79b3;

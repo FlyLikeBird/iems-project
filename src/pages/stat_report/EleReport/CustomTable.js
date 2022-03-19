@@ -63,14 +63,11 @@ function EnergyTable({ dispatch, data, timeType, pagesize, startDate, endDate, i
         ...dateColumns
     ];
     return (
-        isLoading
-        ?
-        <Skeleton active className={style['skeleton']} />
-        :
+      
         <Table
             columns={columns}
             dataSource={data}
-            rowKey={(text,record)=>text.attr_name}
+            rowKey='attr_name'
             className={style['self-table-container']}
             bordered={true}
             scroll={ { x:1000 }}

@@ -28,6 +28,32 @@ export function getTodayEnergy(data = {}){
         }); 
 }
 
+export function getTodayCo2(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/Agentmonitor/gettodayco2energy', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function getCo2Rank(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/Agentmonitor/getco2rank', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
 export function getDataLoad(data = {}){
     let token = apiToken();
     data.token = token;

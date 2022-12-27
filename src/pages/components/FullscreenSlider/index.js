@@ -4,7 +4,6 @@ import { Spin, Upload, Button, Modal, message, Tooltip } from 'antd';
 import { LeftOutlined, RightOutlined, FullscreenOutlined, DownloadOutlined, PlusOutlined, FullscreenExitOutlined, UploadOutlined } from '@ant-design/icons';
 import style from './FullscreenSlider.css';
 import html2canvas from 'html2canvas';
-import config from '../../../../config';
 
 let eventAdd = false;
 let subWindow = null;

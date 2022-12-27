@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { connect } from 'dva';
-import { Radio, DatePicker, Skeleton, Spin } from 'antd';
+import { Radio, DatePicker, Select, Skeleton, Spin } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import EnergyCostChart from './components/EnergyCostChart';
 import RegionQuotaChart from './components/RegionQuotaChart';
@@ -10,9 +10,12 @@ import style from '../IndexPage.css';
 import zhCN from 'antd/es/date-picker/locale/zh_CN';
 import moment from 'moment';
 
+const { Option } = Select;
+
 function CostTrendManager({ dispatch, user, fields, attrEnergy }){
-    let { energyList, energyInfo } = fields;
-    const { attrData, attrQuota, energyQuota, currentDate, showType, isLoading, regionLoading } = attrEnergy; 
+    let { allFields, energyList, currentField, energyInfo } = fields;
+    let { attrData, attrQuota, energyQuota, currentDate, showType, isLoading, regionLoading } = attrEnergy; 
+    let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let dateArr = currentDate.format('YYYY-MM-DD').split('-');
     const inputRef = useRef();
     useEffect(()=>{
@@ -23,11 +26,16 @@ function CostTrendManager({ dispatch, user, fields, attrEnergy }){
     return (
         <div className={style['page-container']} style={{ paddingBottom:'0' }}>
             <div style={{ height:'40px'}}>
-                <Radio.Group className={style['custom-radio']} value={energyInfo.type_id} onChange={e=>{
+                <Radio.Group className={style['custom-radio']} style={{ marginRight:'1rem' }} value={energyInfo.type_id} onChange={e=>{
                     let temp = energyList.filter(i=>i.type_id === e.target.value)[0];
                     dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
-                    dispatch({ type:'attrEnergy/fetchCost'});
-                    dispatch({ type:'attrEnergy/fetchAttrQuota'});
+                    new Promise((resolve, reject)=>{
+                        dispatch({ type:'fields/fetchField', payload:{ resolve, reject }})
+                    })
+                    .then(()=>{
+                        dispatch({ type:'attrEnergy/fetchCost'});
+                        dispatch({ type:'attrEnergy/fetchAttrQuota'});
+                    })         
                 }}>
                     {
                         energyList.map((item,index)=>(
@@ -35,13 +43,32 @@ function CostTrendManager({ dispatch, user, fields, attrEnergy }){
                         ))
                     }
                 </Radio.Group>
-                <Radio.Group className={style['custom-radio']} value={showType} style={{ marginLeft:'20px' }} onChange={e=>{
+                {
+                    fieldList.length 
+                    ?
+                    <Select style={{ width:'120px', marginRight:'1rem' }} className={style['custom-select']} value={currentField.field_id} onChange={value=>{
+                        let current = fieldList.filter(i=>i.field_id === value )[0];
+                        dispatch({ type:'fields/toggleField', payload:{ field:current } });
+                        dispatch({ type:'attrEnergy/fetchCost'});
+                        dispatch({ type:'attrEnergy/fetchAttrQuota'});
+                    }}>
+                        {
+                            fieldList.map((item,index)=>(
+                                <Option key={item.field_id} value={item.field_id} >{ item.field_name }</Option>
+                            ))
+                        }
+                    </Select>
+                    :
+                    null
+                }
+                <Radio.Group className={style['custom-radio']} value={showType} style={{ marginRight:'1rem' }} onChange={e=>{
                     dispatch({ type:'attrEnergy/toggleShowType', payload:e.target.value });
                 }}>
                     <Radio.Button key='0' value='0'>成本</Radio.Button>
                     <Radio.Button key='1' value='1'>能耗</Radio.Button>
                 </Radio.Group>
-                <div style={{ marginLeft:'20px', display:'inline-flex', alignItems:'center' }}>
+                
+                <div style={{ display:'inline-flex', alignItems:'center' }}>
                     <div className={style['date-picker-button-left']} onClick={()=>{
                         let temp = new Date(currentDate.format('YYYY-MM-DD'));
                         let date = moment(temp).subtract(1,'days');
@@ -89,6 +116,7 @@ function CostTrendManager({ dispatch, user, fields, attrEnergy }){
                         showType={showType} 
                         energyInfo={energyInfo}
                         isLoading={regionLoading} 
+                        currentField={currentField}
                         theme={user.theme}
                     />                                         
                     <EnergyQuotaChart 

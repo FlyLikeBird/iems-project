@@ -219,7 +219,7 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
                 ?
                 null
                 :
-                <Radio.Group style={{ top:'0', right:'unset', left:'0' }} className={style['float-button-group'] + ' ' + style['custom-radio']} size="small" value={timeType} onChange={e=>{
+                <Radio.Group style={{ top:'0', right:'unset', left:'0' }} className={style['float-button-group'] + ' ' + ( forReport ? '' : style['custom-radio'])} size="small" value={timeType} onChange={e=>{
                     let value = e.target.value;
                     onDispatch({ type:'energy/toggleTimeType', payload:value } );        
                     onDispatch({ type:'energy/fetchCostByTime'});              
@@ -231,7 +231,7 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
             }
             
             {
-                forWater, forReport 
+                forWater || forReport 
                 ?
                 null
                 :         

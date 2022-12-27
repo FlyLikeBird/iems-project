@@ -68,7 +68,7 @@ function MeasureBarChart({ data, timeType, theme, forReport }) {
     return (   
         <div style={{ position:'relative', height:'100%' }}>
             <div className={style['float-button-group']}>
-            <Radio.Group size='small' className={style['custom-radio']} value={showType} onChange={e=>toggleShowType(e.target.value)}>
+            <Radio.Group size='small' className={ forReport ? '' : style['custom-radio']} value={showType} onChange={e=>toggleShowType(e.target.value)}>
                 <Radio.Button key='energy' value='energy'>电量</Radio.Button>
                 <Radio.Button key='cost' value='cost'>电费</Radio.Button>
             </Radio.Group>

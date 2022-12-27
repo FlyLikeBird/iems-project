@@ -68,7 +68,7 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                 )
                 let obj = {
                     children:renderNode,
-                    props:{ className : style['multi-table-cell'] }
+                    props:{ className : 'multi-table-cell' }
                 }
                 return obj;
             }

@@ -108,7 +108,7 @@ function PieChart({ data }) {
                     itemWidth:10,
                     itemHeight:10,
                     icon:'rect',
-                    right:'13%',
+                    right:'15%',
                     top:'middle',
                     orient:'vertical',
                     // data:['基本电费','电度电费','力调电费'],

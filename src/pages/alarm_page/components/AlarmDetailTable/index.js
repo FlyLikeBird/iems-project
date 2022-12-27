@@ -34,13 +34,12 @@ function AlarmDetailTable({ data, forReport }){
         },
         {
             title:'报警分类',
-            width:70,
+            width:100,
             dataIndex:'cate_code',
             render:(value)=>{
-                return <Tag color="red" style={{ fontSize:'0.8rem' }}>{ warningType[value] }</Tag>
+                return <span className={style['tag-off']}>{ warningType[value] }</span>
             },
             ellipsis:true,
-            width:80,
         },
         {
             title:'问题标识',
@@ -52,7 +51,6 @@ function AlarmDetailTable({ data, forReport }){
             title:'设备名称',
             dataIndex:'mach_name',
             ellipsis:true,
-            width:120,
             render:(value)=>(
                 <Tooltip placement='topLeft' title={value}>
                     { value }
@@ -70,7 +68,6 @@ function AlarmDetailTable({ data, forReport }){
             // size='small'
             className={ forReport ? style['base-container'] : style['self-table-container'] + ' ' + style['small']}
             style={{ padding:'0' }}
-            bordered={true}
             pagination={false}
         />
     )

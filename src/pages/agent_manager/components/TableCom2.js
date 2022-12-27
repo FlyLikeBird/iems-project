@@ -6,8 +6,9 @@ import secondIcon from '../../../../public/agent/second.png';
 import thirdIcon from '../../../../public/agent/third.png';
 
 const tabs = [
-    { title:'标煤排放排名', key:'1'},
-    { title:'万元产值比排名', key:'2'},
+    { title:'碳排放', key:'1' },
+    { title:'标煤排放', key:'2'},
+    // { title:'万元产值比排名', key:'2'},
     // { title:'节省空间排名', key:'3'}
 ]
 
@@ -40,7 +41,7 @@ function TableCom({ dispatch, data }){
     },[data]);
     function handleToggleRank(item){
         new Promise((resolve, reject)=>{
-            dispatch({ type: item.key === '1' ? 'agentMonitor/fetchEnergyRank' : 'agentMonitor/fetchOutputRank', payload:{ resolve, reject, timeType }})
+            dispatch({ type: item.key === '1' ? 'agentMonitor/fetchCo2Rank' : 'agentMonitor/fetchEnergyRank', payload:{ resolve, reject, timeType }})
         })
         .then(()=>{
             setCurrent(item.key);
@@ -71,7 +72,7 @@ function TableCom({ dispatch, data }){
         <div style={{ height:'100%', paddingBottom:'10px'}}>
             <Radio.Group size='small' className={style['my-radio']} style={{ position:'absolute', right:'0', top:'-30px' }} value={timeType} onChange={e=>{
                 new Promise((resolve, reject)=>{
-                    dispatch({ type:current === '1' ? 'agentMonitor/fetchEnergyRank' : 'agentMonitor/fetchOutputRank', payload:{ resolve, reject, timeType:e.target.value }})
+                    dispatch({ type:current === '1' ? 'agentMonitor/fetchCo2Rank' : 'agentMonitor/fetchEnergyRank', payload:{ resolve, reject, timeType:e.target.value }})
                 })
                 .then(()=>{
                     setTimeType(e.target.value);
@@ -96,7 +97,7 @@ function TableCom({ dispatch, data }){
                 <div style={{ display:'flex', alignItems:'center', height:'9%', padding:'4px 6px' }}>
                     <div style={{ flex:'1' }}>排名</div>
                     <div style={{ flex:'2' }}>公司</div>
-                    <div style={{ flex:'2' }}>{ current === '1' ? '标煤排放(tce)' : current === '2' ? '万元产值比' : ''}</div>
+                    <div style={{ flex:'2' }}>{ current === '1' ? '碳排放(t)' : current === '2' ? '标煤排放(tce)' : ''}</div>
                     <div style={{ flex:'1' }}>同比变化</div>
                 </div>
                 {
@@ -122,7 +123,7 @@ function TableCom({ dispatch, data }){
                                 }
                             </div>
                             <div style={{ flex:'2', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ item.company_name }</div>
-                            <div style={{ flex:'2', color:'#17e6ff' }}>{  Math.floor( current === '1' ? item.totalEnergy : item.ratio  ) }</div>
+                            <div style={{ flex:'2', color:'#17e6ff' }}>{  Math.floor( item.totalEnergy ) }</div>
                             <div style={{ flex:'1', color:'#ffa633'}}>{ (+item.same).toFixed(1) + '%' }</div>
                         </div>
                     ))

@@ -34,7 +34,8 @@ function OutputChart({ data, theme }) {
         },
         label:{
             show:true,
-            color:textColor,
+            color: theme === 'dark' ? '#fff' : '#000',
+            textStyle:{ fontSize:14 },
             position:'inside',
             formatter:(params)=>{
                 if ( params.value === 0 ){

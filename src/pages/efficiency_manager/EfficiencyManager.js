@@ -3,15 +3,12 @@ import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Spin, Skeleton, Tooltip, Select, message } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined, PayCircleOutlined, ThunderboltOutlined, ExperimentOutlined, MoneyCollectOutlined } from '@ant-design/icons';
-import EnergyCostChart from '../energy_manager/components/EnergyCostChart';
-import RegionQuotaChart from '../energy_manager/components/RegionQuotaChart';
 import EnergyFlowManager from './components/EnergyFlowManager';
+import Loading from '@/pages/components/Loading';
 import RatioChart from './components/RatioChart';
 import OutputChart from './components/OutputChart';
-import FullscreenSlider from '@/pages/components/FullscreenSlider';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
-import style from '../IndexPage.css';
-import { energyIcons } from '@/pages/utils/energyIcons';
+import style from '@/pages/IndexPage.css';
 const { Option } = Select;
 const labelStyle = {
     display:'inline-block',
@@ -26,7 +23,7 @@ const labelStyle = {
 function EfficiencyManager({ dispatch, user, fields, efficiency }){ 
     const { timeType, startDate, endDate, theme  } = user;
     const { allFields, energyList, energyInfo, currentField, currentAttr } = fields;
-    const { chartInfo,  parentNodes, rankInfo, costChart, maskVisible, ratioInfo, outputInfo, attrData, regionData, chartLoading, year, month, day } = efficiency;
+    const { chartInfo,  parentNodes, rankInfo, costChart, maskVisible, ratioInfo, outputInfo, attrData, regionData, chartLoading } = efficiency;
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     useEffect(()=>{
         return ()=>{
@@ -34,23 +31,7 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
         }
     },[])
     const containerRef = useRef();
-    const content = (
-        <div className={style['card-container']}>
-            <EnergyFlowManager 
-                data={chartInfo}
-                currentField={currentField}
-                fieldList={fieldList}
-                rankInfo={rankInfo}
-                flowTimeType={timeType}
-                beginDate={startDate}
-                endDate={endDate}
-                energyInfo={energyInfo}
-                chartLoading={chartLoading}
-                dispatch={dispatch}
-                theme={theme}
-            />
-        </div>
-    );
+   
     return (
         <div 
             className={style['page-container']} 
@@ -69,20 +50,17 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
                 null
             }
             <div style={{ height:'40px', display:'flex' }}>
-                <Radio.Group className={style['custom-radio']} style={{ marginRight:'20px'}} value={energyInfo.type_id} onChange={e=>{
+                <Radio.Group className={style['custom-radio']} style={{ marginRight:'1rem'}} value={energyInfo.type_id} onChange={e=>{
                     let temp = energyList.filter(i=>i.type_id === e.target.value)[0];
-                    if ( temp.type_code === 'ele' || temp.type_code === 'water' ) {
-                        dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
-                        dispatch({ type:'efficiency/toggleChartLoading', payload:true });
-                        new Promise((resolve, reject)=>{
-                            dispatch({ type:'fields/init', payload:{ resolve, reject }});
-                        })
-                        .then(()=>{
-                            dispatch({ type:'efficiency/fetchFlowChart' });
-                        })
-                    } else {
-                        message.info(`还没有接入${temp.type_name}能源数据`);
-                    }
+                    dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
+                    dispatch({ type:'efficiency/toggleChartLoading', payload:true });
+                    new Promise((resolve, reject)=>{
+                        dispatch({ type:'fields/init', payload:{ resolve, reject }});
+                    })
+                    .then(()=>{
+                        dispatch({ type:'efficiency/fetchFlowChart' });
+                    })
+                    
                     
                 }}>
                     {
@@ -91,13 +69,10 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
                         ))
                     }
                 </Radio.Group>
-                <CustomDatePicker onDispatch={()=>{
-                    dispatch({ type:'efficiency/fetchFlowChart'});
-                }} />
                 {
                     fieldList && fieldList.length 
                     ?
-                    <Select style={{ width:'120px', marginLeft:'20px' }} className={style['custom-select']} value={currentField.field_id} onChange={value=>{
+                    <Select style={{ width:'120px', marginRight:'1rem' }} className={style['custom-select']} value={currentField.field_id} onChange={value=>{
                         if ( chartLoading ) {
                             message.info('能流图还在加载中');
                         }
@@ -120,19 +95,30 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
                     :
                     null
                 }
-                
+                <CustomDatePicker onDispatch={()=>{
+                    dispatch({ type:'efficiency/fetchFlowChart'});
+                }} />
             </div>
             <div style={{ height:'calc( 100% - 40px)'}}>
                 <div style={{ height:'60%'}}>
                     <div className={style['card-container-wrapper']} style={{ width:'70%'}}>
-                        <div className={style['card-container']}>
+                        <div className={style['card-container']} style={{ overflow:'hidden' }}>
                             {
-                                Object.keys(chartInfo).length
+                                chartLoading 
                                 ?
-                                <FullscreenSlider isLoading={chartLoading} interval={0} data={content} collapsed={user.collapsed} currentPath={user.currentPath} user={user} />                                                                                                          
+                                <Loading />
                                 :
-                                <Spin size='large' className={style['spin']} />
+                                null
                             }
+                            <EnergyFlowManager 
+                                data={chartInfo}
+                                rankInfo={rankInfo}
+                                energyInfo={energyInfo}
+                                chartLoading={chartLoading}
+                                dispatch={dispatch}
+                                theme={theme}
+                            />
+                           
                         </div>
                     </div>
                     <div className={style['card-container-wrapper']} style={{ width:'30%', paddingRight:'0' }}>

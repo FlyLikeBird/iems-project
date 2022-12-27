@@ -27,9 +27,9 @@ function InfoItem({ data, energyInfo, showType }) {
             <div className={style['flex-item']} style={{ flex:'1' }}>
                 <span>
                     {
-                        key === 'day' ? energyInfo.type_id === 0 ? `今日总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'kgce' : energyInfo.unit })` : `今日${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
-                        key === 'month' ? energyInfo.type_id === 0 ? `本月总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'kgce' : energyInfo.unit })` : `本月${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
-                        key === 'year' ? energyInfo.type_id === 0 ? `年度总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'kgce' : energyInfo.unit })` : `本年${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
+                        key === 'day' ? energyInfo.type_id === 0 ? `今日总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'tce' : energyInfo.unit })` : `今日${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
+                        key === 'month' ? energyInfo.type_id === 0 ? `本月总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'tce' : energyInfo.unit })` : `本月${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
+                        key === 'year' ? energyInfo.type_id === 0 ? `年度总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'tce' : energyInfo.unit })` : `本年${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
                         null
                     }
                 </span>

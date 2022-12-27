@@ -12,14 +12,14 @@ function CoalStackBar({ dispatch, timeType, data, startDate, theme }){
     let echartsRef = useRef();
     const seriesData = [];
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
-    let text = timeType === '1'  ? '当日' : timeType === '2' ? '当月' : timeType === '3' ? '当年' : '';
+    let text = timeType === '1'  ? '当时' : timeType === '2' || timeType === '10' ? '当日' : timeType === '3' ? '当月' : '当年';
     let temp = data.carbon.map(i=>i === null ? 0 : i);
     seriesData.push({
         type:'bar',
         name:text + '碳排放',
         stack:'coal',
         data:temp.map((item,index)=>{
-            if ( item > data.quota[index] ) {
+            if ( Number(data.quota[index]) && item > data.quota[index] ) {
                 return { value:item, itemStyle:{
                     color:{
                         type: 'linear',
@@ -223,7 +223,7 @@ function CoalStackBar({ dispatch, timeType, data, startDate, theme }){
                     },
                     yAxis:{
                         type:'value',
-                        name:`(单位:吨)`,
+                        name:'( t )',
                         nameTextStyle:{
                             color:textColor
                         },

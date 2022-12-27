@@ -4,16 +4,16 @@ import { Link, Route, Switch } from 'dva/router';
 import { Radio, Spin, Card, Tree, Tabs, Button, Modal, message, Skeleton } from 'antd';
 import { DoubleLeftOutlined , DoubleRightOutlined, PayCircleOutlined, ThunderboltOutlined, ExperimentOutlined, HourglassOutlined, FireOutlined  } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
-import { IconFont } from '@/pages/components/IconFont';
 import ChartContainer  from './ChartContainer';
+import Loading from '@/pages/components/Loading';
 import style from '../../IndexPage.css';
 
 const { TabPane } = Tabs;
 let timer;
 function EleMonitorManager({ dispatch, user, eleMonitor, fields }) {
+    const { startDate, timeType, theme } = user;
     const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
-    const { chartInfo, optionType, isLoading, startDate, timeType } = eleMonitor;
-    const { currentCompany, pagesize } = user;
+    const { chartInfo, optionList, currentOption, typeRule, isLoading } = eleMonitor;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     useEffect(()=>{     
@@ -40,6 +40,7 @@ function EleMonitorManager({ dispatch, user, eleMonitor, fields }) {
                         dispatch({type:'fields/fetchFieldAttrs', resolve, reject })
                     }).then(()=>{
                         dispatch({type:'eleMonitor/fetchChartInfo' });
+                        dispatch({ type:'eleMonitor/fetchTypeRule'});
                     })
             }}>
                 {                       
@@ -64,6 +65,7 @@ function EleMonitorManager({ dispatch, user, eleMonitor, fields }) {
                                     onSelect={(selectedKeys, {node})=>{                                    
                                         dispatch({type:'fields/toggleAttr', payload:{ key:node.key, title:node.title } });
                                         dispatch({type:'eleMonitor/fetchChartInfo' });
+                                        dispatch({ type:'eleMonitor/fetchTypeRule'});
                                     }}
                                 />
                             }
@@ -77,9 +79,26 @@ function EleMonitorManager({ dispatch, user, eleMonitor, fields }) {
         <div>
             <div className={style['card-container']}>
                 {
+                    isLoading 
+                    ?
+                    <Loading />
+                    :
+                    null
+                }
+                {
                     Object.keys(chartInfo).length 
                     ?
-                    <ChartContainer theme={user.theme} data={chartInfo} isLoading={isLoading} startDate={startDate} timeType={timeType} optionType={optionType} dispatch={dispatch} />
+                    <ChartContainer 
+                        theme={theme} 
+                        data={chartInfo} 
+                        startDate={startDate} 
+                        timeType={timeType} 
+                        typeRule={typeRule}
+                        optionList={optionList}
+                        currentOption={currentOption}
+                        currentAttr={currentAttr}
+                        dispatch={dispatch} 
+                    />
                     :
                     <Spin className={style['spin']} size='large' />
                 }

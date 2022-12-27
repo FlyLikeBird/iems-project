@@ -37,9 +37,11 @@ html, body {
   display:flex;
   position:relative;
   height:calc(100% - 60px);
-  background-color:#05050f;
+  background-color:#f1f1f1;
 }
-
+.container.dark .main-content {
+    background-color:#05050f;
+}
 .sidebar-container {
     background:#fff;
     height:100%;
@@ -226,7 +228,8 @@ html, body {
 }
 /* 深色Table组件样式 */
 .container.dark .self-table-container:global(.ant-table-wrapper) :global(.ant-table) :global(.ant-table-container){
-    border:1px solid #303463;
+    /* #303463 */
+    border:1px solid #272b5c;
     border-bottom:none;
 }
 .container.dark .self-table-container:global(.ant-table-wrapper) :global(.ant-table) :global(.ant-table-title){
@@ -239,20 +242,20 @@ html, body {
 .container.dark .self-table-container:global(.ant-table-wrapper) :global(.ant-table) table > thead > tr > th {
     color:#fff;
     background-color:#1e2141;
-    border-right:1px solid #303463;
-    border-bottom:1px solid #303463 !important;
+    border-right:1px solid #272b5c;
+    border-bottom:1px solid #272b5c !important;
 }
 .container.dark .self-table-container:global(.ant-table-wrapper) :global(.ant-table) table > tbody > tr > td {
     background-color:#23233f;
     color:#fff;
-    border-right:1px solid #303463;
-    border-bottom:1px solid #303463;
+    border-right:1px solid #272b5c;
+    border-bottom:1px solid #272b5c;
 }
 .container.dark .self-table-container:global(.ant-table-wrapper) :global(.ant-table) table > tbody > tr:nth-child(even) > td {
-    background-color:#191932;
+    /* background-color:#191932; */
 }
 .container.dark .self-table-container:global(.ant-table-wrapper) :global(.ant-table) :global(.ant-table-tbody) > tr > td:global(.multi-table-cell) > div > div{
-    border-bottom:1px solid #303463;
+    border-bottom:1px solid #272b5c;
 }
 @media ( max-width:1440px ){
 
@@ -405,7 +408,7 @@ html, body {
     display:flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom:1px solid #f0f0f0;
+    border-bottom:1px solid #f9f9f9;
 }
 
 .card-container .card-content {
@@ -446,7 +449,7 @@ html, body {
     color:#b0b0b0;
 }
 .container.dark .card-title {
-    border-bottom:1px solid #2c2d40;
+    border-bottom:1px solid #2e315a;
 }
 /* 
     自定义Radio组件样式
@@ -467,14 +470,14 @@ html, body {
     color:#fff;
 }
 .container .custom-radio:global(.ant-radio-group) :global(.ant-radio-button-wrapper):first-child {
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
 }
 .container .custom-radio:global(.ant-radio-group) :global(.ant-radio-button-wrapper):last-child {
     /* border-left:none !important; */
     border-right:1px solid #d9d9d9;
-    border-top-right-radius: 6px;
-    border-bottom-right-radius: 6px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
 }
 .container .custom-radio:global(.ant-radio-group) :global(.ant-radio-button-wrapper)::before {
     display:none;
@@ -518,6 +521,17 @@ html, body {
 /* 
     自定义一组button组件样式
 */
+.custom-btn {
+    height:28px;
+    line-height:28px;
+    padding:0 10px;
+    color: #fff !important;
+    background:#1545ff;
+    border:1px solid #0e2b9a;
+    border-radius:4px;
+    cursor:pointer;
+    z-index:10;
+}
 .custom-button:global(.ant-radio-group) > :global(.ant-radio-button-wrapper) {
     height:28px;
     line-height:28px;
@@ -697,9 +711,9 @@ html, body {
         /* animation:shadowMotion 1s forwards;
         animation-delay: 0.5s; */
     }
-    .float-button-group {
+    /* .float-button-group {
         top:65px;
-    }
+    } */
 }
 /* 自定义Modal组件样式 */
 .custom-modal:global(.ant-modal) :global(.ant-modal-content) {
@@ -716,10 +730,34 @@ html, body {
 .custom-modal:global(.ant-modal) :global(.ant-modal-content) > :global(.ant-modal-header) {
     background-color:#0693e5;
     text-align: center;
-    border-bottom:none;
-    
+    border-bottom:none;   
 }
 
+/* 首页监控的Modal组件样式 */
+:global(.fullscreen-modal):global(.ant-modal) {
+    width:100%;
+    max-width:100%;
+    height:100%;
+    top:0;
+    margin:0;
+    padding:0;
+}
+
+:global(.fullscreen-modal):global(.ant-modal) :global(.ant-modal-content) {
+    height:100%;
+}
+
+:global(.fullscreen-modal):global(.ant-modal) :global(.ant-modal-body) {
+    height:100%;
+    padding:0;
+}
+
+:global(.fullscreen-modal):global(.ant-modal) :global(.ant-modal-close-x) :global(.anticon) {
+    color: #222;
+    background: rgba(255 ,255, 255, 0.8);
+    padding: 6px;
+    border-radius: 50%;
+}
 
 @keyframes shadowMotion {
     0% {

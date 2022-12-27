@@ -78,7 +78,7 @@ function EnergyManager({ dispatch, user, energy, attrEnergy }){
                     null
                 } */}
             </div>
-            <div style={{ backgroundImage:'linear-gradient(to right, rgba(0,0,0,0.4) , transparent)', position:'absolute', left:'0', top:'0', width:'20%', height:'100%' }}>
+            <div style={{ display:energyInfo.type_code === 'total' || energyInfo.type_code === 'ele' ? 'block' : 'none', backgroundImage:'linear-gradient(to right, rgba(0,0,0,0.4) , transparent)', position:'absolute', left:'0', top:'0', width:'20%', height:'100%' }}>
                 <div style={{ color:'#fff', position:'absolute', transform:'translateY(-50%)', left:'0', top:'50%', padding:'0 40px'}}>
                     <div style={{ margin:'20px 0', position:'relative'}}>
                         <div style={{...dotStyle, backgroundColor:'#2d54ef'}}></div>
@@ -124,13 +124,9 @@ function EnergyManager({ dispatch, user, energy, attrEnergy }){
             <div style={{ height:'40px'}}>
                 <Radio.Group buttonStyle='solid' size='small' style={{ marginRight:'20px' }} value={energyInfo.type_id} className={style['custom-radio']} onChange={(e)=>{
                     let currentEnergy = energyList.filter(i=>i.type_id === e.target.value )[0];
-                    if ( e.target.value === 0 || e.target.value === 1 || e.target.value === 2 ){
-                        dispatch({ type:'energy/toggleEnergyType', payload:currentEnergy });
-                        dispatch({ type:'energy/fetchCost'});
-                        dispatch({ type:'energy/fetchCostByTime'});
-                    } else {
-                        message.info(`还没有接入${currentEnergy.type_name}能源数据`);
-                    }
+                    dispatch({ type:'energy/toggleEnergyType', payload:currentEnergy });
+                    dispatch({ type:'energy/fetchCost'});
+                    dispatch({ type:'energy/fetchCostByTime'});       
                 }}>
                     {
                         energyList.map((item,index)=>(

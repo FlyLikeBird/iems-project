@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
-import { Radio, Spin, Card, Tree, Tabs, Button, message, Skeleton  } from 'antd';
+import { Radio, Spin, Card, Tree, Tabs, Select, Skeleton  } from 'antd';
 import { DoubleLeftOutlined , DoubleRightOutlined  } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
-import EnergySelector from './components/EnergySelector';
 import AnalyzeChart from './components/AnalyzeChart';
-import { flattern } from '@/pages/utils/array';
-import { energyIcons } from '@/pages/utils/energyIcons';
+import { getNodeAllChildren } from '@/pages/utils/array';
+import Loading from '@/pages/components/Loading';
 import style from '../IndexPage.css';
 
 const { TabPane } = Tabs;
+const { Option } = Select;
 
-function CostAnalyze({ dispatch, costReport, fields, user }) {
-    const { analyzeInfo, chartInfo, checkedKeys, timeType } = costReport;
+function CostAnalyze({ dispatch, costReport, fields, user, worktime }) {
+    const { list, currentWorktime } = worktime;
+    const { analyzeInfo, chartInfo, checkedKeys, chartLoading } = costReport;
     const { allFields, energyList, energyInfo, currentField, currentAttr, expandedKeys, treeLoading } = fields;
-    let infoTitle = timeType === '1' ? '昨日' : timeType === '2' ? '上月' : timeType === '3' ? '去年' : '';
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
 
@@ -93,23 +93,23 @@ function CostAnalyze({ dispatch, costReport, fields, user }) {
                                                             dispatch({ type:'fields/setExpandedKeys', payload:temp });
                                                         }}
                                                         checkedKeys={checkedKeys}
-                                                        onCheck={(checkedKeys, e)=>{
-                                                            let { checked, checkedNodes, node }  = e;
-                                                            if ( node.children && node.children.length  ){
-                                                                if ( checked ){
-                                                                    node.children.map(i=>{
-                                                                        if(!checkedKeys.checked.includes(i.key)) {
-                                                                            checkedKeys.checked.push(i.key);
-                                                                        }
-                                                                    });
-                                                                } else {
-                                                                    let childKeys = node.children.map(i=>i.key);
-                                                                    checkedKeys.checked = checkedKeys.checked.filter(key=>{
-                                                                        return !childKeys.includes(key);
-                                                                    });
-                                                                }
+                                                        onCheck={(checkedKeys, { checked, checkedNodes, node })=>{
+                                                            let result = checkedKeys.checked;
+                                                            if ( checked ){
+                                                                // 选中当前节点和此节点的下一级节点                                              
+                                                                node.children.map(i=>{
+                                                                    if(!result.includes(i.key)) {
+                                                                        result.push(i.key);
+                                                                    }
+                                                                });
+                                                            } else {
+                                                                // 删除当前节点所有的子节点
+                                                                let childKeys = [];
+                                                                getNodeAllChildren(node, childKeys);
+                                                                result = result.filter(i=>!childKeys.includes(i));
                                                             }
-                                                            dispatch({type:'costReport/select', payload:checkedKeys.checked });
+                                                            
+                                                            dispatch({type:'costReport/select', payload:result });
                                                             dispatch({type:'costReport/fetchCostAnalyze'});                                            
                                                         }}
                                                         treeData={fieldAttrs}
@@ -133,12 +133,37 @@ function CostAnalyze({ dispatch, costReport, fields, user }) {
           
                 Object.keys(chartInfo).length 
                 ?
-                <div>
+                <div style={{ position:'relative' }}>
+                    {
+                        chartLoading 
+                        ?
+                        <Loading />
+                        :
+                        null
+                    }
                     <div style={{ display:'flex', height:'40px' }}>
                         <CustomDatePicker onDispatch={()=>{
                             dispatch({type:'costReport/fetchCostAnalyze'});                                            
 
                         }} />
+                        {
+                            list.length 
+                            ?
+                            <Select style={{ width:'160px', marginLeft:'1rem' }} className={style['custom-select']} value={currentWorktime.id} onChange={value=>{
+                                let temp = value === 0 ? { id:0 } : list.filter(i=>i.id === value )[0];
+                                dispatch({ type:'worktime/setCurrentWorktime', payload:temp });
+                                dispatch({ type:'costReport/fetchCostAnalyze'});
+                            }}>
+                                <Option key={0} value={0}>全部班次</Option>
+                                {
+                                    list.map((item)=>(
+                                        <Option key={item.id} value={item.id}>{ item.name }</Option>
+                                    ))
+                                }
+                            </Select>
+                            :
+                            null
+                        }
                     </div>
                     <div style={{ height:'calc( 100% - 40px)'}}>
                         <div className={style['card-container-wrapper']} style={{ display:'block', height:'16%', paddingRight:'0' }}>
@@ -146,7 +171,7 @@ function CostAnalyze({ dispatch, costReport, fields, user }) {
                                 analyzeInfo.map((item,index)=>(
                                     <div key={index} className={style['card-container-wrapper']} style={{ width:'25%', paddingBottom:'0', paddingRight:index === analyzeInfo.length - 1 ? '0' : '1rem' }}>
                                         <div className={style['card-container']} style={{ display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center' }}>
-                                            <div>{ `${ index === 1 ? infoTitle + item.text : item.text }(${item.unit})` }</div>
+                                            <div>{ `${item.text }(${item.unit})` }</div>
                                             <div className={style['data']}>{ item.data }</div>   
                                         </div>
                                     </div>
@@ -179,4 +204,4 @@ function CostAnalyze({ dispatch, costReport, fields, user }) {
     );
 }
 
-export default connect(({ costReport, fields, user})=>({ costReport, fields, user}))(CostAnalyze);
+export default connect(({ costReport, fields, user, worktime })=>({ costReport, fields, user, worktime }))(CostAnalyze);

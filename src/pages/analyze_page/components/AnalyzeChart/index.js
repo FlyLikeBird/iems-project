@@ -45,134 +45,213 @@ const feeTimeType = {
     }
 };
 
-function AnalyzeChart({ data, theme }) {
+function AnalyzeChart({ data, forModal, theme }) {
     const seriesData = [];
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     const echartsRef = useRef();
     let option={};
-    
+    // 电流的空载率
     seriesData.push({
         type:'line',
         symbol:'none',
+        name:'电流',
         data:data.view.power,
         itemStyle:{
             color:'#1890ff'
         },
-        xAxisIndex:1,
-        yAxisIndex:1,        
+        xAxisIndex:0,
+        yAxisIndex:0,        
+    });
+    seriesData.push({
+        type:'line',
+        symbol:'none',
+        name:'关机阈值',
+        itemStyle:{
+            color:'#ffc80c'
+        },
+        data:data.view.date.map(i=>+data.off_power),
+        markPoint:{
+            symbol:'rect',
+            symbolSize:[100,20],
+            data:[ { value:'关机阈值: '+ (+data.off_power ), xAxis:data.view.date.length-10, yAxis:+data.off_power } ],
+        },
+        lineStyle:{
+            type:'dashed'
+        }
+    });
+    seriesData.push({
+        type:'line',
+        symbol:'none',
+        name:'空载阈值',
+        itemStyle:{
+            color:'#6ec71e'
+        },
+        data:data.view.date.map(i=>+data.empty_power),
+        markPoint:{
+            symbol:'rect',
+            symbolSize:[100,20],
+            data:[ { value:'空载阈值: '+ (+data.empty_power ), xAxis:data.view.date.length-10, yAxis:+data.empty_power } ],
+        },
+        lineStyle:{
+            type:'dashed'
+        }
+    });
+    seriesData.push({
+        type:'line',
+        symbol:'none',
+        name:'重载阈值',
+        itemStyle:{
+            color:'#fd6e4c'
+        },
+        data:data.view.date.map(i=>+data.over_power),
+        markPoint:{
+            symbol:'rect',
+            symbolSize:[100,20],
+            data:[ { value:'重载阈值: '+ (+data.over_power ), xAxis:data.view.date.length-10, yAxis:+data.over_power } ],
+        },
+        lineStyle:{
+            type:'dashed'
+        }
     });
     // 运行状态
-    data.view.power.forEach(power=>{
-        // 未设置额定功率算开机时间
-        let timeType = power == null
-                    ?
-                    'null'
-                    : 
-                    power <= +data.off_power 
-                    ?
-                    'off'
-                    :
-                    +data.off_power < power && power <= +data.empty_power 
-                    ?
-                    'empty'
-                    :
-                    +data.empty_power < power && power < +data.over_power
-                    ?
-                    'normal'
-                    :
-                    data.over_power && power >= +data.over_power 
-                    ?
-                    'over'
-                    :
-                    'normal';
-        seriesData.push({
-            type:'bar',
-            xAxisIndex:0,
-            yAxisIndex:0,
-            name:runTimeType[timeType] ? runTimeType[timeType].text : '',
-            data:[1],
-            barWidth:10,
-            stack:'timeType',
-            itemStyle:{
-                color:runTimeType[timeType] ? runTimeType[timeType].color : '#fff'
+    // data.view.power.forEach(power=>{
+    //     // 未设置额定功率算开机时间
+    //     let timeType = power == null
+    //                 ?
+    //                 'null'
+    //                 : 
+    //                 power <= +data.off_power 
+    //                 ?
+    //                 'off'
+    //                 :
+    //                 +data.off_power < power && power <= +data.empty_power 
+    //                 ?
+    //                 'empty'
+    //                 :
+    //                 +data.empty_power < power && power < +data.over_power
+    //                 ?
+    //                 'normal'
+    //                 :
+    //                 data.over_power && power >= +data.over_power 
+    //                 ?
+    //                 'over'
+    //                 :
+    //                 'normal';
+    //     seriesData.push({
+    //         type:'bar',
+    //         xAxisIndex:0,
+    //         yAxisIndex:0,
+    //         name:runTimeType[timeType] ? runTimeType[timeType].text : '',
+    //         data:[1],
+    //         barWidth:10,
+    //         stack:'timeType',
+    //         itemStyle:{
+    //             color:runTimeType[timeType] ? runTimeType[timeType].color : '#fff'
                         
-            }
-        });
-    });
+    //         }
+    //     });
+    // });
     // 计费时段
-    data.view.time.forEach(time=>{
-        seriesData.push({
-            type:'bar',
-            xAxisIndex:2,
-            yAxisIndex:2,
-            name:feeTimeType[time] ? feeTimeType[time].text : '',
-            data:[1],
-            barWidth:10,
-            stack:'feeTimeType',
-            itemStyle:{
-                color:feeTimeType[time] ? feeTimeType[time].color : '#ccc'
-            }
-        })
-    });
+    
+    seriesData.push({
+        type:'bar',
+        xAxisIndex:1,
+        yAxisIndex:1,
+        // feeTimeType[time] ? feeTimeType[time].text : '',
+        data:data.view.time.map(i=>({ name:feeTimeType[i].text, value:1, itemStyle:{ color:feeTimeType[i].color }})),        
+        // 设置此柱状图之间连续拼接
+        barCategoryGap:-1,
+        tooltip:{ show:false }
+    })
     
     option = {
         tooltip:{
             show:true,
-            trigger:'axis',
-            formatter:'电流:{c}A',
-            
+            trigger:'axis',            
         },  
-        legend:{
+        graphic:{
+            type:'group',
+            left:'center',
             top:6,
-            textStyle:{ color:textColor },
-            data:Object.keys(runTimeType).map(key=>runTimeType[key].text).concat(Object.keys(feeTimeType).map(key=>{
-                return { name:feeTimeType[key].text, icon:'circle' }
-            }))
+            children:[
+                {
+                    type:'circle',
+                    shape:{ cx:10, cy:10, r:6 },
+                    style:{
+                        fill:'#ccc'
+                    }
+                },
+                {
+                    type:'text',
+                    style:{ text:'尖时段', x:20, y:6, fill:'#ccc' }
+                },
+                {
+                    type:'circle',
+                    shape:{ cx:70, cy:10, r:6 },
+                    style:{
+                        fill:'#57e29f'
+                    }
+                },
+                {
+                    type:'text',
+                    style:{ text:'峰时段', x:80, y:6, fill:'#57e29f' }
+                },
+                {
+                    type:'circle',
+                    shape:{ cx:130, cy:10, r:6 },
+                    style:{
+                        fill:'#ffc84b'
+                    }
+                },
+                {
+                    type:'text',
+                    style:{ text:'平时段', x:140, y:6, fill:'#ffc84b' }
+                },
+                {
+                    type:'circle',
+                    shape:{ cx:190, cy:10, r:6 },
+                    style:{
+                        fill:'#65cae3'
+                    }
+                },
+                {
+                    type:'text',
+                    style:{ text:'谷时段', x:200, y:6, fill:'#65cae3' }
+                }
+            ]
         },
         grid:[
+            
             {
                 left:80,
-                right:40,
-                top:10,
-                bottom:'80%',
-            },
-            {
-                left:80,
-                right:40,
-                bottom:'14%',
-                top:'20%',
+                right:20,
+                bottom:'17%',
+                top:'10%',
             },{
                 left:80,
-                right:40,
-                top:'86%',
-                bottom:'0'
+                right:20,
+                top:'88%',
+                bottom:56,
             }
         ],
-        // dataZoom:{ 
-        //     // type:'inside',                     
-        //     show:true,
-        //     bottom:20,
-        //     handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-        //     handleSize: '80%',
-        //     handleStyle: {
-        //         color: '#fff',
-        //         shadowBlur: 3,
-        //         shadowColor: 'rgba(0, 0, 0, 0.6)',
-        //         shadowOffsetX: 2,
-        //         shadowOffsetY: 2
-        //     },
-        // },   
-        xAxis:[
-            {
-                type:'value',
-                gridIndex:0,
-                min:0,
-                max:48,
-                axisLabel:{ show:false },
-                axisTick:{ show:false },
-                axisLine:{ show:false },
-                splitLine:{ show:false }
+        dataZoom:{
+            // type:'inside',                     
+            show:true,
+            bottom:20,
+            xAxisIndex:[0,1],
+            handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+            handleSize: '80%',
+            handleStyle: {
+                color: '#fff',
+                shadowBlur: 3,
+                shadowColor: 'rgba(0, 0, 0, 0.6)',
+                shadowOffsetX: 2,
+                shadowOffsetY: 2
             },
+            
+        },   
+        xAxis:[
+            
             {
                 type:'category',
                 data:data.view.date,
@@ -194,38 +273,37 @@ function AnalyzeChart({ data, theme }) {
                 axisTick:{
                     show:false
                 },
-                gridIndex:1,
-                splitLine:{
-                    show:true,
-                    interval:0,
-                    lineStyle:{
-                        color: theme === 'dark' ? '#22264b' : '#f0f0f0'
-                    }
-                }
+                gridIndex:0
             },
             {
-                type:'value',
-                gridIndex:2,
-                min:0,
-                max:48,
-                axisLabel:{ show:false },
+                type:'category',
+                gridIndex:1,
+                data:data.view.date,
+                // min:0,
+                // max:288,
+                axisLabel:{
+                    show:false,
+                    color:textColor,
+                    formatter:(value)=>{
+                        let dateStr = value.split(' ');
+                        if ( dateStr && dateStr.length > 1){
+                            return dateStr[1];
+                        } else {
+                            return value; 
+
+                        }
+                    }
+                },
                 axisTick:{ show:false },
                 axisLine:{ show:false },
                 splitLine:{ show:false }
             },
         ],
         yAxis:[
-            { 
-                type:'category',
-                gridIndex:0,
-                axisLine:{ show:false },
-                splitLine:{ show:false }
-
-            },
             {
                 type:'value',
-                gridIndex:1,
-                name:'(单位:A)',
+                gridIndex:0,
+                name:'(A)',
                 nameTextStyle:{
                     color:textColor
                 },
@@ -243,11 +321,14 @@ function AnalyzeChart({ data, theme }) {
                 } 
             },
             {
-                type:'category',
-                gridIndex:2,
+                type:'value',
+                gridIndex:1,
+                min:0,
+                max:1,
                 axisLine:{ show:false },
                 axisTick:{ show:false },
-               
+                axisLabel:{ show:false },
+                splitLine:{ show:false }
             }
         ],
        
@@ -256,7 +337,7 @@ function AnalyzeChart({ data, theme }) {
     
     return (    
         <div style={{ height:'100%'}}>
-            <Radio.Group size='small' className={style['float-button-group'] + ' ' + style['custom-button']} onChange={e=>{
+            <Radio.Group size='small' className={style['float-button-group'] + ' ' + style['custom-button']} style={{ top:forModal ? '0rem' : '1rem' }} onChange={e=>{
                 let value = e.target.value;
                 let fileTitle = '分析中心-空载率';
                 if ( value === 'download' && echartsRef.current ){

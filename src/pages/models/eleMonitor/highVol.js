@@ -47,35 +47,30 @@ export default {
             }
             
         },
-        *fetchIncomingInfo(action, { call, put, select }){
-            yield put.resolve({ type:'cancelable', task:fetchIncomingInfoCancelable, action:'cancelIncomingInfo' });
-            function* fetchIncomingInfoCancelable(params){
-                try {
-                    let { user:{ company_id }, highVol:{ currentIncoming }} = yield select();
-                    let { data } = yield call(getIncomingInfo, { company_id, in_id:currentIncoming.in_id });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getIncomingInfo', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001'){
-                        yield put({ type:'user/loginOut'});
-                    }
-                } catch(err){
-                    console.log(err);
+        *fetchIncomingInfo(action, { call, put, select }){        
+            try {
+                let { user:{ company_id }, highVol:{ currentIncoming }} = yield select();
+                let { data } = yield call(getIncomingInfo, { company_id, in_id:currentIncoming.in_id });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getIncomingInfo', payload:{ data:data.data }});
+                } else if ( data && data.code === '1001'){
+                    yield put({ type:'user/loginOut'});
                 }
-            }
+            } catch(err){
+                console.log(err);
+            }        
         },
-        *fetchIncomingChart(action, { call, put, select }){
-            yield put.resolve({ type:'cancelable', task:fetchIncomingChartCancelable, action:'cancelIncomingChart'});
-            function* fetchIncomingChartCancelable(params){
-                try {
-                    yield put({ type:'toggleLoading' });
-                    let { user:{ company_id }, eleMonitor:{ timeType, startDate, endDate }, highVol:{ currentIncoming, optionType }} = yield select();
-                    let { data } = yield call(getIncomingChart, { company_id, in_id:currentIncoming.in_id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), energy_type:optionType });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getIncomingChart', payload:{ data:data.data }});
-                    }
-                } catch(err){
-                    console.log(err);
+        *fetchIncomingChart(action, { call, put, select }){ 
+            try {
+                yield put({ type:'toggleLoading' });
+                let { user:{ company_id, startDate, endDate, timeType }, highVol:{ currentIncoming, optionType }} = yield select();
+                timeType = timeType === '10' ? '2' : timeType;
+                let { data } = yield call(getIncomingChart, { company_id, in_id:currentIncoming.in_id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), energy_type:optionType });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getIncomingChart', payload:{ data:data.data }});
                 }
+            } catch(err){
+                console.log(err);
             }
         }
     },

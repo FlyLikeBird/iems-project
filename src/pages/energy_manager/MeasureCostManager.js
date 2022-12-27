@@ -34,7 +34,7 @@ function MeasureCostManager({ dispatch, user, baseCost }) {
         ?
         <div style={{ height:'100%' }}>
             
-            <div className={style['card-container-wrapper']} style={{ height:'20%', paddingRight:'0' }}>
+            <div className={style['card-container-wrapper']} style={{ height:'22%', paddingRight:'0' }}>
                 {
                     measureInfoList && measureInfoList.length 
                     ?
@@ -71,7 +71,7 @@ function MeasureCostManager({ dispatch, user, baseCost }) {
                     null
                 }        
             </div>
-            <div className={style['card-container-wrapper']} style={{ height:'80%', paddingRight:'0', paddingBottom:'0' }}>
+            <div className={style['card-container-wrapper']} style={{ height:'78%', paddingRight:'0', paddingBottom:'0' }}>
                 <div className={style['card-container']}>
                     <MeasureBarChart data={measureCostInfo.view} timeType={user.timeType} theme={user.theme} />
                 </div>

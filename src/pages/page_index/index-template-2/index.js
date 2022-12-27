@@ -3,6 +3,7 @@ import { Spin } from 'antd';
 import titleImg from '../../../../public/page-index-template/title.png';
 import infoImg from '../../../../public/page-index-template/info-bg.png';
 import MotionImg from '../../../../public/page-index-template/motion.webp';
+import MotionAlarmImg from '../../../../public/page-index-template/motion_alarm.webp';
 import style from './template2.css';
 import InfoContainer from './InfoContainer';
 import LineChart from './LineChart';
@@ -16,7 +17,7 @@ function IndexTemplate2({ monitor }){
     let loaded = Object.keys(monitorInfo).length ? true : false ;
     return (
         <div className={style['container']}>
-            <div className={style['title-container']} style={{ backgroundImage:`url(${titleImg})` }}>智慧能源大屏</div>
+            <div className={style['title-container']} style={{ backgroundImage:`url(${titleImg})` }}><div className={style['title']}>智慧能源大屏</div></div>
             <div className={style['info-container']} style={{ backgroundImage:`url(${infoImg})` }}>
                 {
                     loaded && Object.keys(tplInfo).length && Object.keys(coalInfo).length 
@@ -63,7 +64,7 @@ function IndexTemplate2({ monitor }){
                 </div>
                 {/* 中侧 */}
                 <div className={style['card-container-wrapper']} style={{ width:'32%', position:'relative', overflow:'hidden' }}>
-                    <div><img src={MotionImg} style={{ width:'100%', transform:'scale(1.2)' }} /></div>
+                    <div><img src={loaded ? monitorInfo.warningRecord.length ? MotionAlarmImg : MotionImg : ''} style={{ width:'100%', transform:'scale(1.2)' }} /></div>
                     <div style={{ position:'absolute', left:'0', width:'100%', bottom:'0', height:'160px' }}>
                         {
                             loaded 

@@ -72,9 +72,7 @@ function AlarmExecute({ dispatch, user, alarm, location }){
             dispatch({ type:'alarm/reset'})
         }
     },[]);
-    console.log(recordListInfo);
-    console.log(activeKey);
-
+   
     return (
         <div className={style['page-container']}>
             <div className={style['card-container']}>

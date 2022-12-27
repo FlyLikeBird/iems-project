@@ -1,11 +1,8 @@
 import { 
-    getMonitorInfo,
-    getTotalAlarm, 
-    getOutputRank, 
-    getLogType,
-    confirmRecord,
-    getProgressLog,
+    getMonitorInfo, getTotalAlarm, getOutputRank, 
+    getLogType, confirmRecord, getProgressLog,
     uploadImg,
+    getTodayCo2, getCo2Rank,
     getSumTrend,
     getProjectTrend,
     getCoalRank, 
@@ -26,6 +23,7 @@ import {
 const initialState = {
     // 服务商指标监控
     todayEnergy:{},
+    todayCo2:{},
     monitorInfo:{},
     // currentProvince:{ name:'广东省', code:'440000'},
     currentProvince:{},
@@ -67,16 +65,18 @@ export default {
                 if ( pathname === '/agentMonitor' || pathname === '/agentMonitor/monitor'){
                     dispatch({ type:'fetchTodayEnergy'});
                     dispatch({ type:'fetchMonitorInfo'});
-                    dispatch({ type:'fetchEnergyRank'});
+                    // dispatch({ type:'fetchEnergyRank'});
                     dispatch({ type:'fetchMeterMach'});
-                    dispatch({ type:'fetchFinishTrend'});
+                    dispatch({ type:'fetchCo2Rank'});
+                    dispatch({ type:'fetchTodayCo2'});
+                    // dispatch({ type:'fetchFinishTrend'});
                     dispatch({ type:'fetchActiveDevice'});
                     // 第二屏数据
                     // dispatch({ type:'fetchDataLoad'});
                     dispatch({ type:'fetchWarningPercent'});
                     dispatch({ type:'fetchWarningRank'});
-                    dispatch({ type:'fetchWarningMonitor'});
-                    dispatch({ type:'fetchWarningStatus'});
+                    // dispatch({ type:'fetchWarningMonitor'});
+                    // dispatch({ type:'fetchWarningStatus'});
                 } 
                 if ( pathname === '/agentMonitor/entry') {
                     dispatch({ type:'fetchProjectList'});
@@ -90,6 +90,16 @@ export default {
                 let { data } = yield call(getTodayEnergy);
                 if ( data && data.code === '0') {
                     yield put({ type:'getTodayEnergy', payload:{ data:data.data }});
+                }
+            } catch(err){
+                console.log(err);
+            }
+        },
+        *fetchTodayCo2(action, { call, put}){
+            try{
+                let { data } = yield call(getTodayCo2);
+                if ( data && data.code === '0') {
+                    yield put({ type:'getTodayCo2Result', payload:{ data:data.data }});
                 }
             } catch(err){
                 console.log(err);
@@ -140,6 +150,21 @@ export default {
                 let { resolve, reject, timeType } = action.payload || {};
                 timeType = timeType || '1';
                 let { data } = yield call(getCoalRank, { time_type:timeType });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getRankResult', payload:{ data:data.data }});
+                    if ( resolve && typeof resolve === 'function') resolve();
+                } else {
+                    if ( reject && typeof reject === 'function') reject();
+                }
+            } catch(err){
+                console.log(err);
+            }
+        },
+        *fetchCo2Rank(action, { call, put}){
+            try {
+                let { resolve, reject, timeType } = action.payload || {};
+                timeType = timeType || '1';
+                let { data } = yield call(getCo2Rank, { time_type:timeType });
                 if ( data && data.code === '0'){
                     yield put({ type:'getRankResult', payload:{ data:data.data }});
                     if ( resolve && typeof resolve === 'function') resolve();
@@ -393,11 +418,14 @@ export default {
         getTodayEnergy(state, { payload:{ data }}){
             return { ...state, todayEnergy:data }  
         },
+        getTodayCo2Result(state, { payload:{ data }}){
+            return { ...state, todayCo2:data };
+        },
         getMonitorInfo(state, { payload:{ data }}){
             let infoList = [], provinProject = [];
             infoList.push({ text:'平台项目', value:data.companyCount, unit:'个'});
             infoList.push({ text:'累计标煤', value:data.coal, unit:'tce'});
-            infoList.push({ text:'终端数', value:data.meterCount, unit:'个'});
+            infoList.push({ text:'碳排放', value:data.co2, unit:'t'});
             data.infoList = infoList;
             provinProject = Object.keys(data.provinProject).map(key=>({name:key, value:data.provinProject[key]})).sort((a,b)=>b.value - a.value );
             data.provinProject = provinProject;

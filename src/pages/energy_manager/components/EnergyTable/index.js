@@ -77,30 +77,61 @@ const EditableCell = ({
     return <td {...restProps}>{ childNode }</td>
 }
 
-function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType, pagesize, startDate, companyName }){
+let timePeriod = [{ key:'total', title:'汇总' }, { key:'tipArr', title:'尖' }, { key:'topArr', title:'峰'},  {key:'middleArr', title:'平' }, { key:'bottomArr', title:'谷' }];
+let dateColumns = [];
+
+function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType, pagesize, startDate, theme, showTimePeriod, companyName }){
     const [currentPage, setCurrentPage] = useState(1);
-    let [sourceData, setSourceData] = useState(data.value);
+    let [sourceData, setSourceData] = useState(data.value || []);
     let [isPatching, togglePatching] = useState(false);
     let [value, setValue] = useState('');
     useEffect(()=>{
+        // 获取不同时间维度下的列数据
+        if ( data && data.date ){
+            // 日时间周期
+            dateColumns = data.date.map(time=>{
+                // console.log(time);
+                return {
+                    title:time,
+                    width:'140px',
+                    dataIndex:time,
+                    render:(text, row)=>{
+                        const renderNode = 
+                        showTimePeriod
+                        ?
+                        (
+                            <div>
+                                {
+                                    timePeriod.map((period, i)=>{                      
+                                        return (
+                                            <div style={{ display:'flex', justifyContent:'space-between', borderBottom: i === timePeriod.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#272b5c' : '#f0f0f0'}` }} key={i}>
+                                                <div >{ period.title }</div>
+                                                <div style={{ color:'#1890ff' }}>{ period.key === 'total' ? (+row[time]).toFixed(1) : (+row[period.key][time]).toFixed(1) }</div>
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
+                        )
+                        :
+                        (
+                            <div>
+                                <span style={{ color:'#1890ff', paddingLeft:'6px' }}>{ (+row[time]).toFixed(1) }</span>
+                            </div>
+                        );
+                        let obj = {
+                            children:renderNode,
+                            props:{ className : 'multi-table-cell' }
+                        }
+                        return obj;
+                    },
+                }
+            })
+        };
         setSourceData(data.value);
         setCurrentPage(1);
-        
     },[data])
-    let dateColumns = [];
-    // console.log(energyInfo);
-    // 获取不同时间维度下的列数据
-    if ( !isLoading && data && data.date ){
-        // 日时间周期
-        dateColumns = data.date.map(time=>{
-            return {
-                title:time,
-                width:'140px',
-                render:(text)=>(<span style={{color:'#1890ff'}}>{ (+text).toFixed(1) } </span>),
-                dataIndex:time
-            }
-        })
-    };
+    
     const columns = [
         {
             title:'序号',
@@ -281,7 +312,7 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
         <Table
             columns={mergedColumns}
             dataSource={sourceData}
-            rowKey={(text,record)=>text.attr_id}
+            rowKey='attr_id'
             className={style['self-table-container']}
             bordered={true}
             components={{
@@ -338,26 +369,71 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
                                     let aoa = [];
                                     let thead = [];
                                     let colsStyle = [];
-                                    columns.forEach(col=>{
-                                        thead.push(col.title);
+                                   
+                                    thead.push('序号','属性','能源类型', '能源单位', '产量', '目标单耗','实际单耗','能耗汇总');                                    
+                                    data.date.forEach(time=>{
+                                        thead.push(time);
+                                        if ( showTimePeriod ){
+                                            thead.push(null);
+                                        }
+                                    });
+                                    thead.push('注册码', '配电房', '相关属性', '相关属性2');
+                                    thead.forEach(()=>{
                                         colsStyle.push({ wch:16 });
-                                    });
+                                    })
                                     aoa.push(thead);
-                                    data.value.forEach((item,index)=>{
-                                        let temp = [];
-                                        temp.push(index + 1);
-                                        columns.forEach((col,j)=>{
-                                            if ( col.dataIndex ){                                              
-                                               temp.push(item[col.dataIndex] || '-- --');                                   
-                                            } else if ( col.key === 'unit') {
-                                                temp.push(dataType === '1' ? '元' : energyInfo.unit )
-                                            } else if ( col.key === 'single_cost') {
-                                                let result = item.productNum ? (item.total / item.productNum).toFixed(3) : '-- --';
-                                                temp.push(result);
-                                            }
+                                    if ( showTimePeriod ){
+                                        // 按尖峰平谷时段展开
+                                        data.value.forEach((row, i)=>{
+                                            timePeriod.forEach((period, j)=>{
+                                                let temp = [];
+                                                if ( j === 0 ){
+                                                    temp.push( i + 1);
+                                                    temp.push(row.attr_name);
+                                                    temp.push(row.energy_name);
+                                                    temp.push(dataType === '1' ? '元' : energyInfo.unit );
+                                                    temp.push(row.productNum || '--');
+                                                    temp.push(row.target || '--');
+                                                    temp.push(row.productNum ? (row.total / row.productNum).toFixed(3) : '--');
+                                                    temp.push(row.total);
+                                                } else {
+                                                    temp.push(null);
+                                                    temp.push(null);
+                                                    temp.push(null);
+                                                    temp.push(null);
+                                                    temp.push(null);
+                                                    temp.push(null);
+                                                    temp.push(null);
+                                                    temp.push(null);
+                                                }
+                                                data.date.forEach(time=>{
+                                                    temp.push(period.title);
+                                                    temp.push(period.key === 'total' ? (+row[time]).toFixed(1) : (+row[period.key][time]).toFixed(1) );
+                                                });
+                                                temp.push(row.regcode || '--');
+                                                temp.push(row.ele_room || '--');
+                                                temp.push(row.other_attr || '--');
+                                                temp.push(row.other_attr2 || '--');
+                                                aoa.push(temp);
+                                            })      
                                         })
-                                        aoa.push(temp);
-                                    });
+                                    } else {
+                                        data.value.forEach((item,index)=>{
+                                            let temp = [];
+                                            temp.push(index + 1);
+                                            columns.forEach((col,j)=>{
+                                                if ( col.dataIndex ){                                              
+                                                   temp.push(item[col.dataIndex] || '-- --');                                   
+                                                } else if ( col.key === 'unit') {
+                                                    temp.push(dataType === '1' ? '元' : energyInfo.unit )
+                                                } else if ( col.key === 'single_cost') {
+                                                    let result = item.productNum ? (item.total / item.productNum).toFixed(3) : '-- --';
+                                                    temp.push(result);
+                                                }
+                                            })
+                                            aoa.push(temp);
+                                        });
+                                    }
                                     // console.log(aoa);
                                     var sheet = XLSX.utils.aoa_to_sheet(aoa);
                                     sheet['!cols'] = colsStyle;
@@ -387,7 +463,7 @@ EnergyTable.propTypes = {
 };
 
 function areEqual(prevProps, nextProps){
-    if ( prevProps.data !== nextProps.data  ) {
+    if ( prevProps.data !== nextProps.data || prevProps.theme !== nextProps.theme  ) {
         return false;
     } else {
         return true;

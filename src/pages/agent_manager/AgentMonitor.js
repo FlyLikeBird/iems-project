@@ -32,6 +32,8 @@ import icon11 from '../../../public/agent/icons/11.png';
 import icon12 from '../../../public/agent/icons/12.png';
 import icon13 from '../../../public/agent/icons/13.png';
 import icon14 from '../../../public/agent/icons/14.png';
+import icon15 from '../../../public/agent/icons/15.png';
+import icon16 from '../../../public/agent/icons/16.png';
 
 const collectIconsPosition = {
     'sound_light':icon1,
@@ -47,7 +49,9 @@ const collectIconsPosition = {
     'smoke':icon14,
     'shock':icon2,
     'gateway':icon12,
-    'temperature':icon13
+    'temperature':icon13,
+    'switch':icon15,
+    'ac':icon16
 };
 const iconsPos = {
     'camera':4,
@@ -71,7 +75,7 @@ const dotStyle = {
     marginRight:'4px'
 }
 function AgentIndex({ dispatch, agentMonitor, user }){
-    const { monitorInfo, todayEnergy, rankInfo, meterInfo, dataLoad, activeDevice, projects, warningRank, warningPercent, warningStatus, finishTrendInfo, currentProvince, currentCity, autoMode } = agentMonitor;
+    const { monitorInfo, todayEnergy, todayCo2, rankInfo, meterInfo, dataLoad, activeDevice, projects, warningRank, warningPercent, warningStatus, finishTrendInfo, currentProvince, currentCity, autoMode } = agentMonitor;
     const containerRef = useRef();
     return (
         <div ref={containerRef} style={{ 
@@ -192,7 +196,7 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                     </div>
                 </div>
                 {/* DAU */}
-                <div className={style['item-container']} style={{ height:'20%'}}>
+                {/* <div className={style['item-container']} style={{ height:'20%'}}>
                     <div className={style['item-title']}>
                         <div className={style['item-title-bg']}></div>
                         <div className={style['item-title-text']}>
@@ -212,9 +216,9 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                             <Spin className={style['spin']}/>
                         }
                     </div>
-                </div> 
+                </div>  */}
                 {/* 采集器在线数 */}
-                <div className={style['item-container']} style={{ height:'34%' }}>
+                <div className={style['item-container']} style={{ height:'54%' }}>
                     <div className={style['item-title']}>
                         <div className={style['item-title-bg']}></div>
                         <div className={style['item-title-text']}>
@@ -231,7 +235,7 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                                     <div key={index} className={style['layout-item-wrapper']} style={{
                                        paddingRight:'6px',
                                        paddingBottom:'6px',
-                                       height:'22%'
+                                       height:'18%'
                                     }}>
                                         <div className={style['layout-item']} style={{
                                             border:'6px solid transparent',
@@ -309,7 +313,7 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                     </div>
                 </div>
                 {/* 告警状态 */}
-                <div className={style['item-container']} style={{ height:'21%'}}>
+                {/* <div className={style['item-container']} style={{ height:'21%'}}>
                     <div className={style['item-title']}>
                         <div className={style['item-title-bg']}></div>
                         <div className={style['item-title-text']}>
@@ -324,6 +328,25 @@ function AgentIndex({ dispatch, agentMonitor, user }){
                             <WarningBarChart data={warningStatus} />
                             :
                             <Spin className={style['spin']} />
+                        }
+                    </div>
+                </div> */}
+                {/* 碳排放趋势 */}
+                <div className={style['item-container']} style={{ height:'20%'}}>
+                    <div className={style['item-title']}>
+                        <div className={style['item-title-bg']}></div>
+                        <div className={style['item-title-text']}>
+                            <LineChartOutlined />
+                            碳排放趋势<span style={{ fontSize:'0.8rem' }}>(/t)</span>
+                        </div>
+                    </div>
+                    <div className={style['item-content']}>
+                        {
+                            Object.keys(todayCo2).length
+                            ?
+                            <LineChart xData={todayCo2.date} yData={todayCo2.energy} />
+                            :
+                            <Spin className={style['spin']}/>
                         }
                     </div>
                 </div>

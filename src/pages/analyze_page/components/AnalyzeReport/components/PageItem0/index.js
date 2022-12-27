@@ -59,7 +59,7 @@ function PageItem0({ analyze, monitor, dispatch, companyName }){
                     <div className={style['item-container']} style={{ textAlign:'center', position:'relative' }}>
                         <img src={plateImg} style={{ width:'200px' }} />
                         <div style={{ position:'absolute', left:'50%', top:'110px', transform:'translateX(-50%)', fontWeight:'bold', fontSize:'3rem' }}>
-                            { `第${rankAndGrade.rank}名` }
+                            { `第${rankAndGrade.rank || '-'}名` }
                         </div>
                         <div style={{ position:'absolute', left:'50%', bottom:'10px', marginLeft:'-40px'}}>平台能效排名</div>
                     </div>

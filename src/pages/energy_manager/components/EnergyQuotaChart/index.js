@@ -7,12 +7,13 @@ import ReactEcharts from 'echarts-for-react';
 import html2canvas from 'html2canvas';
 import style from './EnergyQuotaChart.css';
 import IndexStyle from '../../../IndexPage.css';
-import icons from '../../../../../public/icons/energy-type-blue.png';
+import icons from '../../../../../public/icons/energy-type-blue-2.png';
 
 const energyIcons = {
     'ele':0,
     'water':2,
     'gas':1,
+    'combust':1,
     'hot':3
 };
 
@@ -32,6 +33,14 @@ const energyText = {
     'hot':{
         text:'热',
         unit:'GJ'
+    },
+    'combust':{
+        text:'燃气',
+        unit:'m³'
+    },
+    'compressed':{
+        text:'压缩气体',
+        unit:'m³'
     }
 }
 
@@ -90,7 +99,7 @@ function EnergyQuotaChart({ data, showType, onToggleTimeType, forReport }) {
                 <div className={IndexStyle['card-title']} style={ forReport ? { borderBottom:'1px solid #f1f1f1'} : {}}>
                     <div>{`${ showType === '0' ? '成本定额' : '能耗定额'}执行概况`}</div>              
                     <div>
-                        <Radio.Group size='small' style={{ top:'0' }} className={IndexStyle['float-button-group'] + ' ' + IndexStyle['custom-radio']} value={timeType} onChange={e=>{
+                        <Radio.Group size='small' style={{ top:'0' }} className={IndexStyle['float-button-group'] + ' ' + ( forReport ? '' : IndexStyle['custom-radio'])} value={timeType} onChange={e=>{
                             if ( !data.length ){
                                 message.info('数据加载中，请稍后...');
                                 return ;
@@ -120,7 +129,7 @@ function EnergyQuotaChart({ data, showType, onToggleTimeType, forReport }) {
                             }
                         </div>  
                         :
-                        <Spin size='large' className={style['spin']} /> 
+                        <Spin size='large' className={IndexStyle['spin']} /> 
                     }
                 </div>
             </div>

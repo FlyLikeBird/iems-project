@@ -11,8 +11,8 @@ function LineChart({ timeType, xData, yData, y2Data, theme }){
     const seriesData = [];
     let echartsRef = useRef();
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
-    let series1 = timeType === '1'  ? '今日' : timeType === '2' ? '本月' : timeType === '3' ? '本年' : '';
-    let series2 = timeType === '1'  ? '昨日' : timeType === '2' ? '上月' : timeType === '3' ? '去年' : '';
+    let series1 = timeType === '1'  ? '当时' : timeType === '2' || timeType === '10' ? '当日' : timeType === '3' ? '当月' : '当年';
+    let series2 = '同比';
     seriesData.push({
         type:'line',
         name:series1,
@@ -129,7 +129,7 @@ function LineChart({ timeType, xData, yData, y2Data, theme }){
                     },
                     yAxis:{
                         type:'value',
-                        name:`(单位:t)`,
+                        name:`( t )`,
                         nameTextStyle:{
                             color:textColor
                         },

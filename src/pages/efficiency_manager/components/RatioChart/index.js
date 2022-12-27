@@ -12,8 +12,10 @@ import XLSX from 'xlsx';
 const colors = ['#65cae3','#57e29f','#198efb','#f1ac5b'];
 
 function sumRatio(data){
-    let types = Object.keys(data.ratio);
     let result = [];
+    if ( data && data.ratio ){
+        let types = Object.keys(data.ratio);
+    
     for( let i=0,len=data.date.length;i<len;i++){
         let sum = 0;
         types.forEach((type,index)=>{
@@ -21,6 +23,8 @@ function sumRatio(data){
         });
         result.push(sum);
     }
+    }
+    
     return result;
 }
 
@@ -29,13 +33,16 @@ function RatioChart({ data, theme, forReport }) {
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     let seriesData = [];
     let legendData = [];
-    Object.keys(data.cost).forEach(key=>{
-        let type = key === 'ele' ? '电费' :
-                    key === 'water' ? '水费' :
-                    key === 'gas' ? '气费' : 
-                    key === 'hot' ? '燃费' : '';
-        legendData.push( { key, type });
-    });
+    if(data.cost){
+        Object.keys(data.cost).forEach(key=>{
+            let type = key === 'ele' ? '电费' :
+                        key === 'water' ? '水费' :
+                        key === 'gas' ? '气费' : 
+                        key === 'hot' ? '燃费' : '';
+            legendData.push( { key, type });
+        });
+    }
+    
     legendData.forEach(item=>{
         seriesData.push({
             type:'bar',

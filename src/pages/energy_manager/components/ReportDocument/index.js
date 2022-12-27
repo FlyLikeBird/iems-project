@@ -43,10 +43,11 @@ function ReportDocument({ currentField, currentAttr, companyInfo, documentInfo, 
                     middle_price:rateInfo['ele'].middle,
                     bottom_price:rateInfo['ele'].bottom,
                 });
-            }
-            if ( energyInfo.type_code === 'water' && rateInfo['water'] ) {
+                return ;
+            } 
+            if ( rateInfo[energyInfo.type_code] ){
                 form.setFieldsValue({
-                    person_price:rateInfo['water'].price
+                    person_price:rateInfo[energyInfo.type_code].price
                 })
             }
         }
@@ -143,7 +144,7 @@ function ReportDocument({ currentField, currentAttr, companyInfo, documentInfo, 
                                             payload['middle_price'] = values.person_price;
                                             payload['bottom_price'] = values.person_price;
                                         }
-                                    } else if ( energyInfo.type_code === 'water') {
+                                    } else {
                                         payload['price'] = values.person_price;
                                     }
                                     
@@ -182,8 +183,6 @@ function ReportDocument({ currentField, currentAttr, companyInfo, documentInfo, 
                         date={date}
                     /> 
                     :
-                    energyInfo.type_code === 'water'
-                    ?
                     <WaterReport 
                         currentField={currentField}
                         currentAttr={currentAttr}
@@ -196,8 +195,6 @@ function ReportDocument({ currentField, currentAttr, companyInfo, documentInfo, 
                         onCreateDocument={onCreateDocument}
                         date={date}
                     />
-                    :
-                    null
                 }
                           
             </Modal>

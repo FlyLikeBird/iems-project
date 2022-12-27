@@ -1,25 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Radio, Spin, Skeleton, Tooltip, DatePicker, Button, Select, message } from 'antd';
-import { LeftOutlined, RightOutlined, RedoOutlined   } from '@ant-design/icons';
-import ReactEcharts from 'echarts-for-react';
+import { LeftOutlined, RightOutlined, RedoOutlined, FullscreenOutlined   } from '@ant-design/icons';
 import FlowChart from './FlowChart';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
-import moment from 'moment';
-import style from '../../IndexPage.css';
+import style from '@/pages/IndexPage.css';
 
-const { Option } = Select;
-const { RangePicker } = DatePicker;
+function enterFullScreen(el){
+    try {
+        let func = el.requestFullscreen || el.msRequestFullscreen || el.mozRequestFullscreen || el.webkitRequestFullscreen ;
+        if ( func && typeof func === 'function' ) func.call(el);
+    } catch(err){
+        console.log(err);
+    }
+}
 
-function EfficiencyFlowManager({ data, rankInfo, dispatch, energyInfo, chartLoading, mode, theme, forReport }){   
+function EfficiencyFlowManager({ data, rankInfo, dispatch, energyInfo, mode, theme, forReport }){   
+    const containerRef = useRef();
     return (
-        <div style={{ width:'100%', height:'100%', position:'relative'}}>
-            {
-                chartLoading 
-                ?
-                <div style={{ position:'absolute', left:'0', top:'0', width:'100%', height:'100%', zIndex:'3', backgroundColor:'rgba(0,0,0,0.4)'}}><Spin size='large' style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%, -50%)' }}/></div>
-                :
-                null
-            } 
+        <div ref={containerRef} style={{ width:'100%', height:'100%', position:'relative'}}>
             {
                 !data.empty 
                 ?
@@ -27,13 +24,17 @@ function EfficiencyFlowManager({ data, rankInfo, dispatch, energyInfo, chartLoad
                 :
                 <div className={style['text']} style={{ position:'absolute', left:'50%', top:'50%', transform:'translate(-50%,-50%)' }}>能流图数据源为空</div>
             }   
-            
+            <div style={{ position:'absolute', right:'0.5rem', bottom:'0.5rem', cursor:'pointer' }} onClick={()=>{
+                enterFullScreen(containerRef.current);
+            }}>
+                <FullscreenOutlined style={{ fontSize:'1.2rem' }} />
+            </div>
         </div>
     )       
 }
 
 function areEqual(prevProps, nextProps){
-    if ( prevProps.data !== nextProps.data || prevProps.chartLoading !== nextProps.chartLoading || prevProps.theme !== nextProps.theme || prevProps.rankInfo !== nextProps.rankInfo ) {
+    if ( prevProps.data !== nextProps.data || prevProps.theme !== nextProps.theme || prevProps.rankInfo !== nextProps.rankInfo ) {
         return false;
     } else {
         return true;

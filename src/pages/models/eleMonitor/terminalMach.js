@@ -62,15 +62,13 @@ export default {
             function* fetchSeriesMachCancelable(params){
                 try {
                     yield put({ type:'toggleLoading'});
-                    let { user:{ company_id }, terminalMach:{ currentType } } = yield select();
+                    let { user:{ company_id, containerWidth }, terminalMach:{ currentType } } = yield select();
                     let { page } = action.payload || {};
                     page = page || 1;
                     // console.log(currentType);
-                    let { data } = yield call(getSeriesMach, { company_id, type:currentType.key, page, pagesize:12 });
+                    let { data } = yield call(getSeriesMach, { company_id, type:currentType.key, page, pagesize: containerWidth <= 1440 ? 9 : 12 });
                     if ( data && data.code === '0'){
                         yield put({ type:'getSeriesMach', payload:{ data:data.data, currentPage:page, total:data.count }});
-                    } else if ( data && data.code === '1001'){
-                        yield put({ type:'user/loginOut'});
                     }
                 } catch(err){
                     console.log(err);
@@ -82,24 +80,20 @@ export default {
             yield put({ type:'resetMach'});
         },
         *fetchMachDetail(action, { call, put, select }){
-            yield put.resolve({ type:'cancelable', task:fetchMachDetailCancelable, action:'cancelMachDetail' });
-            function* fetchMachDetailCancelable(params){
-                try {
-                    yield put({ type:'toggleMachLoading'});
-                    let { user:{ company_id}, terminalMach:{ currentMach } } = yield select();
-                    let { referDate } = action.payload || {};
-                    referDate = referDate || moment(new Date());
-                    let { data } = yield call(getMachDetail, { company_id, mach_id:currentMach.mach_id, date_time:referDate.format('YYYY-MM-DD')  });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getMachDetail', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001'){
-                        yield put({ type:'user/loginOut'});
-                    }
-                } catch(err){
-                    console.log(err);
-                }
+            try {
+                yield put({ type:'toggleMachLoading'});
+                let { user:{ company_id}, terminalMach:{ currentMach } } = yield select();
+                let { referDate } = action.payload || {};
+                referDate = referDate || moment(new Date());
+                let { data } = yield call(getMachDetail, { company_id, mach_id:currentMach.mach_id, date_time:referDate.format('YYYY-MM-DD')  });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getMachDetail', payload:{ data:data.data }});
+                } 
+            } catch(err){
+                console.log(err);
             }
         }
+        
     },
     reducers:{
         toggleLoading(state){

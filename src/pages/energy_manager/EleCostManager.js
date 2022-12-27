@@ -1,21 +1,22 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { connect } from 'dva';
-import { Card, Spin, Tree, Tabs, Skeleton, DatePicker, Radio } from 'antd';
+import { Card, Spin, Tree, Tabs, Select, Skeleton, DatePicker, Radio } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
+import Loading from '@/pages/components/Loading';
 import MeasureCostManager from './MeasureCostManager';
 import BaseCostManager from './BaseCostManager';
 import AdjustCostManager from './AdjustCostManager';
 import style from '../IndexPage.css';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
-import moment from 'moment';
 
 const { TabPane } = Tabs;
+const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-function EleCostManager({ dispatch, user, fields, baseCost }){
+function EleCostManager({ dispatch, user, fields, baseCost, worktime }){
     const { timeType, startDate, endDate } = user;
+    const { list, currentWorktime } = worktime;
     const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { isLoading, measureCostInfo, baseCostInfo, adjustCostInfo } = baseCost;
     const [activeKey, setActiveKey] = useState('measure');
@@ -23,7 +24,6 @@ function EleCostManager({ dispatch, user, fields, baseCost }){
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     // console.log(fieldAttrs);
-    console.log(expandedKeys);
     const sidebar = (
         <div>
             <div className={style['card-container']}>
@@ -75,8 +75,15 @@ function EleCostManager({ dispatch, user, fields, baseCost }){
     const content = (
         Object.keys(measureCostInfo).length
         ?
-        <div>
-            <div style={{ height:'40px' }}>
+        <div style={{ position:'relative' }}>
+            {
+                isLoading 
+                ?
+                <Loading />
+                :
+                null
+            }
+            <div style={{ display:'flex', height:'40px' }}>
                 {
                     activeKey === 'measure'
                     ?
@@ -86,7 +93,24 @@ function EleCostManager({ dispatch, user, fields, baseCost }){
                         dispatch({type:'baseCost/fetchEleCost', payload:{ eleCostType:activeKey }});
                     }} />
                 }
-                
+                {
+                    list.length 
+                    ?
+                    <Select style={{ width:'160px', marginLeft:'1rem' }} className={style['custom-select']} value={currentWorktime.id} onChange={value=>{
+                        let temp = value === 0 ? { id:0 } : list.filter(i=>i.id === value )[0];
+                        dispatch({ type:'worktime/setCurrentWorktime', payload:temp });
+                        dispatch({type:'baseCost/fetchEleCost', payload:{ eleCostType:activeKey }});
+                    }}>
+                        <Option key={0} value={0}>全部班次</Option>
+                        {
+                            list.map((item)=>(
+                                <Option key={item.id} value={item.id}>{ item.name }</Option>
+                            ))
+                        }
+                    </Select>
+                    :
+                    null
+                }
             </div>
             <div style={{ height:'calc( 100% - 40px)'}}>
                 <Tabs className={style['custom-tabs'] + ' ' + style['flex-tabs']} tabBarStyle={{ paddingLeft:'20px', marginBottom:'0' }} activeKey={activeKey} onChange={activeKey=>{
@@ -161,4 +185,4 @@ function EleCostManager({ dispatch, user, fields, baseCost }){
     return <ColumnCollapse sidebar={sidebar} content={content} />
 }
 
-export default connect(({ user, fields, baseCost})=>({ user, fields, baseCost}))(EleCostManager);
+export default connect(({ user, fields, baseCost, worktime })=>({ user, fields, baseCost, worktime }))(EleCostManager);

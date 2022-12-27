@@ -3,7 +3,7 @@ import { Radio, DatePicker } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import style from '../../IndexPage.css';
 import LineChart from '../components/LineChart';
-import EleMonitorDatePicker from '../components/EleMonitorDatePicker';
+import CustomDatePicker from '@/pages/components/CustomDatePicker';
 import Loading from '@/pages/components/Loading';
 
 const buttons = [
@@ -32,11 +32,11 @@ function ChartContainer({ data, dispatch, startDate, timeType, optionType, theme
                 }}>
                     {
                         buttons.map((item,index)=>(
-                            <Radio.Button value={item.code}>{ item.title }</Radio.Button>
+                            <Radio.Button value={item.code} key={item.code}>{ item.title }</Radio.Button>
                         ))
                     }
                 </Radio.Group>
-                <EleMonitorDatePicker mode='dark' onDispatch={()=>{
+                <CustomDatePicker onDispatch={()=>{
                     dispatch({ type:'highVol/fetchIncomingChart'});
                 }} />
             </div>

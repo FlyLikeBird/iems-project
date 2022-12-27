@@ -213,6 +213,31 @@ export function getSaveSpaceText(data = {}){
         body:str
         }); 
 }
+// E-P分析接口
+export function getEPChartInfo(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/energyefficiency/EP', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+export function getEPChartTrend(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/energyefficiency/eptrend', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
 
 
 

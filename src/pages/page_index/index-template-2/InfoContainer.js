@@ -24,36 +24,37 @@ function InfoContainer({ data, coal, carbon }){
     toggleData.push({ title:'电能源成本', value:Math.round(data['ele'].cost) });
     toggleData.push({ title:'水能源成本', value:Math.round(data['water'].cost) });
     toggleData.push({ title:'气能源成本', value:Math.round(data['gas'].cost) });
-    toggleData.push({ title:'热能源成本', value:Math.round(data['hot'].cost) });
+    // toggleData.push({ title:'热能源成本', value:Math.round(data['hot'].cost) });
     // toggleData = toggleData.filter(i=>+i.value !== 0);
    
     let index = 1;
     useEffect(()=>{
         repeatTimer = setInterval(()=>{
-            // console.log(indexRef.current);       
-            scrollRef.current.style.transition = 'transform 1s ease-in';
-            scrollRef.current.style.transform = `translate(-50%,-${index*100}%)`;
-
-            // translate(-50%, 100%) 截取translate字符串判断滚动位置
-            let str = backRef.current.style.transform.substring(16,19);
-            if ( str === '0px' ){
-                timer2 = setTimeout(()=>{
-                    backRef.current.style.transition = 'none';
-                    backRef.current.style.transform = 'translate(-50%,100%)';
-                },1200)
-                backRef.current.style.transition = 'transform 1s ease-in';
-                backRef.current.style.transform = `translate(-50%,-100%)`; 
-            }
-            if ( index === toggleData.length ){          
-                timer1 = setTimeout(()=>{
-                    scrollRef.current.style.transition = 'none';
-                    scrollRef.current.style.transform = `translate(-50%,100%)`;
-                    index = 0;
-                },1200);
-                backRef.current.style.transition = 'transform 1s ease-in';
-                backRef.current.style.transform = `translate(-50%,0px)`;         
-            }
-            index += 1;
+            // console.log(indexRef.current);      
+            if ( scrollRef.current ){
+                scrollRef.current.style.transition = 'transform 1s ease-in';
+                scrollRef.current.style.transform = `translate(-50%,-${index*100}%)`;
+                // translate(-50%, 100%) 截取translate字符串判断滚动位置
+                let str = backRef.current.style.transform.substring(16,19);
+                if ( str === '0px' ){
+                    timer2 = setTimeout(()=>{
+                        backRef.current.style.transition = 'none';
+                        backRef.current.style.transform = 'translate(-50%,100%)';
+                    },1200)
+                    backRef.current.style.transition = 'transform 1s ease-in';
+                    backRef.current.style.transform = `translate(-50%,-100%)`; 
+                }
+                if ( index === toggleData.length ){          
+                    timer1 = setTimeout(()=>{
+                        scrollRef.current.style.transition = 'none';
+                        scrollRef.current.style.transform = `translate(-50%,100%)`;
+                        index = 0;
+                    },1200);
+                    backRef.current.style.transition = 'transform 1s ease-in';
+                    backRef.current.style.transform = `translate(-50%,0px)`;         
+                }
+                index += 1;
+            } 
         },3000)
         return ()=>{
             clearInterval(repeatTimer);

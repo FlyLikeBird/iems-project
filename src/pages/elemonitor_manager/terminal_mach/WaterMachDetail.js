@@ -61,16 +61,10 @@ function MachDetail({ dispatch, data, machLoading, currentMach }){
                                     if(inputRef.current && inputRef.current.blur) inputRef.current.blur();                    
                                 }} />
                                 <div className={IndexStyle['date-picker-button-right']} onClick={()=>{
-                                    let todayDate = new Date();
                                     let nowDate = new Date(date.format('YYYY-MM-DD'));
-                                    if ( nowDate.getDate() >= todayDate.getDate() ) {
-                                        message.info('请选择合理的日期');
-                                        return;
-                                    } else {
-                                        let temp = moment(nowDate).add(1,'months');
-                                        dispatch({ type:'terminalMach/fetchMachDetail', payload:{ referDate:temp }});
-                                        setDate(temp);
-                                    }
+                                    let temp = moment(nowDate).add(1,'months');
+                                    dispatch({ type:'terminalMach/fetchMachDetail', payload:{ referDate:temp }});
+                                    setDate(temp);
                                 }}><RightOutlined /></div>
                             </div>
                         </div>
@@ -78,7 +72,7 @@ function MachDetail({ dispatch, data, machLoading, currentMach }){
                             <span>{ data.mach ? data.mach.model_desc : '' }</span>
                         </div>
                         <div style={{ height:'70%', display:'flex', alignItems:'center' }}>
-                            <img src={data.img_path} style={{ width:'50%'}}/>
+                            <div style={{ width:'40%' }}><img src={data.img_path} style={{ width:'100%' }} /></div>
                             <div style={{ whiteSpace:'nowrap' }}>
                                 <div>
                                     <span className={style['sub-text']} style={{ color:'rgb(152 154 156)', verticalAlign:'top' }}>编号:</span>

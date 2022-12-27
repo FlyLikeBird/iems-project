@@ -30,6 +30,7 @@ const linkIconsMap = {
 }
 
 const linkKeyMap = {
+    '0':'漏保空开',
     '1':'电表',
     '2':'水表',
     '3':'气表',

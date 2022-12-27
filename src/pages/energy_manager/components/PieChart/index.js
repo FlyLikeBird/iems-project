@@ -10,6 +10,19 @@ import style from '../../../IndexPage.css';
 import XLSX from 'xlsx';
 import { IconFont } from '@/pages/components/IconFont';
 
+let energyMaps = {
+    'tip':'尖',
+    'top':'峰',
+    'middle':'平',
+    'bottom':'谷',
+    'base':'基',
+    'ele':'电',
+    'water':'水',
+    'hot':'热',
+    'gas':'气',
+    'combust':'燃气',
+    'compressed':'压缩气体'
+}
 function PieChart({ data, energyInfo, showType, theme, forReport }) {
     let textColor = theme === 'dark' ? '#b0b0b0' : 'rgba(0,0,0,0.8)';   
     let legendData = [];
@@ -17,15 +30,7 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
     // 获取到能源饼图的数据
     const valueArr = Object.keys(data).map(key=>{
         let obj = {};
-        obj.name = key === 'base' ? '基' :
-            key === 'tip' ? '尖' :
-            key === 'top' ? '峰' :
-            key === 'middle' ? '平' : 
-            key === 'bottom' ? '谷' :
-            key === 'ele' ? '电' :
-            key === 'water' ? '水' :
-            key === 'gas' ? '气' :
-            key === 'hot' ? '热' : '';
+        obj.name = energyMaps[key];
         obj.value = showType === '0' ? ( data[key].cost || 0 ) : ( data[key].energy || 0);
         obj.label = { show:false };
         obj.labelLine = { show:false };
@@ -35,8 +40,9 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
         }
         return obj;
     });
+
     const echartsRef = useRef();
-    let title = energyInfo.type_id === 0 ? `本月总${ showType === '0' ? '费用' : '能耗'}分解分析` : `本月${ energyInfo.type_name}${ showType === '0' ? '费用':'能耗'}分解分析`;
+    let title = energyInfo.type_id === 0 ? `本月总${ showType === '0' ? '费用' : '能耗'}` : `本月${ energyInfo.type_name}${ showType === '0' ? '费用':'能耗'}`;
     return (   
         <div style={{ height:'100%'}}>
             {
@@ -153,6 +159,9 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                                 fontSize:14,
                                 // color:'#000',
                                 fontWeight:'bold'
+                            },
+                            emphasis:{
+                                labelLine:{ show:false }
                             },
                             data:valueArr
                         }

@@ -1,5 +1,17 @@
 import moment from 'moment';
 
+export function forceFormatNum(num){
+    return ( num / 10000 ).toFixed(1);
+}
+
+export function formatNum(num){
+    if ( num > 10000 ){
+        return { value:( num / 10000 ).toFixed(1), unit:'万元' };
+    } else {
+        return { value: num ? ( +num ).toFixed(1) : 0, unit:'元' };
+    }
+}
+
 export function getDays(year, month) {
     let days = [31,28,31,30,31,30,31,30,30,31,30,31] 
     if ( (year % 4 ===0) && (year % 100 !==0 || year % 400 ===0) ) {

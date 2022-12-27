@@ -30,8 +30,8 @@ const richStyle = {
 function LineChart({ startDate, timeType, xData, yData, y2Data, unit, theme }){
     const seriesData = [];
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
-    let series1 = timeType === '1'  ? '今日' : timeType === '2' ? '本月' : timeType === '3' ? '本年' : '';
-    let series2 = timeType === '1'  ? '昨日' : timeType === '2' ? '上月' : timeType === '3' ? '去年' : '';
+    let series1 = timeType === '1'  ? '今日' : timeType === '2' ? '本月' : timeType === '10' ? '本周' : timeType === '3' ? '本年' : '';
+    let series2 = timeType === '1'  ? '昨日' : timeType === '2' ? '上月' : timeType === '10' ? '上周' : timeType === '3' ? '去年' : '';
     seriesData.push({
         type:'line',
         name:series1,
@@ -96,7 +96,7 @@ function LineChart({ startDate, timeType, xData, yData, y2Data, unit, theme }){
                     top:60,
                     bottom:20,
                     left:20,
-                    right:180,
+                    right:200,
                     containLabel:true
                 },
                 legend:[
@@ -109,7 +109,7 @@ function LineChart({ startDate, timeType, xData, yData, y2Data, unit, theme }){
                         }
                     },
                     {
-                    right:0,
+                    right:10,
                     top:'middle',
                     orient:'vertical',
                     data:seriesData.map(i=>i.name),
@@ -148,15 +148,21 @@ function LineChart({ startDate, timeType, xData, yData, y2Data, unit, theme }){
                     },
                     formatter:name=>{
                         let temp = findMaxAndMin( name === series1 ? yData : y2Data );
-                        let prefixTime = timeType === '1' ? startDate.format('DD') : timeType === '2' ? startDate.format('MM') : timeType === '3' ? startDate.format('YYYY') :'';
-                        let maxTime = prefixTime + '-' + xData[temp.max ? temp.max.index : ''];
-                        let minTime = prefixTime + '-' + xData[temp.min ? temp.min.index : '']; 
-                        return `
-                            {value|${name}}{num|}{time|时间}\n
-                            {value|最大值:}{num|${temp.max ? temp.max.value : ''}}{num|${maxTime}}\n
-                            {value|最小值:}{num|${temp.min ? temp.min.value : ''}}{num|${minTime}}\n
-                            {value|平均值:}{num|${temp.avg ? temp.avg : ''}}
-                            `;
+                        // let prefixTime = timeType === '1' ? startDate.format('DD') : timeType === '2' ? startDate.format('MM') : timeType === '3' ? startDate.format('YYYY') :'';
+                        let maxTime = xData[temp.max ? temp.max.index : 0];
+                        let minTime = xData[temp.min ? temp.min.index : 0]; 
+                        return (
+                            timeType === '4' 
+                            ?
+                            ''
+                            : 
+                            `
+                            {value|${name}}{num|}{time|${ timeType === '1' ? '时间' : '日期'}}\n
+                            {value|最大值:}{num|${temp.max ? temp.max.value :'--'}}{num|${maxTime}}\n
+                            {value|最小值:}{num|${temp.min ? temp.min.value : '--'}}{num|${minTime}}\n
+                            {value|平均值:}{num|${temp.avg ? temp.avg : '--'}}
+                            `
+                        );
                     }
 
                 }],
@@ -178,7 +184,7 @@ function LineChart({ startDate, timeType, xData, yData, y2Data, unit, theme }){
                 },
                 yAxis:{
                     type:'value',
-                    name:`(单位:${unit})`,
+                    name:`(${unit})`,
                     nameTextStyle:{
                         color:textColor
                     },

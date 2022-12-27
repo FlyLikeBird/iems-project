@@ -148,7 +148,7 @@ function FlowChart({ data, theme, energyInfo, rankInfo, dispatch }){
                         }
                     },
                     title:{
-                        text:`能源成本竞争力第${ rankInfo ? rankInfo.rank : '--' }位`,
+                        text:`能源成本竞争力第${ rankInfo.rank || '--' }位`,
                         textStyle:{
                             color:'#fff',
                             fontSize:14

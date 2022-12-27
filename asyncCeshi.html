@@ -54,7 +54,36 @@
             console.log(result);
             console.log('end');
         }
-        getAllFruits();
+        // getAllFruits();
+        // proxy 代理对象拦截目标对象的默认操作
+        var handler = {
+          get: function(target, name, receiver) {
+            console.log(receiver === proxy);
+            if (name === 'prototype') {
+              return Object.prototype;
+            }
+            return 'Hello, ' + name;
+          },
+      
+          apply: function(target, thisBinding, args) {
+            console.log(arguments);
+            console.log(target);
+            console.log(thisBinding);
+            return args[0];
+          },
+          defineProperty(target, key, descriptor){
+              console.log('define-property');
+          },
+          construct: function(target, args) {
+            console.log(args);
+            console.log(Object.prototype.toString.call(args));
+            return {value: args[1]};
+          }
+        };
+        var proxy = new Proxy(function(x,y){
+            return x+y;
+        }, handler);
+        
     </script>
   </body>
 </html>

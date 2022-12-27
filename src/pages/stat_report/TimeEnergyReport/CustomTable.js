@@ -34,7 +34,7 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
             }
         },
         {
-            title: dataType === '1' ? '费用汇总' : '能耗汇总',
+            title: dataType === '1' ? '成本汇总' : '能耗汇总',
             key:'total',
             width:'100px',
             dataIndex:'total',
@@ -85,8 +85,57 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
                 return (
                     <div style={{ display:'flex', justifyContent:'space-between'}}>
                         <div>{ `${companyName}复合计费${ dataType === '1' ? '成本' : '能耗' }报表`}</div>
-                        <Button size="small" type="primary" onClick={()=>{
+                        <div>
+                        <Button size="small" type="primary" style={{ marginRight:'6px' }} onClick={()=>{                           
+                                if ( !data.length ){
+                                    message.info('数据源为空');
+                                } else {
+                                    let dateStr =  
+                                        timeType === '1' 
+                                        ?
+                                        `${startDate.format('YYYY-MM-DD')}`
+                                        :
+                                        `${startDate.format('YYYY-MM-DD')}-${endDate.format('YYYY-MM-DD')}`;
+                                    
+                                    // console.log(dateStr);
+                                    let fileTitle = dateStr + `复合计费`;
+                                    let aoa = [];
+                                    let thead = [];
+                                    let colsStyle = [];
+                                    thead.push('序号','属性','单位', '对比项', dataType === '1' ? '成本' : '能耗');
+                                    thead.forEach(col=>{
+                                        colsStyle.push({ wch:16 });
+                                    });
+                                    aoa.push(thead);
+                                    let timePeriod = [{ title:'汇总', dataIndex:'total' }, { title:'尖', dataIndex:'tip' }, { title:'峰', dataIndex:'top'}, { title:'平', dataIndex:'middle'}, { title:'谷', dataIndex:'bottom'}]
+                                    data.forEach((item,index)=>{
+                                        timePeriod.forEach((time,j)=>{
+                                            let row = [];
+                                            if ( j === 0 ){
+                                                row.push(index+1);
+                                                row.push(item.attr_name);
+                                                row.push(dataType === '1' ? '元' : energyInfo.unit );
+                                                row.push(time.title);
+                                                row.push(item[time['dataIndex']]);
+                                            } else {
+                                                row.push(null);
+                                                row.push(null);
+                                                row.push(null);
+                                                row.push(time.title);
+                                                row.push(item[time['dataIndex']]);
+                                            }
+                                            aoa.push(row);
+                                        })                                  
+                                    });
+                                    // console.log(aoa);
+                                    var sheet = XLSX.utils.aoa_to_sheet(aoa);
+                                    sheet['!cols'] = colsStyle;
+                                    downloadExcel(sheet, fileTitle + '.xlsx' );
+                                }
+                               
                             
+                        }}>导出竖版</Button>
+                        <Button size="small" type="primary" onClick={()=>{                           
                                 if ( !data.length ){
                                     message.info('数据源为空');
                                 } else {
@@ -108,24 +157,26 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
                                     });
                                     aoa.push(thead);
                                     data.forEach((item,index)=>{
-                                        let temp = [];
-                                        temp.push(index + 1);
-                                        columns.forEach((col,j)=>{
+                                        let row = [];
+                                        row.push(index + 1);
+                                        columns.forEach(col=>{
                                             if ( col.dataIndex ){
-                                                temp.push(item[col.dataIndex] || '-- --');
-                                            } else if ( col.key === 'unit') {
-                                                temp.push(dataType === '1' ? '元' : energyInfo.unit )
+                                                row.push(item[col.dataIndex]);
+                                            } else if ( col.key === 'unit' ){
+                                                row.push(dataType === '1' ? '元' : energyInfo.unit );
                                             }
-                                        })
-                                        aoa.push(temp);
+                                        });
+                                        aoa.push(row);                    
                                     });
+                                    // console.log(aoa);
                                     var sheet = XLSX.utils.aoa_to_sheet(aoa);
                                     sheet['!cols'] = colsStyle;
                                     downloadExcel(sheet, fileTitle + '.xlsx' );
                                 }
                                
                             
-                        }}>导出报表</Button>
+                        }}>导出横版</Button>
+                        </div>
                     </div>
                 )
             }} 

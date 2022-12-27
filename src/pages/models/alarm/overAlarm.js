@@ -34,37 +34,30 @@ export default {
             yield put({ type:'fetchMachOffline'});
         },
         *fetchAttrAlarm(action,{ select, call, put}){
-            yield put.resolve({ type:'cancelAttrAlarm'});
-            yield put.resolve({ type:'cancelable', task:fetchAttrAlarmCancelable, action:'cancelAttrAlarm' });
-            function* fetchAttrAlarmCancelable(params){
-                try {
-                    let { user:{ company_id, timeType, startDate, endDate  }, fields:{ currentAttr }} = yield select();
-                    let { data } = yield call(getAttrWarning, { company_id, cate_code:'2', time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key } );
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getAttrWarning', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001') {
-                        yield put({ type:'user/loginOut'});
-                    }
-                     
-                } catch(err){  
-                    console.log(err);                 
+            try {
+                let { user:{ company_id, timeType, startDate, endDate  }, fields:{ currentAttr }} = yield select();
+                timeType = timeType === '10' ? '2' : timeType;
+                yield put({ type:'toggleChartLoading'});
+                let { data } = yield call(getAttrWarning, { company_id, cate_code:'2', time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key } );
+                if ( data && data.code === '0'){
+                    yield put({ type:'getAttrWarning', payload:{ data:data.data }});
                 }
-            }       
+                
+            } catch(err){  
+                console.log(err);                 
+            }     
         },
         *fetchMachOffline(action, { call, put, select }){
-            yield put.resolve({ type:'cancelMachOffline'});
-            yield put.resolve({ type:'cancelable', task:fetchMachOfflineCancelable, action:'cancelMachOffline' });
-            function* fetchMachOfflineCancelable(params){
-                try {
-                    let { user:{ company_id, timeType, startDate, endDate  }, fields:{ currentAttr }} = yield select();                  
-                    let { data } = yield call(getLinkAlarmRank, { company_id, cate_code:'2', time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key } );
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getMachOfflineInfo', payload:{ data:data.data }});
-                    }               
-                } catch(err){  
-                    console.log(err);                 
-                }
-            } 
+            try {
+                let { user:{ company_id, timeType, startDate, endDate  }, fields:{ currentAttr }} = yield select();    
+                timeType = timeType === '10' ? '2' : timeType;              
+                let { data } = yield call(getLinkAlarmRank, { company_id, cate_code:'2', time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key } );
+                if ( data && data.code === '0'){
+                    yield put({ type:'getMachOfflineInfo', payload:{ data:data.data }});
+                }               
+            } catch(err){  
+                console.log(err);                 
+            }        
         }
     },
     reducers:{
@@ -72,7 +65,7 @@ export default {
             return { ...state, chartLoading:true };
         },
         getAttrWarning(state, { payload:{ data }}){
-            return { ...state, warningInfo:data };
+            return { ...state, warningInfo:data, chartLoading:false };
         },
         getMachOfflineInfo(state, { payload:{ data }}){
             return { ...state, regionAlarmInfo:data }

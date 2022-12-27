@@ -19,9 +19,9 @@ function AdjustCostManager({ dispatch, user, baseCost }) {
     return (  
         Object.keys(adjustCostInfo).length
         ?
-        <div className={style['scroll-container']} style={{ height:'100%'}}>
+        <div style={{ height:'100%'}}>
             
-            <div className={style['card-container-wrapper']} style={{ height:'20%', paddingRight:'0'}}>
+            <div style={{ height:'22%', paddingBottom:'1rem' }}>
                 <div className={style['card-container-wrapper']} style={{ width:'33.3%', paddingBottom:'0' }}>
                     <div className={style['card-container']} style={{ display:'flex', flexDirection:'column', justifyContent:'center' }}>
                         <div style={{ textAlign:'center' }}>
@@ -86,16 +86,16 @@ function AdjustCostManager({ dispatch, user, baseCost }) {
                     </div>
                 </div>
             </div>
-            <div className={style['card-container-wrapper']} style={{ height:'50%', paddingRight:'0' }}>
+            <div style={{ height:'78%' }}>
                 <div className={style['card-container']}>
                     <AdjustCostChart data={adjustCostInfo.view} theme={user.theme} />
                 </div>
             </div>
-            <div className={style['card-container-wrapper']} style={{ height:'auto', paddingBottom:'0', paddingRight:'0', overflow:'unset' }}>
+            {/* <div className={style['card-container-wrapper']} style={{ height:'auto', paddingBottom:'0', paddingRight:'0', overflow:'unset' }}>
                 <div className={style['card-container']}>
                     <BaseCostTable data={adjustCostInfo.detail} forAdjust={true} />
                 </div>
-            </div>
+            </div> */}
         </div>
         :
         <Skeleton active className={style['skeleton']} />

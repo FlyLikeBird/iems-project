@@ -23,7 +23,7 @@ function DemandMonitor({ dispatch, demand, theme }) {
         Object.keys(demandInfo).length 
         ?
         <div style={{ height:'100%'}}>
-            <div className={style['card-container-wrapper']} style={{ display:'block', height:'24%', paddingRight:'0' }}>
+            <div className={style['card-container-wrapper']} style={{ display:'block', height:'26%', paddingRight:'0' }}>
                 <div className={style['card-container-wrapper']} style={{ width:'30%', paddingBottom:'0' }}>
                     <div className={style['card-container']}>
                         <DemandGauge data={demandInfo.info} />
@@ -37,10 +37,12 @@ function DemandMonitor({ dispatch, demand, theme }) {
                                 <div className={style['flex-item']}>
                                     <div>本日最小需量(kw)</div>
                                     <div className={style['data']} style={{ color:'#1890ff' }}>{ infoData.today_min && infoData.today_min.demand }</div>
+                                    <div style={{ opacity:'0' }}>--</div>
                                 </div>
                                 <div className={style['flex-item']}>
                                     <div>本日最大需量(kw)</div>
                                     <div className={style['data']} style={{ color:'#1890ff' }}>{ infoData.today_max && infoData.today_max.demand }</div>
+                                    <div style={{ opacity:'0' }}>--</div>
                                 </div>
                             </div>
                         </div>
@@ -59,7 +61,7 @@ function DemandMonitor({ dispatch, demand, theme }) {
                                         ?
                                         <span style={{ color:'#1890ff', fontSize:'0.8rem'}}>{ format(infoData.month_max_demand_date) }</span>
                                         :
-                                        null
+                                        <div style={{ opacity:'0' }}>--</div>
                                     }
                                 </div>
                                
@@ -74,13 +76,14 @@ function DemandMonitor({ dispatch, demand, theme }) {
                                             null
                                         }
                                     </div>
+                                    <div style={{ opacity:'0' }}>--</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className={style['card-container-wrapper']} style={{ display:'block', height:'76%', paddingBottom:'0', paddingRight:'0' }}>
+            <div className={style['card-container-wrapper']} style={{ display:'block', height:'74%', paddingBottom:'0', paddingRight:'0' }}>
                 <div className={style['card-container']}>
                     
                     <DemandLineChart data={demandInfo} theme={theme} />

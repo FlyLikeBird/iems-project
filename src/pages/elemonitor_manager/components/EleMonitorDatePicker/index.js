@@ -9,7 +9,7 @@ import moment from 'moment';
 const { RangePicker } = DatePicker;
 
 
-function CustomDatePicker({ dispatch, onDispatch, size, eleMonitor, optionStyle, mode, theme, noToggle, noDay, noMonth }){
+function CustomDatePicker({ dispatch, onDispatch, size, eleMonitor, optionStyle, mode, theme, noToggle, noDay, noWeek, noMonth }){
     const { timeType ,startDate, endDate } = eleMonitor;
     const inputRef = useRef();
     return (
@@ -28,16 +28,24 @@ function CustomDatePicker({ dispatch, onDispatch, size, eleMonitor, optionStyle,
                         ?
                         null
                         :
-                        <Radio.Button value='1'>日</Radio.Button>
+                        <Radio.Button value='1'>时</Radio.Button>
                     }
                     {
                         noMonth
                         ?
                         null
                         :
-                        <Radio.Button value='2'>月</Radio.Button>
+                        <Radio.Button value='2'>日</Radio.Button>
                     }
-                    <Radio.Button value='3'>年</Radio.Button>
+                    {
+                        noWeek 
+                        ?
+                        null
+                        :
+                        <Radio.Button value='10'>周</Radio.Button>
+                    }
+                    <Radio.Button value='3'>月</Radio.Button>
+                    <Radio.Button value='4'>年</Radio.Button>
                 </Radio.Group>
             }
             
@@ -51,19 +59,36 @@ function CustomDatePicker({ dispatch, onDispatch, size, eleMonitor, optionStyle,
                     if ( timeType === '2'){
                         start = moment(temp).subtract(1,'months').startOf('month');
                         end = moment(temp).subtract(1,'months').endOf('month');
-                    } else if ( timeType === '3'){
+                    } 
+                    if ( timeType === '3'){
                         start = moment(temp).subtract(1,'years').startOf('year');
                         end = moment(temp).subtract(1,'years').endOf('year');
                     }
-                    
+                    if ( timeType === '4') {
+
+                    }
+                    if ( timeType === '10' ) {
+                        start = moment(temp).startOf('week').subtract(1,'weeks').add(1, 'days');
+                        end = moment(temp).endOf('week').subtract(1, 'weeks').add(1, 'days');
+                    }
                     dispatch({ type:'eleMonitor/setDate', payload:{ startDate:start, endDate:end }});
                     if(onDispatch && typeof onDispatch === 'function') onDispatch();
                 }}><LeftOutlined /></div>
                 {
-                    timeType === '1' 
+                    timeType === '1'
                     ?
-                    <DatePicker ref={inputRef} size={ size || 'small'} locale={zhCN} allowClear={false} className={style['custom-date-picker']} value={startDate} onChange={value=>{
-                        dispatch({ type:'eleMonitor/setDate', payload:{ startDate:value, endDate:value }});
+                    <DatePicker ref={inputRef} size={ size || 'small'} locale={zhCN} allowClear={false} className={style['custom-date-picker']} value={startDate} onChange={value=>{                    
+                        dispatch({ type:'eleMonitor/setDate', payload:{ startDate:value, endDate:value }});                       
+                        if(onDispatch && typeof onDispatch === 'function') onDispatch();
+                        if ( inputRef.current && inputRef.current.blur ) inputRef.current.blur();
+                    }} />
+                    :
+                    timeType === '10' 
+                    ?
+                    <DatePicker ref={inputRef} size={ size || 'small'} locale={zhCN} picker='week' allowClear={false} className={style['custom-date-picker']} value={startDate} onChange={value=>{
+                        let start = value.startOf('week').add(1, 'days');
+                        let end = value.endOf('week').add(1, 'days');
+                        dispatch({ type:'eleMonitor/setDate', payload:{ startDate:start, endDate:end }});
                         if(onDispatch && typeof onDispatch === 'function') onDispatch();
                         if ( inputRef.current && inputRef.current.blur ) inputRef.current.blur();
                     }} />

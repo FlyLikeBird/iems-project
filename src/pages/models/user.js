@@ -1,20 +1,28 @@
 import { routerRedux } from 'dva/router';
-import { login, userAuth, agentUserAuth, fetchSessionUser, getNewThirdAgent, setCompanyLogo, getWeather, getThirdAgentInfo, getCameraAccessToken } from '../services/userService';
+import { 
+    login, userAuth, agentUserAuth, 
+    fetchSessionUser, getNewThirdAgent, setCompanyLogo, 
+    getWeather, getThirdAgentInfo, 
+    getCameraAccessToken,
+    getAlarmTypes, getTypeRule, setTypeRule
+} from '../services/userService';
 import { uploadImg } from '../services/alarmService';
 import { message } from 'antd';
 import { md5, encryptBy, decryptBy } from '../utils/encryption';
-import { getCompanyId } from '../utils/storage';
 import moment from 'moment';
 
 const reg = /\/info_manage_menu\/manual_input\/([^\/]+)\/(\d+)/;
-const companyReg =  /\?pid\=0\.\d+&&userId=(\d+)&&companyId=(\d+)/;
+const companyReg =  /\?pid\=0\.\d+&&userId=(\d+)&&companyId=(\d+)&&mode=(\w+)/;
 const agentReg = /\?agent=(.*)/;
 const agentReg2 = /iot-(.*)/;
 const sessionReg = /\?sid=(.*)/;
 let energyList = [
     { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'},
     { type_name:'水', type_code:'water', type_id:'2', unit:'m³'},
-    { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' }
+    { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' },
+    { type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'},
+    // { type_name:'压缩空气', type_code:'compressed', type_id:'8', unit:'m³'},
+    { type_name:'热', type_code:'hot', type_id:'4', unit:'GJ' }
 ];
 let date = new Date();
 // 初始化socket对象，并且添加监听事件
@@ -71,6 +79,7 @@ const initialState = {
     routePath:[],
     routeConfig:{},
     authorized:false,
+    isFrame:false,
     // socket实时告警消息
     msg:{},
     agentMsg:{},
@@ -78,8 +87,8 @@ const initialState = {
     currentPath:'',
     prevPath:'',
     weatherInfo:'',
-    // 全局告警消息
-    alarmList:[],
+    // 全局属性告警类型
+    alarmTypes:[],
     // 页面总宽度
     containerWidth:0,
     collapsed:false,
@@ -90,7 +99,7 @@ const initialState = {
     thirdAgent:{},
     newThirdAgent:{},
     // 浅色主题light 深色主题dark 
-    theme:'dark',
+    theme: window.g && window.g.xiaoe ? 'light' : 'dark',
     startDate:moment(date),
     endDate:moment(date),
     timeType:'1',
@@ -202,7 +211,7 @@ export default {
                         }
                         // 电费成本页面
                         if ( pathname === '/energy/energy_manage/ele_cost'){ 
-                            dispatch({ type:'user/toggleTimeType', payload:'2' }); 
+                            dispatch({ type:'toggleTimeType', payload:'2' }); 
                             dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
                             dispatch({ type:'baseCost/initEleCost'});                           
                             return;
@@ -210,7 +219,12 @@ export default {
                         // 水费成本页面
                         if ( pathname === '/energy/energy_manage/water_cost_menu' ) {
                             dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'水', type_code:'water', type_id:'2', unit:'m³'}});   
-                            dispatch({ type:'energy/initWaterCost'});                   
+                            dispatch({ type:'energy/initWaterCost', payload:{ type:'water' }});                   
+                        }
+                        // 燃气成本页面
+                        if ( pathname === '/energy/energy_manage/combust_cost' ) {
+                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'}});   
+                            dispatch({ type:'energy/initWaterCost', payload:{ type:'combust' }});                   
                         }
                         // 费用结算单页面
                         if ( pathname === '/energy/energy_manage/ele_statement'){
@@ -322,7 +336,7 @@ export default {
                         // 分析中心---空载率页面
                         if ( pathname === '/energy/analyze_manage/mach_run_eff'){
                             dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
-                            dispatch({ type:'user/toggleTimeType', payload:'1'});
+                            dispatch({ type:'toggleTimeType', payload:'1'});
                             dispatch({ type:'analyze/initMachEff'});
                             return;
                         } 
@@ -340,7 +354,7 @@ export default {
                         }
                         // 分析中心 --- 节能策略
                         if ( pathname === '/energy/analyze_manage/saveSpace') {
-                            dispatch({ type:'user/toggleTimeType', payload:'2'});
+                            dispatch({ type:'toggleTimeType', payload:'2'});
                             dispatch({ type:'analyze/fetchBaseSaveSpace'});
                             return;
                         }
@@ -407,15 +421,10 @@ export default {
                         //     dispatch({type:'fetchMach'});
                         // }
                         
-                        // if ( pathname === '/analyze_manage/lineloss_eff') {
-                        //     Promise.all([
-                        //         dispatch({type:'fetchEnergy'}),
-                        //         dispatch({type:'fetchMainLine'})
-                        //     ])
-                        //     .then(([energyType, mainLine])=>{
-                        //         dispatch({type:'fetchLineLoss', payload:{} });
-                        //     })
-                        // }
+                        if ( pathname === '/energy/analyze_manage/lineloss_eff') {
+                            dispatch({ type:'demand/initLineLoss'});
+                            return;
+                        }
                     })   
                 }
             })
@@ -438,6 +447,7 @@ export default {
                     let matchResult = companyReg.exec(query);
                     let company_id = matchResult ? matchResult[2] : null;
                     let user_id = matchResult ? matchResult[1] : null;
+                    let isFrame = matchResult && matchResult[3] === 'frame' ? true : false;
                     if ( user_id ){
                         localStorage.setItem('user_id', user_id);
                     }
@@ -450,7 +460,8 @@ export default {
                             let temp = matchResult ? matchResult[1] : '';
                             yield put({ type:'fetchNewThirdAgent', payload:temp });
                         }
-                        yield put({type:'setUserInfo', payload:{ data:data.data, company_id, fromAgent:matchResult ? true : false, authorized:true } });
+                        yield put.resolve({ type:'fetchAlarmTypes'});
+                        yield put({type:'setUserInfo', payload:{ data:data.data, company_id, fromAgent:matchResult ? true : false, isFrame } });
                         yield put({ type:'setContainerWidth' });
                         yield put({type:'weather'});
                         if ( resolve && typeof resolve === 'function') resolve();
@@ -627,12 +638,33 @@ export default {
                 yield put(routerRedux.push('/'));
 
             }
+        },
+        *fetchAlarmTypes(action, { put, call, select }){
+            try {
+                let { data } = yield call(getAlarmTypes);
+                if ( data && data.code === '0'){
+                    yield put({ type:'getAlarmTypesResult', payload:{ data:data.data }});
+                }
+            } catch(err){
+                console.log(err);
+            }
         }
     },
     reducers:{
-        setUserInfo(state, { payload:{ data, company_id, fromAgent, authorized }}){
+        setUserInfo(state, { payload:{ data, company_id, fromAgent, isFrame }}){
             let { menuData, companys } = data;
             let currentCompany = company_id ? companys.filter(i=>i.company_id == company_id)[0] : companys[0];
+            // 如果是小E版本的能管平台，将监控中心首页改写为抄表系统的首页
+            if ( window.g && window.g.xiaoe ) {
+                menuData = menuData.map((item)=>{
+                    if ( item.menu_id === 79 && item.menu_code === 'global_monitor') {
+                        item.child = []
+                    } 
+                    return item;
+                })
+            }
+            // test
+            // menuData[0].child = [...menuData[0].child, { menu_id:999, menu_name:'测试子站', menu_code:'test_station'}];
             let routeConfig = menuData.reduce((sum,menu)=>{
                 sum[menu.menu_code] = {
                     menu_name:menu.menu_name,
@@ -655,7 +687,7 @@ export default {
             },{});
             routeConfig.home = { menu_name:'首页', path:'/', linkable:true};
             // routeConfig['user_setting'] = { menu_name:'账号设置', path:'user_setting' };   
-            return { ...state, userInfo:data, userMenu:menuData, companyList:companys || [], company_id: currentCompany && currentCompany.company_id, currentCompany:currentCompany || {}, routeConfig, fromAgent, authorized };
+            return { ...state, userInfo:data, userMenu:menuData, companyList:companys || [], company_id: currentCompany && currentCompany.company_id, currentCompany:currentCompany || {}, routeConfig, fromAgent, authorized:true, isFrame };
         },
         setRoutePath(state, { payload }){
             let routes = payload.split('/').filter(i=>i);
@@ -721,21 +753,33 @@ export default {
             return { ...state, theme:payload };
         },
         toggleTimeType(state, { payload }){
-            let start, end;
-            var date = new Date();
-            if ( payload === '3'){
-                // 切换为年维度
-                start = moment(date).startOf('year');
-                end = moment(date).endOf('year');   
-            } else if ( payload === '2'){
-                // 切换为月维度
-                start = moment(date).startOf('month');
-                end = moment(date).endOf('month');
-            } else {
-                // 切换为日维度
-                start = end = moment(date);
+            let startDate, endDate;
+            let date = new Date();
+            if ( payload === '1'){
+                // 小时维度
+                startDate = endDate = moment(date);
             }
-            return { ...state, timeType:payload, startDate:start,  endDate:end };
+            if ( payload === '2'){
+                // 日维度
+                startDate = moment(date).startOf('month');
+                endDate = moment(date).endOf('month');
+            }
+            if ( payload === '3'){
+                // 月维度
+                startDate = moment(date).startOf('year');
+                endDate = moment(date).endOf('year');
+            }
+            if ( payload === '4' ){
+                // 年维度
+                startDate = moment(date).subtract(1,'years').startOf('year');
+                endDate = moment(date);
+            }
+            if ( payload === '10' ){
+                // 周维度  ，调整周的起始日从周日为周一
+                startDate = moment(date).startOf('week').add(1, 'days');
+                endDate = moment(date).endOf('week').add(1, 'days');
+            }
+            return { ...state, timeType:payload, startDate, endDate };
         },
         setDate(state, { payload:{ startDate, endDate }}){
             return { ...state, startDate, endDate };
@@ -757,6 +801,9 @@ export default {
         },
         setAudioAllowed(state){
             return { ...state, audioAllowed:true };
+        },
+        getAlarmTypesResult(state, { payload:{ data }}){
+            return { ...state, alarmTypes:data };
         },
         clearUserInfo(state){
             localStorage.clear();

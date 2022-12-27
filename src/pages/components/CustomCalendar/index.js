@@ -10,15 +10,38 @@ let info = {
     'water':{ text:'水', unit:'m³', color:'#79e9ef', value:6485, quota:8000 },
     'gas':{ text:'气', unit:'m³', color:'#fecd63', value:6485, quota:8000 },
     'hot':{ text:'热', unit:'GJ', color:'#ae2aff', value:6485, quota:8000 },
-
+    'combust':{ text:'燃气', unit:'m³', color:'#79e9ef' },
+    'compressed':{ text:'压缩空气', unit:'m³', color:'#79e9ef'}
 }
-function CustomCalendar({ currentDate, onChangeDate, mode, theme }){
+// ['total','ele','water','gas','hot'].map((type,i)=>(
+//     <div key={type} style={{
+//         display:'inline-flex',
+//         alignItems:'center',
+//         margin:'6px 0',
+//         width: i === 0 ? '100%' : '50%'
+//     }}>
+//         <div style={{ marginRight:'1rem', borderRadius:'50%', border:`1px solid ${info[type].color}`, padding:'2px 6px', fontSize:'0.8rem', color:info[type].color }}>{ info[type].text }</div>
+//         <div>
+//             <span style={{ fontSize:'1.2rem', fontWeight:'bold' }}>{ info[type].value }</span>
+//             <span style={{ margin:'0 4px'}}>/</span>
+//             <span className={style['unit']}>{ info[type].quota }</span>
+//             <span className={style['unit']}>元</span>
+//         </div>
+//     </div>
+// ))
+function CustomCalendar({ currentDate, data, onChangeDate, mode, energyInfo, onDispatch, theme }){
     let currentDateStr = currentDate.format('YYYY-MM-DD').split('-');
+    let today = new Date();
     function dateCellRender(value){
         let itemDateStr = value.format('YYYY-MM-DD').split('-');
         let isInMonth = itemDateStr[1] === currentDateStr[1] ? true : false ;
+        let lessToday = new Date(value.format('YYYY-MM-DD')).getTime() <= today.getTime() ? true : false;
+        let cost = data.cost && isInMonth ? data.cost[itemDateStr[2] - 1] : 0;
+        let quota = data.quota && isInMonth ? data.quota[itemDateStr[2] - 1] : 0;
+        let energy = data.energy && isInMonth ? data.energy[itemDateStr[2] - 1] : 0;
+        let isRed = quota && cost >= quota ? true : false;
         return (
-            <Tooltip overlayInnerStyle={{ overflow:'hidden', backgroundColor:'#47475b', border:'1px solid #6c6c7c', borderRadius:'6px' }} title={(
+            <Tooltip visible={false} overlayInnerStyle={{ overflow:'hidden', backgroundColor:'#47475b', border:'1px solid #6c6c7c', borderRadius:'6px' }} title={(
                 <div style={{ padding:'0 1rem' }}>
                     <div style={{ textAlign:'center', fontSize:'0.8rem' }}>{ value.format('YYYY-MM-DD') }</div>
                     {
@@ -51,13 +74,31 @@ function CustomCalendar({ currentDate, onChangeDate, mode, theme }){
                     }
                 </div>
             )} trigger='click' destroyTooltipOnHide={true}>
-                <div className={style['content-wrapper'] + ' ' + ( isInMonth ? style['in-month'] : '' ) }>
+                <div className={style['content-wrapper'] + ' ' + ( isRed ? style['in-warning'] : isInMonth ? style['in-month'] : '' ) }>
                     <div className={style['content']}>
                         <div className={style['content-head']}>{ value.date() } </div>             
-                        <div className={style['content-body']}>
-                            <span className={style['text']}>{ isInMonth ? 26493 : '' }</span>
-                            <span className={style['unit']} style={{ marginLeft:'4px' }}>{ isInMonth ? '元' : ''}</span>
-                        </div>
+                        {
+                            isInMonth 
+                            ?
+                            <div className={style['content-body']} style={{ opacity:lessToday ? '1' : '0' }}>
+                                <div>
+                                    {/* <span style={{ fontSize:'0.8rem', color:theme === 'dark' ? '#fff' : '#000' }}>{ info[energyInfo.type_code].text + '成本 :' }</span> */}
+                                    <span className={style['text']} style={{ marginLeft:'4px' }}>{ lessToday ? Math.round(cost): '-- --'}</span>
+                                    <span className={style['unit']}>{ ' / ' + Math.round(quota) }</span>
+                                    <span className={style['unit']}>{ lessToday ? '元' : ''}</span>
+                                    <span style={{ position:'absolute', width:'14px', height:'18px', borderRadius:'4px', background:'#0c9dff', left:'-10px'  }}></span>
+                                </div>
+                                <div>
+                                    {/* <span style={{ fontSize:'0.8rem', color:theme === 'dark' ? '#fff' : '#000' }}>{ info[energyInfo.type_code].text + '能耗 :' } </span> */}
+                                    <span className={style['text']} style={{ marginLeft:'4px', fontWeight:lessToday ? 'bold' : 'normal' }}>{ lessToday ? Math.round(energy) : '-- --'}</span>
+                                    <span className={style['unit']}>{ lessToday ? energyInfo.unit : ''}</span>
+                                    <span style={{ position:'absolute', width:'14px', height:'18px', borderRadius:'4px', background:'#79e9ef', left:'-10px'  }}></span>
+                                </div>
+                            </div>
+                            :
+                            null
+                        }
+                        
 
                     </div>
                 </div>
@@ -65,29 +106,28 @@ function CustomCalendar({ currentDate, onChangeDate, mode, theme }){
         )
     };
     function monthCellRender(value){
+        let itemDateArr = value.format('YYYY-MM-DD').split('-');
+        let lessMonth = new Date(value.format('YYYY-MM-DD')).getTime() <= new Date().getTime() ? true : false; 
+        let cost = data.cost ? data.cost[itemDateArr[1] - 1] : 0;
+        let energy = data.energy ? data.energy[itemDateArr[1] - 1] : 0;
+        let quota = data.quota ? data.quota[itemDateArr[1] - 1] : 0;
+    
         return (
             <div className={style['content-wrapper'] + ' ' + style['in-month']}>
-                <div className={style['content']}>
+                <div className={style['content']} style={{ justifyContent:'space-around', padding:'1rem' }}>
                     <div className={style['content-head']}>{ ( value.month() + 1) + '月' }</div>
-                    <div className={style['content-body']}>
-                        {
-                            ['total','ele','water','gas','hot'].map((type,i)=>(
-                                <div key={type} style={{
-                                    display:'inline-flex',
-                                    alignItems:'center',
-                                    margin:'6px 0',
-                                    width: i === 0 ? '100%' : '50%'
-                                }}>
-                                    <div style={{ marginRight:'1rem', borderRadius:'50%', border:`1px solid ${info[type].color}`, padding:'2px 6px', fontSize:'0.8rem', color:info[type].color }}>{ info[type].text }</div>
-                                    <div>
-                                        <span style={{ fontSize:'1.2rem', fontWeight:'bold' }}>{ info[type].value }</span>
-                                        <span style={{ margin:'0 4px'}}>/</span>
-                                        <span className={style['unit']}>{ info[type].quota }</span>
-                                        <span className={style['unit']}>元</span>
-                                    </div>
-                                </div>
-                            ))
-                        }
+                    <div className={style['content-body']} style={{ opacity:lessMonth ? '1' : '0' }}>
+                        <div style={{ marginBottom:'1rem' }}>
+                            <div style={{ marginRight:'1rem', borderRadius:'12px', border:`1px solid ${info[energyInfo.type_code].color}`, padding:'4px 1rem', fontSize:'0.8rem', color:info[energyInfo.type_code].color }}>{ info[energyInfo.type_code].text + '成本 : ' }</div>
+                            <div className={style['text']} style={{ marginLeft:'4px' }}>{ Math.round(cost) }</div>
+                            <span className={style['unit']}>{ ' / 定额 : ' + quota }</span>
+                            <span className={style['unit']}>元</span>
+                        </div>  
+                        <div>
+                            <div style={{ marginRight:'1rem', borderRadius:'12px', border:`1px solid ${info[energyInfo.type_code].color}`, padding:'4px 1rem', fontSize:'0.8rem', color:info[energyInfo.type_code].color }}>{ info[energyInfo.type_code].text + '能耗 : ' }</div>
+                            <div className={style['text']} style={{ marginLeft:'4px' }}>{ Math.round(energy) }</div>
+                            <span className={style['unit']}>{ energyInfo.unit }</span>
+                        </div>  
                     </div>
                 </div>
             </div>
@@ -103,16 +143,26 @@ function CustomCalendar({ currentDate, onChangeDate, mode, theme }){
                 headerRender={()=>null}
                 dateFullCellRender={dateCellRender}
                 monthFullCellRender={monthCellRender}
-                onSelect={value=>{
-                    if ( onChangeDate && typeof onChangeDate === 'function' ) onChangeDate(value);
-                }}
+                onSelect={
+                   
+                    value=>{
+                        if ( onChangeDate && typeof onChangeDate === 'function' ) {
+                            let selectedDate = value.format('YYYY-MM-DD').split('-');
+                            if ( mode === 'month' && selectedDate[1] !== currentDateStr[1] ) {
+                                onChangeDate(value);
+                                onDispatch({ type:'baseCost/fetchCalendar', payload:{ mode, year:selectedDate[0], month:selectedDate[1] }});
+                            }                        
+                        }
+                    }
+                   
+                }
             />
         </div>
     )
 }
 
 function areEqual(prevProps, nextProps){
-    if ( prevProps.currentDate !== nextProps.currentDate || prevProps.theme !== nextProps.theme || prevProps.mode !== nextProps.mode ){
+    if ( prevProps.data !== nextProps.data || prevProps.theme !== nextProps.theme ){
         return false;
     } else {
         return true;

@@ -1,4 +1,5 @@
 import { getCarbonIndex, getCarbonTrend, getCarbonAttrInfo, getCarbonRegionRank, getCarbonEff } from '../../services/coalManagerService';
+import { getTypeRule, setTypeRule } from '../../services/userService';
 import moment from 'moment';
 moment.suppressDeprecationWarnings = true;
 let date = new Date();
@@ -20,7 +21,8 @@ const initialState = {
     regionRank:[],
     effLoading:true,
     carbonEff:{},
-    activeKey:'2'
+    activeKey:'2',
+    typeRule:{}
 };
 
 export default {
@@ -37,6 +39,7 @@ export default {
             try{
                 let { user:{ company_id, timeType, startDate, endDate }} = yield select();
                 yield put({ type:'toggleCarbonLoading'});
+                timeType = timeType === '10' ? '2' : timeType;
                 let { data } = yield call(getCarbonIndex, { company_id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')})
                 if ( data && data.code === '0'){
                     yield put({ type:'getCarbon', payload:{ data:data.data }});
@@ -67,6 +70,7 @@ export default {
         },
         *fetchCarbonTrend(action, { put, call, select }){
             let { user:{ company_id, startDate, endDate, timeType }, fields:{ currentAttr }} = yield select();
+            timeType = timeType === '10' ? '2' : timeType;
             let { data } = yield call(getCarbonTrend, { company_id, attr_id:currentAttr.key, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')});
             if ( data && data.code === '0'){
                 yield put({ type:'getCarbonTrend', payload:{ data:data.data }})
@@ -74,6 +78,8 @@ export default {
         },
         *fetchCarbonRegionRank(action, { put, call, select }){
             let { user:{ company_id, startDate, endDate, timeType }} = yield select();
+            timeType = timeType === '10' ? '2' : timeType;
+            yield put({ type:'toggleCarbonLoading'});
             let { data } = yield call(getCarbonRegionRank, { company_id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
             if ( data && data.code === '0'){
                 yield put({ type:'getRegionRank', payload:{ data:data.data }});
@@ -81,20 +87,53 @@ export default {
         },
         // 能效竞争力
         *initCarbonEff(action, { put, call, select }){
-            let { type } = action.payload || {};
+            let { type, warning_type } = action.payload || {};
             yield put.resolve({ type:'fields/init'});
             yield put({ type:'fetchCarbonEff', payload:{ type }});
+            yield put({ type:'fetchTypeRule' , payload:{ warning_type }});
         },
         *fetchCarbonEff(action, { call, select, put }){
             let { type } = action.payload || {};
             type = type || '2';
             let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }} = yield select();
+            timeType = timeType === '10' ? '2' : timeType;
             yield put({ type:'toggleEffLoading'});
             let { data } = yield call(getCarbonEff, { company_id, type_id:type, attr_id:currentAttr.key, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
             if ( data && data.code === '0'){
                 yield put({ type:'getCarbonEff', payload:{ data:data.data }});
             }
-        }
+        },
+        *fetchTypeRule(action, { call, put, select }) {
+            let { user:{ company_id, timeType }, fields:{ currentAttr }} = yield select();
+            let { warning_type } = action.payload;
+            timeType = timeType === '10' ? '2' : timeType;
+            let { data } = yield call(getTypeRule, { company_id, attr_id:currentAttr.key, type_code:warning_type, time_type:timeType });
+            if ( data && data.code === '0'){
+                yield put({ type:'getTypeRuleResult', payload:{ data:data.data }});
+            }
+        },
+        *setRule(action, { call, put, select }){
+            let { user:{ company_id, timeType }, fields:{ currentAttr }, carbon:{ typeRule }} = yield select();
+            let { warning_min, warning_max, resolve, reject, warning_type } = action.payload || {};
+            timeType = timeType === '10' ? '2' : timeType;
+            let object = { company_id, attr_id:currentAttr.key, type_code:warning_type, time_type:timeType };
+            if ( typeRule && typeRule.rule_id ) {
+                object.rule_id = typeRule.rule_id;
+            }
+            if ( warning_min ) {
+                object.warning_min = warning_min;
+            }
+            if ( warning_max ){
+                object.warning_max = warning_max;
+            }
+            let { data } = yield call(setTypeRule, object);
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve();
+                yield put({ type:'fetchTypeRule', payload:{ warning_type }});
+            } else {
+                if ( reject ) reject(data.msg);
+            }
+        },
     },
     reducers:{
         toggleCarbonLoading(state, {}){
@@ -115,13 +154,16 @@ export default {
         getCarbonTrend(state, { payload:{ data }}){
             return { ...state, carbonTrend:data };
         },
+        getTypeRuleResult(state, { payload:{ data }}){
+            return { ...state, typeRule:data };
+        },
         getRegionRank(state, { payload:{ data }}){
-            return { ...state, regionRank:data };
+            return { ...state, regionRank:data, carbonLoading:false };
         },
         getAttrInfoList(state, { payload:{ data }}){
             let temp = state.trendInfoList.concat().map(item=>{
                 let obj = { ...item };
-                obj.value = item.key === 'day' ? data.dayCarbon : item.key === 'month' ? data.monthCarbon : data.yearCarbon;
+                obj.value = item.key === 'day' ? (+data.dayCarbon).toFixed(1) : item.key === 'month' ? (+data.monthCarbon).toFixed(1) : (+data.yearCarbon).toFixed(1);
                 obj.sameRate = item.key === 'day' ? data.sameDayRatio : item.key === 'month' ? data.sameMonthRatio : data.sameYearRatio;
                 obj.adjoinRate = item.key === 'day' ? data.lastDayRatio : item.key === 'month' ? data.lastMonthRatio : data.lastYearRatio;
                 return obj;

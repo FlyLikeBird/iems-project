@@ -75,7 +75,7 @@ function AlarmList({ dispatch, data, userInfo, currentPage, total, onProgress, i
             }
         },
         { title:'项目名称', dataIndex:'company_name', ellipsis:true, render:value=>(<span style={{ color:'rgba(255, 255, 255, 0.6)'}}>{ value }</span>) },
-        { title:'项目类型', key:'project', render:()=>(<span style={{ color:'#23a3e6' }}>IEMS能源管理</span>)},
+        // { title:'项目类型', key:'project', render:()=>(<span style={{ color:'#23a3e6' }}>IEMS能源管理</span>)},
         { title:'位置', dataIndex:'position_name', ellipsis:true },
         {
             title:'告警类型',

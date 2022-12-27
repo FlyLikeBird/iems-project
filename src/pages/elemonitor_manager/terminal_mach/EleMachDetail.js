@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Modal, Spin, Switch, DatePicker } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import style from '../EleMonitor.css';
+import IndexStyle from '@/pages/IndexPage.css';
 import MachLineChart from './MachLineChart';
 import moment from 'moment';
 import zhCN from 'antd/es/date-picker/locale/zh_CN';
@@ -26,12 +27,22 @@ const infoStyle = {
 }
 function MachDetail({ dispatch, visible, currentMach, machLoading, data, theme }){
     const [referDate, setReferDate] = useState(moment(new Date()));
+    const [modalVisible, setModalVisible] = useState(false);
     const inputRef = useRef();
     useEffect(()=>{
         dispatch({ type:'terminalMach/fetchMachDetail'});
     },[currentMach]);
     return (
         <div style={{ height:'100%'}}>
+            <Modal 
+                visible={modalVisible}
+                onCancel={()=>setModalVisible(false)}
+                okText='确定'
+                cancelText='取消'
+                onOk={()=>setModalVisible(false)}
+            >
+                <span>敏感操作请于管理员联系</span>
+            </Modal>
             <div className={style['inline-container']}>
                 <div className={style['inline-item-wrapper']} style={wrapperStyle}>
                     <div className={style['inline-item']} style={{ position:'relative' }}>
@@ -77,8 +88,12 @@ function MachDetail({ dispatch, visible, currentMach, machLoading, data, theme }
                                 </div>
                                 <div className={style['text-container']}>
                                     <span>合闸状态:</span>
+                                    
                                     <span className={style['text']} style={{ color:'#ffa63f' }}>
-                                        <Switch defaultChecked  />
+                                        <span className={IndexStyle['tag-on']} style={{ background:'green' }}>合闸</span>
+                                        <Switch defaultChecked checked={true}  onChange={()=>{
+                                            setModalVisible(true);
+                                        }} />
                                     </span>
                                 </div>
                             </div>

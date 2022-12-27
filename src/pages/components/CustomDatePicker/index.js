@@ -9,11 +9,15 @@ import moment from 'moment';
 const { RangePicker } = DatePicker;
 
 
-function CustomDatePicker({ dispatch, onDispatch, size, user, optionStyle, mode, noToggle, noDay, noMonth }){
+function CustomDatePicker({ dispatch, onDispatch, size, user, optionStyle, mode, noToggle, noDay, noWeek, noMonth }){
     const { theme, timeType ,startDate, endDate } = user;
     const inputRef = useRef();
     return (
-        <div className={ mode === 'dark' || theme === 'dark' ? style['container'] + ' ' + style['dark'] : style['container']} style={optionStyle}>
+        <div className={ 
+            mode ? mode === 'dark' ? style['container'] + ' ' + style['dark'] : style['container'] :
+            theme === 'dark' ? style['container'] + ' ' + style['dark'] : style['container'] }
+            style={optionStyle}
+        >
             {
                 noToggle 
                 ?
@@ -37,7 +41,15 @@ function CustomDatePicker({ dispatch, onDispatch, size, user, optionStyle, mode,
                         :
                         <Radio.Button value='2'>日</Radio.Button>
                     }
+                    {/* {
+                        noWeek 
+                        ?
+                        null
+                        :
+                        <Radio.Button value='10'>周</Radio.Button>
+                    } */}
                     <Radio.Button value='3'>月</Radio.Button>
+                    <Radio.Button value='4'>年</Radio.Button>
                 </Radio.Group>
             }
             
@@ -51,11 +63,19 @@ function CustomDatePicker({ dispatch, onDispatch, size, user, optionStyle, mode,
                     if ( timeType === '2'){
                         start = moment(temp).subtract(1,'months').startOf('month');
                         end = moment(temp).subtract(1,'months').endOf('month');
-                    } else if ( timeType === '3'){
+                    } 
+                    if ( timeType === '3'){
                         start = moment(temp).subtract(1,'years').startOf('year');
                         end = moment(temp).subtract(1,'years').endOf('year');
                     }
-                    
+                    if ( timeType === '4'){
+                        start = moment(temp).subtract(1,'years').startOf('year');
+                        end = moment(temp);
+                    }
+                    if ( timeType === '10' ) {
+                        start = moment(temp).startOf('week').subtract(1,'weeks').add(1, 'days');
+                        end = moment(temp).endOf('week').subtract(1, 'weeks').add(1, 'days');
+                    }
                     dispatch({ type:'user/setDate', payload:{ startDate:start, endDate:end }});
                     if(onDispatch && typeof onDispatch === 'function') onDispatch();
                 }}><LeftOutlined /></div>
@@ -68,8 +88,28 @@ function CustomDatePicker({ dispatch, onDispatch, size, user, optionStyle, mode,
                         if ( inputRef.current && inputRef.current.blur ) inputRef.current.blur();
                     }} />
                     :
-                    <RangePicker ref={inputRef} size={size || 'small'} locale={zhCN} allowClear={false} className={style['custom-date-picker']} value={[startDate, endDate]} onChange={arr=>{
-                        dispatch({ type:'user/setDate', payload:{ startDate:arr[0], endDate:arr[1] }});
+                    timeType === '10' 
+                    ?
+                    <DatePicker ref={inputRef} size={ size || 'small'} locale={zhCN} picker='week' allowClear={false} className={style['custom-date-picker']} value={startDate} onChange={value=>{
+                        let start = moment(value.format('YYYY-MM-DD')).startOf('week').add(1, 'days');
+                        let end = moment(value.format('YYYY-MM-DD')).endOf('week').add(1, 'days');
+                        dispatch({ type:'user/setDate', payload:{ startDate:start, endDate:end }});
+                        if(onDispatch && typeof onDispatch === 'function') onDispatch();
+                        if ( inputRef.current && inputRef.current.blur ) inputRef.current.blur();
+                    }} />
+                    :
+                    <RangePicker ref={inputRef} size={size || 'small'} locale={zhCN} picker={ timeType === '3' ? 'month' : timeType === '4' ? 'year' : 'date' } allowClear={false} className={style['custom-date-picker']} value={[startDate, endDate]} onChange={arr=>{
+                        let start = arr[0];
+                        let end = arr[1];
+                        if ( timeType === '3' ) {
+                            start = arr[0].startOf('month');
+                            end = arr[1].endOf('month');
+                        }
+                        if ( timeType === '4'){
+                            start = arr[0].startOf('year');
+                            end = arr[1].endOf('year');
+                        }
+                        dispatch({ type:'user/setDate', payload:{ startDate:start, endDate:end }});
                         if(onDispatch && typeof onDispatch === 'function') onDispatch();
                         if ( inputRef.current && inputRef.current.blur ) inputRef.current.blur();
                     }}/>
@@ -84,9 +124,18 @@ function CustomDatePicker({ dispatch, onDispatch, size, user, optionStyle, mode,
                     if ( timeType === '2'){
                         start = moment(temp).add(1,'months').startOf('month');
                         end = moment(temp).add(1,'months').endOf('month');
-                    } else if ( timeType === '3'){
+                    } 
+                    if ( timeType === '3'){
                         start = moment(temp).add(1,'years').startOf('year');
                         end = moment(temp).add(1,'years').endOf('year');
+                    }
+                    if ( timeType === '4'){
+                        start = moment(new Date(endDate.format('YYYY-MM-DD')));
+                        end = moment(new Date(endDate.format('YYYY-MM-DD'))).add(1, 'years');
+                    }
+                    if ( timeType === '10' ) {
+                        start = moment(temp).startOf('week').add(1,'weeks').add(1, 'days');
+                        end = moment(temp).endOf('week').add(1, 'weeks').add(1, 'days');
                     }
                     dispatch({ type:'user/setDate', payload:{ startDate:start, endDate:end }});
                     if(onDispatch && typeof onDispatch === 'function') onDispatch();

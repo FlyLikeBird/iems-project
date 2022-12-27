@@ -147,7 +147,7 @@ function AlarmForm({ data, executeType, recordHistory, recordProgress, onDispatc
                         :
                         <div className={style['item-wrapper']} onClick={()=>{
                             setActionInfo({ visible:true, actionType:'2'})
-    
+                            
                         }}><div className={style['item']} style={{ backgroundColor:'#4287f8'}}>添加进度</div></div>
                     }
                     {

@@ -35,53 +35,38 @@ export default {
             yield put.resolve({ type:'fields/init'});
             yield put.resolve({ type:'fetchEleQualityIndex'});
         },
-        *fetchEleQualityIndex(action, { put, select, call }){
-            yield put.resolve({ type:'cancelEleQualityIndex'});
-            yield put.resolve({ type:'cancelable', task:fetchEleQualityIndexCancelable, action:'cancelEleQualityIndex'});
-            function* fetchEleQualityIndexCancelable(params){
-                let { user:{ company_id, startDate, endDate }, fields:{ currentAttr }} = yield select();
-                yield put({ type:'toggleLoading'});
-                let { data } = yield call(getEleQualityIndex, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')});
-                if ( data && data.code === '0'){
-                    yield put({ type:'getEleQualityIndex', payload:{ data:data.data }});              
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
-                }
-            }
+        *fetchEleQualityIndex(action, { put, select, call }){  
+            let { user:{ company_id, startDate, endDate }, fields:{ currentAttr }} = yield select();
+            yield put({ type:'toggleLoading'});
+            let { data } = yield call(getEleQualityIndex, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')});
+            if ( data && data.code === '0'){
+                yield put({ type:'getEleQualityIndex', payload:{ data:data.data }});              
+            }     
         },
         *initEleBalance(action, { put }){
             yield put.resolve({ type:'fields/init'});
             yield put.resolve({ type:'fetchEleBalance'});
         },
-        *fetchEleBalance(action, { select, call, put }){
-            yield put.resolve({ type:'cancelEleBalance'});
-            yield put.resolve({ type:'cancelable', task:fetchEleBalanceCancelable, action:'cancelEleBalance' });
-            function* fetchEleBalanceCancelable(params){
-                let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }} = yield select();
-                let { data } = yield call(getEleBalance, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType });
-                if ( data && data.code === '0'){
-                    yield put({ type:'getEleBalance', payload:{ data:data.data }});
-                } else if ( data && data.code === '1001' ){
-                    yield put({ type:'user/loginOut'});
-                }
-            }
+        *fetchEleBalance(action, { select, call, put }){   
+            let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }} = yield select();
+            timeType = timeType === '10' ? '2' : timeType;
+            yield put({ type:'toggleLoading'});
+            let { data } = yield call(getEleBalance, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType });
+            if ( data && data.code === '0'){
+                yield put({ type:'getEleBalance', payload:{ data:data.data }});
+            }      
         },
         *initEleHarmonic(action, { put }){
             yield put.resolve({ type:'fields/init'});
             yield put.resolve({ type:'fetchEleHarmonic'});
         },
-        *fetchEleHarmonic(action, { select, call, put}){
-            yield put.resolve({ type:'cancelEleHarmonic'});
-            yield put.resolve({ type:'cancelable', task:fetchEleHarmonicCancelable, action:'cancelEleHarmonic'});
-            function* fetchEleHarmonicCancelable(params){
-                let { user:{ company_id, startDate, endDate }, fields:{ currentAttr}} = yield select();
-                let { data } = yield call(getEleHarmonic, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')});
-                if ( data && data.code === '0'){
-                    yield put({ type:'getEleHarmonic', payload:{ data:data.data }});
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
-                }  
-            }
+        *fetchEleHarmonic(action, { select, call, put}){  
+            let { user:{ company_id, startDate, endDate }, fields:{ currentAttr}} = yield select();
+            yield put({ type:'toggleLoading'});
+            let { data } = yield call(getEleHarmonic, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')});
+            if ( data && data.code === '0'){
+                yield put({ type:'getEleHarmonic', payload:{ data:data.data }});
+            }        
         }
     },
     reducers:{
@@ -133,13 +118,13 @@ export default {
             return { ...state, eleIndex:obj, isLoading:false };
         },
         getEleBalance(state, { payload :{ data }}){
-            return { ...state, eleBalance:data };  
+            return { ...state, eleBalance:data, isLoading:false };  
         },
         getEleHarmonic(state, { payload:{ data }}){
             // console.log(data);
             data.ele = formatData(data.ele.values);
             data.volt = formatData(data.volt.values);
-            return { ...state, eleHarmonic:data };
+            return { ...state, eleHarmonic:data, isLoading:false };
         },
         reset(){
             return initialState;

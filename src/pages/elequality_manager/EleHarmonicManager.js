@@ -4,9 +4,8 @@ import { Card, Spin, Tree, Tabs, Skeleton, DatePicker, Radio } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
+import Loading from '@/pages/components/Loading';
 import style from '../IndexPage.css';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
-import moment from 'moment';
 import HarmonicBarChart from './components/HarmonicBarChart';
 
 const { TabPane } = Tabs;
@@ -16,7 +15,7 @@ function EleHarmonicManager({ dispatch, fields, eleQuality, user }){
     const inputRef = useRef();
     const { timeType, startDate, endDate, theme } = user;
     const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
-    const { eleHarmonic } = eleQuality;
+    const { eleHarmonic, isLoading } = eleQuality;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     useEffect(()=>{
@@ -74,7 +73,14 @@ function EleHarmonicManager({ dispatch, fields, eleQuality, user }){
     const content = (
         Object.keys(eleHarmonic).length 
         ?
-        <div>
+        <div style={{ position:'relative' }}>
+            {
+                isLoading 
+                ?
+                <Loading />
+                :
+                null
+            }
             <div style={{ height:'40px'}}>
                 <CustomDatePicker onDispatch={()=>{
                     dispatch({ type:'eleQuality/fetchEleHarmonic'});

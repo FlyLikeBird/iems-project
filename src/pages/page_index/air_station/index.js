@@ -3,22 +3,25 @@ import { connect } from 'dva';
 import { Tooltip, Button } from 'antd';
 import { CaretUpOutlined, CaretDownOutlined } from '@ant-design/icons';
 import style from './AirStation.css';
-import ReactEcharts from 'echarts-for-react';
 import PageItem from './components/PageItem';
 
 let timer = null;
-function AirStation({ dispatch, airStation, location }){
+function AirStation({ dispatch, user, airStation, location }){
+    let { authorized } = user;
     let { data } = airStation;
     let { bg_img, record } = data;
     let [current, setCurrent] = useState(0);
     let [rect, setRect] = useState({ width:0, height:0});
     const containerRef = useRef();
-    console.log(location);
     useEffect(()=>{
-        dispatch({ type:'airStation/fetchAirStation', payload:{ userid:location.query.userid } });
-        timer = setInterval(function(){
-            dispatch({ type:'airStation/fetchAirStation' })
-        },1000 * 60);
+        if ( authorized ){
+            dispatch({ type:'airStation/fetchAirStation', payload:{ userid:location.query.userid } });
+            timer = setInterval(function(){
+                dispatch({ type:'airStation/fetchAirStation' })
+            },1000 * 60);
+        }
+    },[authorized]);
+    useEffect(()=>{
         handleResize();
         function handleResize(){
             setRect({ width:containerRef.current.offsetWidth, height:containerRef.current.offsetHeight });
@@ -29,8 +32,7 @@ function AirStation({ dispatch, airStation, location }){
             timer = null;
             window.removeEventListener('resize', handleResize);
         }
-    },[]);
-    
+    },[])
     function handleToggle(direc){
         let target = containerRef.current;
         if ( direc === 'up') {
@@ -77,4 +79,4 @@ function AirStation({ dispatch, airStation, location }){
     )
 }
 
-export default connect(({ airStation })=>({ airStation }))(AirStation);
+export default connect(({ user, airStation })=>({ user, airStation }))(AirStation);

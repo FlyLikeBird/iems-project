@@ -146,7 +146,7 @@ function HarmonicBarChart({ data, title, timeType, type, theme }) {
                     },    
                     xAxis: {
                         show: true,
-                        name: timeType === '1' ? '时' : timeType === '2' ?  '日' : '月',
+                        name: timeType === '1' ? '时' : timeType === '2' || timeType === '10' ?  '日' : timeType === '3' ? '月' : '年',
                         nameTextStyle:{ color:textColor },
                         axisLabel:{ color:textColor },
                         type:'category',

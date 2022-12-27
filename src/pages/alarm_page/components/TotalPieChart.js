@@ -36,8 +36,8 @@ function TotalPieChart({ data, theme }) {
                             left: '60%',
                             top:'middle',
                             orient:'vertical',
-                            itemWidth:10,
-                            itemHeight:10,
+                            itemWidth:8,
+                            itemHeight:8,
                             icon:'circle',
                             formatter:(name)=>{
                                 // let temp = findData(name, seriesData);

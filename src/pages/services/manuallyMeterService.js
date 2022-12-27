@@ -45,7 +45,8 @@ export function exportMeter(data={}){
     let token = apiToken();
     data.token = token;
     let str = translateObj(data);
-    let url = `http://192.168.20.33:8880/api/export/exportcheck?${str}`;
+    let config = window.g;
+    let url = `http://${config.apiHost}/api/export/exportcheck?${str}`;
     return url;
 }
 
@@ -53,7 +54,8 @@ export function importMeterTpl(data={}){
     let token = apiToken();
     data.token = token;
     let str = translateObj(data);
-    let url = `http://192.168.20.33:8880/api/export/createchecktpl?${str}`;
+    let config = window.g;
+    let url = `http://${config.apiHost}/api/export/createchecktpl?${str}`;
     return url;
 }
 

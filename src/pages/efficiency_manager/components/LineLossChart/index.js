@@ -1,52 +1,56 @@
 import React, { useState } from 'react';
 import ReactEcharts from 'echarts-for-react';
 
-function LineLossChart({ data }) {
+function LineLossChart({ data, theme }) {
     const seriesData = [];
-    console.log(data);
-    seriesData.push({
-        type:'bar',
-        name:'当前线损',
-        data:data.lose,
-        barGap:'0',
-        itemStyle:{
-            color:'#5187f5'
-        },
-        yAxisIndex:0
-    });
-    seriesData.push({
-        type:'bar',
-        name:'上月同期线损',
-        data:data.referLose,
-        itemStyle:{
-            color:'#93f363',
-        },
-        yAxisIndex:0
-    });
-    seriesData.push({
-        type:'line',
-        name:'当前线损率',
-        symbol:'none',
-        smooth:true,
-        data:data.loseRate,
-        yAxisIndex:1,
-        itemStyle:{
-            color:'#5187f5'
-        }
-    });
-    seriesData.push({
-        type:'line',
-        name:'上月同期线损率',
-        symbol:'none',
-        smooth:true,
-        data:data.referLoseRate,
-        yAxisIndex:1,
-        itemStyle:{
-            color:'#93f363',
-        }
-    });
+    let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
+    if ( data && data.date ) {
+        seriesData.push({
+            type:'bar',
+            name:'当前线损',
+            data:data.lose,
+            barGap:'0',
+            barWidth:20,
+            itemStyle:{
+                color:'#5187f5'
+            },
+            yAxisIndex:0
+        });
+        // seriesData.push({
+        //     type:'bar',
+        //     name:'同比线损',
+        //     data:data.referLose,
+        //     itemStyle:{
+        //         color:'#93f363',
+        //     },
+        //     yAxisIndex:0
+        // });
+        seriesData.push({
+            type:'line',
+            name:'当前线损率',
+            symbol:'none',
+            smooth:true,
+            data:data.loseRate,
+            yAxisIndex:1,
+            itemStyle:{
+                color:'#5187f5'
+            }
+        });
+        // seriesData.push({
+        //     type:'line',
+        //     name:'同比线损率',
+        //     symbol:'none',
+        //     smooth:true,
+        //     data:data.referLoseRate,
+        //     yAxisIndex:1,
+        //     itemStyle:{
+        //         color:'#93f363',
+        //     }
+        // });
+    }
+    
     return (  
-            <div style={{ width:'100%', height:'300px'}}>
+            <div style={{ width:'100%', height:'100%'}}>
                 <ReactEcharts
                     notMerge={true}
                     style={{width:'100%', height:'100%'}}
@@ -56,7 +60,8 @@ function LineLossChart({ data }) {
                         },
                         legend:{
                             top:20,
-                            data:['当前线损','上月同期线损','当前线损率','上月同期线损率']
+                            data:['当前线损', '当前线损率'],
+                            textStyle:{ color:textColor }
                         },
                         grid:{
                             left:40,
@@ -73,7 +78,7 @@ function LineLossChart({ data }) {
                         ],
                         xAxis: {
                             type:'category',
-                            data: data.date,
+                            data: data && data.date ? data.date : [],
                             silent: false,
                             splitLine: {
                                 show: false
@@ -81,6 +86,7 @@ function LineLossChart({ data }) {
                             axisTick:{ show:false },
                             axisLabel:{
                                 show:true,
+                                color:textColor,
                                 formatter:(value)=>{
                                     let strArr = value.split('-');
                                     return strArr[1] + '-' + strArr[2] + '\n' + strArr[0];
@@ -94,7 +100,8 @@ function LineLossChart({ data }) {
                             {
                                 name: '线损值(kwh)',
                                 nameTextStyle:{
-                                    align:'left'
+                                    align:'left',
+                                    color:textColor
                                     // fontSize:20,
                                     // fontWeigth:'bolder'
                                 },
@@ -102,21 +109,26 @@ function LineLossChart({ data }) {
                                 splitArea: {
                                     show: false
                                 },
+                                axisTick:{ show:false },
+                                axisLabel:{ color:textColor },
                                 splitLine:{
                                     show:true,
                                     lineStyle:{
-                                        color:'#f7f7f7'
+                                        color: theme === 'dark' ? '#22264b' : '#f0f0f0'
                                     }
                                 }  
                             },
                             {
                                 name: '线损率(%)',
                                 nameTextStyle:{
-                                    align:'right'
+                                    align:'right',
+                                    color:textColor
                                     // fontSize:20,
                                     // fontWeigth:'bolder'
                                 },
                                 type:'value',
+                                axisTick:{ show:false },
+                                axisLabel:{ color:textColor },
                                 splitArea: {
                                     show: false
                                 },
@@ -133,7 +145,7 @@ function LineLossChart({ data }) {
 }
 
 function areEqual(prevProps, nextProps){
-    if ( prevProps.data !== nextProps.data  ) {
+    if ( prevProps.data !== nextProps.data || prevProps.theme !== nextProps.theme ) {
         return false;
     } else {
         return true;

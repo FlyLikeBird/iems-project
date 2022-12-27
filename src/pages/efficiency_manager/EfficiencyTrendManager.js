@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { connect } from 'dva';
-import { DatePicker, Radio, Skeleton } from 'antd';
+import { DatePicker, Select, Radio, Skeleton } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import EnergyCostChart from '../energy_manager/components/EnergyCostChart';
 import RegionQuotaChart from '../energy_manager/components/RegionQuotaChart';
@@ -8,9 +8,12 @@ import zhCN from 'antd/es/date-picker/locale/zh_CN';
 import style from '../IndexPage.css';
 import moment from 'moment';
 
+const { Option } = Select;
+
 function EfficiencyTrendManager({ dispatch, user, fields, efficiency }){
-    let { energyList, energyInfo } = fields;
-    const { attrData, regionData, currentDate, isLoading, regionLoading } = efficiency;
+    let { allFields, energyList, energyInfo, currentField } = fields;
+    let { attrData, regionData, currentDate, isLoading, regionLoading } = efficiency;
+    let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let dateArr = currentDate.format('YYYY-MM-DD').split('-');
     useEffect(()=>{
         return ()=>{
@@ -20,11 +23,16 @@ function EfficiencyTrendManager({ dispatch, user, fields, efficiency }){
     return (
         <div className={style['page-container']} style={{ paddingBottom:'0' }}>
             <div style={{ height:'40px'}}>
-                <Radio.Group className={style['custom-radio']} value={energyInfo.type_id} onChange={e=>{
+                <Radio.Group className={style['custom-radio']} style={{ marginRight:'1rem' }} value={energyInfo.type_id} onChange={e=>{
                     let temp = energyList.filter(i=>i.type_id === e.target.value)[0];
                     dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
-                    dispatch({ type:'efficiency/fetchAttrRatio'});
-                    dispatch({ type:'efficiency/fetchRegionRatio'});
+                    new Promise((resolve, reject)=>{
+                        dispatch({ type:'fields/fetchField', payload:{ resolve, reject }})
+                    })
+                    .then(()=>{
+                        dispatch({ type:'efficiency/fetchAttrRatio'});
+                        dispatch({ type:'efficiency/fetchRegionRatio'});
+                    })         
                 }}>
                     {
                         energyList.map((item,index)=>(
@@ -32,7 +40,25 @@ function EfficiencyTrendManager({ dispatch, user, fields, efficiency }){
                         ))
                     }
                 </Radio.Group>
-                <div style={{ marginLeft:'20px', display:'inline-flex', alignItems:'center' }}>
+                {
+                    fieldList.length 
+                    ?
+                    <Select style={{ width:'120px', marginRight:'1rem' }} className={style['custom-select']} value={currentField.field_id} onChange={value=>{
+                        let current = fieldList.filter(i=>i.field_id === value )[0];
+                        dispatch({ type:'fields/toggleField', payload:{ field:current } });
+                        dispatch({ type:'efficiency/fetchAttrRatio'});
+                        dispatch({ type:'efficiency/fetchRegionRatio'});
+                    }}>
+                        {
+                            fieldList.map((item,index)=>(
+                                <Option key={item.field_id} value={item.field_id} >{ item.field_name }</Option>
+                            ))
+                        }
+                    </Select>
+                    :
+                    null
+                }
+                <div style={{ display:'inline-flex', alignItems:'center' }}>
                     <div className={style['date-picker-button-left']} onClick={()=>{
                         let temp = new Date(currentDate.format('YYYY-MM-DD'));
                         let date = moment(temp).subtract(1,'days');
@@ -56,6 +82,7 @@ function EfficiencyTrendManager({ dispatch, user, fields, efficiency }){
                     {
                         attrData.map((item,index)=>(
                                 <EnergyCostChart 
+                                    key={index}
                                     data={item} 
                                     energyInfo={energyInfo} 
                                     onSetDate={date=> { dispatch({type:'efficiency/setDate', payload:date }); dispatch({type:'efficiency/fetchAttrRatio'})}}
@@ -74,6 +101,7 @@ function EfficiencyTrendManager({ dispatch, user, fields, efficiency }){
                         onLink={action=>dispatch(action)} 
                         energyInfo={energyInfo} 
                         theme={user.theme}
+                        currentField={currentField}
                         isLoading={regionLoading}
                     />
                     <RegionQuotaChart 
@@ -82,6 +110,7 @@ function EfficiencyTrendManager({ dispatch, user, fields, efficiency }){
                         energyInfo={energyInfo} 
                         multi={true} 
                         theme={user.theme}
+                        currentField={currentField}
                         isLoading={regionLoading}
                     />
                 </div>

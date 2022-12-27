@@ -1,5 +1,11 @@
 import XLSX from 'xlsx';
-
+// 获取某个节点下所有子节点ID
+export function getNodeAllChildren(node, arr){
+    arr.push(node.key);
+    if ( node.children && node.children.length ) {
+        node.children.map(obj=>getNodeAllChildren(obj, arr))
+    }
+}
 export function isIncludes(parentArr, childrenArr) {
     // 当父数组为空时，认为不包含子数组的任何元素，返回false;
     if (!parentArr.length) return false;
@@ -33,14 +39,14 @@ export function findMaxAndMin(arr, decimal){
     }
     return {
         min:{
-            value: decimal ? (+minInit).toFixed(2) : Math.round(minInit),
+            value: decimal ? (+minInit).toFixed(1) : Math.round(minInit),
             index:minIndex
         },
         max:{
-            value: decimal ? (+maxInit).toFixed(2) : Math.round(maxInit),
+            value: decimal ? (+maxInit).toFixed(1) : Math.round(maxInit),
             index:maxIndex
         },
-        avg: decimal ? (sum/arr.length).toFixed(2) : Math.round(sum/arr.length)
+        avg: decimal ? (sum/arr.length).toFixed(1) : Math.round(sum/arr.length)
     }
 }
 

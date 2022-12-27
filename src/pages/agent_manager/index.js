@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect, useCallback, useMemo } from 'react';
 import { connect } from 'dva';
+import { Redirect } from 'dva/router';
 import { history } from 'umi';
 import { Spin, Skeleton, Button, Badge,  message } from 'antd';
 import { PieChartOutlined, AlertFilled, LeftOutlined, RightOutlined,  } from '@ant-design/icons';
@@ -66,11 +67,14 @@ const projectsMap = {
     aiot:'e',
     air_compressor:'acs',
     hy_switch_system:'safe',
-    hy_ele_room:'pr'
+    hy_ele_room:'pr',
+    hy_combust:'fab',
+    hy_smoke:'smk',
+    hy_environment:'env'
 };
 function AgentIndex({ dispatch, user, match, location, children }){
     const containerRef = useRef();
-    const { userInfo } = user;
+    const { userInfo, authorized } = user;
     let [sumAlarm, setSumAlarm] = useState(0);
     useEffect(()=>{
         setSumAlarm(getSum(userInfo.city));
@@ -89,7 +93,7 @@ function AgentIndex({ dispatch, user, match, location, children }){
             let temp = window.location.host.split('-');
             let prefix = temp.length === 2 ? temp[1].split('.')[0] : '';
             let linkPath = ( prefix ? projectsMap['energy_manage'] + '-' + prefix : projectsMap['energy_manage'] ) + '.' + window.g.host + '.com';
-            let url = `http://${linkPath}?pid=${Math.random()}&&userId=${userId}&&companyId=${companyId}`;
+            let url = `http://${linkPath}?pid=${Math.random()}&&userId=${userId}&&companyId=${companyId}&&mode=full`;
             if ( !subWindows[companyId] ) {
                 let sub = window.open(url);
                 subWindows[companyId] = sub;
@@ -132,66 +136,76 @@ function AgentIndex({ dispatch, user, match, location, children }){
         }
     },[])
     return (
-        <div className={style['container']} ref={containerRef}>
-            <div className={style['content-container']} style={{ 
-                top:'0', 
-                height:'100%',
-                backgroundImage:`url(${agentBg})`, 
-                backgroundRepeat:'no-repeat',
-                backgroundSize:'cover'
-            }}>
-                { children }
-                {
-                    match.url === '/agentMonitor' || match.url === '/agentMonitor/monitor'
-                    ?
-                    <div style={{ 
-                        position:'absolute', 
-                        top:0,
-                        left:0,
-                        width:'100%', 
-                        zIndex:'2'
-                        // top:-layout.head + 'px'
-                    }}>
-                        <img src={headerBg} style={{ width:'100%' }} />
-                        <div style={{ position:'absolute', left:'50%', top:'18px', fontSize:'2rem', letterSpacing:'0.8rem', transform:'translateX(-50%)' }}>AIOT物联感知系统监控中台</div>
-                        <div style={{ position:'absolute', right:'23%', top:'55px' }}>
-                            <Badge count={sumAlarm} overflowCount={999} style={{ cursor:'pointer' }} onClick={()=>{
-                                history.push('/agentMonitor/alarm');
-                            }}>
-                                <AlertFilled size='small' style={{ fontSize:'1.4rem', color:'#7dfffa' }} />
-                            </Badge>
-                        </div>
-                        <div style={{ position:'absolute', right:'20px', top:'0' }}>
-                            {/* <span style={buttonStyle} onClick={()=>{
-                                if ( containerRef.current ){
-                                    window.alert(containerRef.current.offsetWidth + '/' + containerRef.current.offsetHeight);
+        
+            authorized
+            ? 
+            userInfo.agent_id 
+            ?
+            <div className={style['container']} ref={containerRef}>
+                <div className={style['content-container']} style={{ 
+                    top:'0', 
+                    height:'100%',
+                    backgroundImage:`url(${agentBg})`, 
+                    backgroundRepeat:'no-repeat',
+                    backgroundSize:'cover'
+                }}>
+                    { children }
+                    {
+                        match.url === '/agentMonitor' || match.url === '/agentMonitor/monitor'
+                        ?
+                        <div style={{ 
+                            position:'absolute', 
+                            top:0,
+                            left:0,
+                            width:'100%', 
+                            zIndex:'2'
+                            // top:-layout.head + 'px'
+                        }}>
+                            <img src={headerBg} style={{ width:'100%' }} />
+                            <div style={{ position:'absolute', left:'50%', top:'18px', fontSize:'2rem', letterSpacing:'0.8rem', transform:'translateX(-50%)' }}>
+                                {/* AIOT物联感知系统监控中台 */}
+                                智慧管理中台
+                            </div>
+                            <div style={{ position:'absolute', right:'23%', top:'55px' }}>
+                                <Badge count={sumAlarm} overflowCount={999} style={{ cursor:'pointer' }} onClick={()=>{
+                                    history.push('/agentMonitor/alarm');
+                                }}>
+                                    <AlertFilled size='small' style={{ fontSize:'1.4rem', color:'#7dfffa' }} />
+                                </Badge>
+                            </div>
+                            <div style={{ position:'absolute', right:'20px', top:'0' }}>
+                                {/* <span style={buttonStyle} onClick={()=>{
+                                    if ( containerRef.current ){
+                                        window.alert(containerRef.current.offsetWidth + '/' + containerRef.current.offsetHeight);
+                                    }
+                                }}>分辨率</span>
+
+                                <span style={buttonStyle} onClick={()=>dispatch(routerRedux.push('/agentMonitor/test'))}>测试布局</span> */}
+                                {
+                                    location.pathname !== '/agentMonitor' 
+                                    ?
+                                    <span style={buttonStyle} onClick={()=>{
+                                        history.push('/agentMonitor');
+                                    }}>返回主页</span>
+                                    :
+                                    null
                                 }
-                            }}>分辨率</span>
-                            
-                            <span style={buttonStyle} onClick={()=>dispatch(routerRedux.push('/agentMonitor/test'))}>测试布局</span> */}
-                            {
-                                location.pathname !== '/agentMonitor' 
-                                ?
+                                <span style={buttonStyle} onClick={()=>history.push('/agentMonitor/entry')}>快速入口</span>
+                                {/* <span style={buttonStyle} onClick={()=>history.push('/agentMonitor/project')}>项目列表</span> */}
                                 <span style={buttonStyle} onClick={()=>{
-                                    history.push('/agentMonitor');
-                                }}>返回主页</span>
-                                :
-                                null
-                            }
-                            <span style={buttonStyle} onClick={()=>history.push('/agentMonitor/entry')}>快速入口</span>
-                            <span style={buttonStyle} onClick={()=>history.push('/agentMonitor/project')}>项目列表</span>
-                            <span style={buttonStyle} onClick={()=>{
-                                dispatch({type:'user/loginOut'});
-                            }}>退出登录</span>
+                                    dispatch({type:'user/loginOut'});
+                                }}>退出登录</span>
+                            </div>
                         </div>
-                    </div>
-                    :
-                    null
-                }
-                
-            </div> 
-               
-        </div>
+                        :
+                        null
+                    }
+                </div> 
+            </div>
+            :
+            <Redirect to='/energy' />
+            :
+            null   
     )
 }
 

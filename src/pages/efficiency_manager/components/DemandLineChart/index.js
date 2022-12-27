@@ -172,7 +172,7 @@ function DemandLineChart({ data, theme, forReport }) {
                     },
                     // 日当前需量和月申报需量差值过大，采用log模式
                     yAxis:{                           
-                        name: '用户需量(KW)',
+                        name: '(kw)',
                         nameTextStyle:{
                             color:textColor,
                             fontSize:14,

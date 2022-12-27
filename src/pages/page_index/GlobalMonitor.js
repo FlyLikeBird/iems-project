@@ -10,17 +10,21 @@ let timer = null;
 function GlobalMonitor({ dispatch, monitor, user }){
     const [template, toggleTemplate] = useState('2');
     const { monitorInfo } = monitor;
-    useEffect(()=>{
-        dispatch({ type:'monitor/init'});
-        timer = setInterval(()=>{
-            dispatch({ type:'monitor/init' });
-        }, 3 * 60 * 1000 )
+    const { authorized } = user;
+    useEffect(()=>{       
         return ()=>{
-            dispatch({type:'monitor/cancelAll'});
             clearInterval(timer);
             timer = null;
         }
     },[]);
+    useEffect(()=>{
+        if ( authorized ){
+            dispatch({ type:'monitor/init'});
+            timer = setInterval(()=>{
+                dispatch({ type:'monitor/init' });
+            }, 3 * 60 * 1000 )
+        }
+    },[authorized])
     return (       
         <div style={{ height:'100%', position:'relative', overflow:'hidden' }}>
             {/* 切换模板 */}
@@ -59,5 +63,5 @@ function GlobalMonitor({ dispatch, monitor, user }){
 
 // };
 
-export default connect(({ monitor })=>({ monitor }))(GlobalMonitor);
+export default connect(({ user, monitor })=>({ user, monitor }))(GlobalMonitor);
 

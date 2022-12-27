@@ -1,10 +1,24 @@
 import { getMachs, getAttrsTree, getDemandInfo, getDemandAnalyz, getDemandCost, getUselessInfo, getMachEfficiency, setMachPower, getLineLoss, getEnergyPhase } from '../../services/demandService';
 import { getMainLine } from '../../services/incomingLineService'
 import { getEnergyType } from '../../services/energyService';
+import { getTypeRule, setTypeRule } from '../../services/userService'
 
 import moment from 'moment';
 moment.suppressDeprecationWarnings = true;
 let date = new Date();
+
+const optionTypes = [
+    { title:'有功电量', key:'1', type:'' },
+    { title:'无功电量', key:'2', type:'' },
+    { title:'有功功率', key:'3', type:'power'},
+    { title:'无功功率', key:'4', type:'reactive_power'},
+    { title:'功率因素', key:'5', type:'power_factor' },
+    { title:'最大需量', key:'6', type:'' },
+    { title:'相电流', key:'7', type:'electric_current'},
+    { title:'相电压', key:'8', type:'phase_voltage'},
+    { title:'四象限无功电能', key:'9', type:'' },
+    { title:'线电压', key:'10', type:'line_voltage' }
+];
 
 const initialState = {
     energyInfo:{},
@@ -20,7 +34,7 @@ const initialState = {
     demandLoading:true,
     treeLoading:true,
     loaded:false,
-    referTime:moment().subtract(1,'days'),
+    referTime:moment(date).subtract(1,'days'),
     modalStartDate:moment(date),
     // 设备运行效率
     machEffInfo:{},
@@ -41,7 +55,9 @@ const initialState = {
     // （仅日周期时）时间格式类型(1:按小时分组；2：按30分钟分组；3：按15分钟分组；4：按5分钟分组；5：按1分钟分组)
     phaseDayTimeType:'1',
     // 参数类型(1：有功电量；2：无功电量；3：有功功率；4：无功功率；5：功率因素；6：最大需量；7：电流；8：电压：9：四象限无功电能)
-    phaseOptionType:'1',
+    optionTypes,
+    typeRule:{},
+    currentOption:optionTypes[0],
     phaseInfo:{},
     phaseValueList:[],
     phaseLoading:true
@@ -90,45 +106,26 @@ export default {
             yield put.resolve({ type:'fields/init'});
             yield put.resolve({ type:'fetchDemand'});
         },
-        *fetchDemand(action, { call, put, select }){
-            yield put.resolve({ type:'cancelDemand'});
-            yield put.resolve({ type:'cancelable', task:fetchDemandCancelable, action:'cancelDemand'});
-            function* fetchDemandCancelable(){
-                let { user:{ company_id }, demand:{ referTime }, fields:{ currentAttr }} = yield select();
-                let refer_time = referTime.format('YYYY-MM-DD');
-                let { data } = yield call(getDemandInfo, { company_id, attr_id:currentAttr.key, refer_time });
-                if ( data && data.code === '0'){
-                    yield put({type:'getDemand', payload:{ data:data.data }});
-                } else if ( data && data.code === '1001' ) {
-                    yield put({ type:'user/loginOut'});
-                }          
-            }
-            
+        *fetchDemand(action, { call, put, select }){      
+            let { user:{ company_id }, demand:{ referTime }, fields:{ currentAttr }} = yield select();
+            let refer_time = referTime.format('YYYY-MM-DD');
+            let { data } = yield call(getDemandInfo, { company_id, attr_id:currentAttr.key, refer_time });
+            if ( data && data.code === '0'){
+                yield put({type:'getDemand', payload:{ data:data.data }});
+            }                        
         },
-        *fetchAnalyz(action, { call, put, select }){
-            yield put.resolve({ type:'cancelAnalyz'});
-            yield put.resolve({ type:'cancelable', task:fetchAnalyzCancelable, action:'cancelAnalyz'});
-            function* fetchAnalyzCancelable(){
-                try {
-                    let { user:{ company_id, startDate, endDate }, analyze:{ modalStartDate, modalEndDate }, fields:{ currentAttr }} = yield select();
-                    // 节能策略传的时间参数
-                    let finalAttr = currentAttr;
-                    if ( action.payload ) {
-                        startDate = modalStartDate;
-                        endDate = modalEndDate;
-                        finalAttr = action.payload;
-                    }
-                    yield put({ type:'toggleDemandLoading'});
-                    let { data } = yield call(getDemandAnalyz, { company_id, attr_id:finalAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') });
-                    if ( data && data.code === '0'){
-                        yield put({type:'getAnalyz', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001') {
-                        yield put({ type:'user/loginOut'});
-                    }
-                } catch(err){
-                    console.log(err);
-                }
-            }  
+        *fetchAnalyz(action, { call, put, select }){      
+            try {
+                let { user:{ company_id, startDate, endDate }, fields:{ currentAttr }} = yield select();
+                // 节能策略传的点击某个属性ID
+                yield put({ type:'toggleDemandLoading'});
+                let { data } = yield call(getDemandAnalyz, { company_id, attr_id:action.payload ? action.payload : currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') });
+                if ( data && data.code === '0'){
+                    yield put({type:'getAnalyz', payload:{ data:data.data }});
+                } 
+            } catch(err){
+                console.log(err);
+            }        
         },
         *resetUseless(action, { put }){
             yield put.resolve({ type:'cancelUseless'});
@@ -138,31 +135,18 @@ export default {
             yield put.resolve({ type:'fields/init' });
             yield put.resolve({ type:'fetchUseless'});
         },
-        *fetchUseless(action, { call, select, put}){
-            yield put.resolve({ type:'cancelUseless'});
-            yield put.resolve({ type:'cancelable', task:fetchUselessCancelable, action:'cancelUseless'});
-            function* fetchUselessCancelable(){
-                try {
-                    let { user:{ company_id, startDate, endDate }, analyze:{ modalStartDate, modalEndDate }, fields:{ currentAttr }} = yield select();
-                    // 节能策略传的时间参数
-                    let finalAttr = currentAttr;
-                    if ( action.payload ) {
-                        startDate = modalStartDate;
-                        endDate = modalEndDate;
-                        finalAttr = action.payload;
-                    }
-                    yield put({ type:'toggleUselessLoading'});
-                    let { data } = yield call(getUselessInfo, { company_id, attr_id:finalAttr.key, time_date:startDate.format('YYYY-MM-DD'), end_time_date:endDate.format('YYYY-MM-DD')  });
-                    if ( data && data.code === '0'){
-                        yield put({type:'getUseless', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001') {
-                        yield put({ type:'user/loginOut'});
-                    }
-                    
-                } catch(err){
-                    console.log(err);
+        *fetchUseless(action, { call, select, put}){       
+            try {
+                let { user:{ company_id, startDate, endDate }, fields:{ currentAttr }} = yield select();
+                // 节能策略传的点击某个属性ID
+                yield put({ type:'toggleUselessLoading'});
+                let { data } = yield call(getUselessInfo, { company_id, attr_id:action.payload ? action.payload : currentAttr.key, time_date:startDate.format('YYYY-MM-DD'), end_time_date:endDate.format('YYYY-MM-DD')  });
+                if ( data && data.code === '0'){
+                    yield put({type:'getUseless', payload:{ data:data.data }});
                 }
-            }  
+            } catch(err){
+                console.log(err);
+            }          
         },
         *initMachEfficiency(action, { put }){
             yield put.resolve({ type:'fields/init'});
@@ -175,9 +159,7 @@ export default {
                 let { data } = yield call(getMachEfficiency, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:currentAttr.key });
                 if ( data && data.code === '0'){
                     yield put({ type:'getMachEfficiency', payload: { data:data.data }});
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
-                }
+                } 
             } catch(err){
                 console.log(err);
             }
@@ -196,24 +178,59 @@ export default {
                 console.log(err);
             }
         },
-        *initEnergyPhase(action, { put }){
+        *initEnergyPhase(action, { put, select }){
             yield put.resolve({ type:'fields/init'});
             yield put.resolve({ type:'fetchEnergyPhase'});
+            yield put({ type:'fetchTypeRule' });
         },
         *fetchEnergyPhase(action, { call, put, select}){
             try {
-                let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }, demand : { phaseDayTimeType, phaseOptionType }} = yield select();
+                let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }, demand : { phaseDayTimeType, currentOption }} = yield select();
                 yield put({ type:'togglePhaseLoading'});
-                let { data } = yield call(getEnergyPhase, { company_id, attr_id:currentAttr.key, time_type:timeType, option_type:phaseOptionType, day_time_type:phaseDayTimeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
+                timeType = timeType === '10' ? '2' : timeType;
+                let { data } = yield call(getEnergyPhase, { company_id, attr_id:currentAttr.key, time_type:timeType, option_type:currentOption.key, day_time_type:phaseDayTimeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
                 if ( data && data.code ==='0'){
                     yield put({type:'getPhase', payload:{ data:data.data }});
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
-                }
-                
+                } 
             } catch(err){
                 console.log(err);
             }
+        },
+        *fetchTypeRule(action, { call, put, select }) {
+            let { user:{ company_id }, fields:{ currentAttr }, demand:{ currentOption }} = yield select();
+            if ( currentOption.type ) {
+                let { data } = yield call(getTypeRule, { company_id, attr_id:currentAttr.key, type_code:currentOption.type });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getTypeRuleResult', payload:{ data:data.data }});
+                }
+            } else {
+                yield put({ type:'getTypeRuleResult', payload:{ data:null }});
+            }  
+        },
+        *setRule(action, { call, put, select }){
+            let { user:{ company_id }, fields:{ currentAttr }, demand:{ typeRule, currentOption }} = yield select();
+            let { warning_min, warning_max, resolve, reject } = action.payload || {};
+            let object = { company_id, attr_id:currentAttr.key, type_code:currentOption.type };
+            if ( typeRule && typeRule.rule_id ) {
+                object.rule_id = typeRule.rule_id;
+            }
+            if ( warning_min ) {
+                object.warning_min = warning_min;
+            }
+            if ( warning_max ){
+                object.warning_max = warning_max;
+            }
+            let { data } = yield call(setTypeRule, object);
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve();
+                yield put({ type:'fetchTypeRule' });
+            } else {
+                if ( reject ) reject(data.msg);
+            }
+        },
+        *initLineLoss(action, { put }) {
+            yield put.resolve({ type:'fetchMainLine'});
+            yield put({ type:'fetchLineLoss'});
         },
         *fetchMainLine(action, { select, call, put}){
             try {
@@ -228,17 +245,12 @@ export default {
         },
         *fetchLineLoss(action, { call, put, select}){
             try {
-                let { user:{ company_id }, demand : { currentMainLine, startDate, endDate }} = yield select();
-                let { resolve, reject } = action.payload;
+                let { user:{ company_id, startDate, endDate }, demand : { currentMainLine }} = yield select();
                 yield put({type:'toggleLineLossLoading', payload:true });
-                let begin_date = startDate.format('YYYY-MM-DD');
-                let end_date = endDate.format('YYYY-MM-DD');
-                let { data } = yield call(getLineLoss, { company_id, begin_date, end_date, main_id:currentMainLine.main_id });
+                let { data } = yield call(getLineLoss, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), main_id:currentMainLine.main_id });
                 if ( data && data.code === '0'){
                     yield put({ type:'getLineLoss', payload:{ data:data.data }});
                 } else {
-                    yield put({type:'toggleLineLossLoading', payload:false });
-                    if ( reject && ( typeof reject === 'function' ) ) reject(data.msg);
                 }
             } catch(err){
                 console.log(err);
@@ -306,6 +318,9 @@ export default {
             phaseValueList.push({ text:'最小负荷率', value:(+data.minLoadRatio * 100).toFixed(1), unit:'%'});
             return { ...state, phaseInfo:data, phaseValueList, phaseLoading:false };
         },
+        getTypeRuleResult(state, { payload:{ data }}){
+            return { ...state, typeRule:data };
+        },
         selectMach(state, { payload }){
             return { ...state, currentMach:payload ? payload:{} };
         },
@@ -326,8 +341,8 @@ export default {
             return { ...state, startDate, endDate };
         },
         // 能源三相数据
-        setPhaseOptionType(state, { payload }){
-            return { ...state, phaseOptionType:payload };
+        toggleCurrentOption(state, { payload }){
+            return { ...state, currentOption:payload };
         },
         togglePhaseTimeType(state, { payload }){
             let phaseStartDate, phaseEndDate;

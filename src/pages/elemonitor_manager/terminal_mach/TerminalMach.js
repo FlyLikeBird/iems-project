@@ -21,7 +21,7 @@ const iconsMap = {
     'bar_temp':'iconUnion'
 };
 
-function Transform({ dispatch, user, terminalMach, global }){
+function TerminalMach({ dispatch, user, terminalMach, global }){
     const { typeList, currentType, machList, currentMach, total, isLoading, currentPage, machLoading, machDetailInfo } = terminalMach;
     let visible = Object.keys(currentMach).length ? true : false;
     let [cameraVisible, toggleCameraVisible] = useState(false);
@@ -40,7 +40,7 @@ function Transform({ dispatch, user, terminalMach, global }){
                             typeList && typeList.length 
                             ?
                             typeList.map((item,index)=>(
-                                <div className={ currentType.key === item.key ? style['list-item'] + ' ' + style['selected']: style['list-item']} onClick={()=>{
+                                <div key={index} className={ currentType.key === item.key ? style['list-item'] + ' ' + style['selected']: style['list-item']} onClick={()=>{
                                     dispatch({ type:'terminalMach/toggleMachType', payload:item });
                                     dispatch({ type:'terminalMach/fetchSeriesMach'});
                                 }}>
@@ -70,7 +70,7 @@ function Transform({ dispatch, user, terminalMach, global }){
                                     machList.length 
                                     ?
                                     machList.map((item,index)=>(
-                                        <div className={style['inline-item-wrapper']}>
+                                        <div className={style['inline-item-wrapper']} style={{ width:user.containerWidth <= 1440 ? '33.3%' : '25%' }} key={index}>
                                             <div className={style['inline-item']} onClick={()=>{
                                                 // 如果是摄像头
                                                 if ( item.energy_type === 5 ){
@@ -84,7 +84,7 @@ function Transform({ dispatch, user, terminalMach, global }){
                                                     <div className={style['tag']} style={{ backgroundColor:item.rule_name ? '#ff2d2e' : '#01f1e3'}}>{ item.rule_name ? '异常' :'正常' }</div>
                                                 </div>
                                                 <div className={style['inline-item-content']}>
-                                                    <div style={{ width:'40%' }}><img src={item.img_path} style={{ width:'100%' }} /></div>
+                                                    <div style={{ width:'46%' }}><img src={item.img_path} style={{ width:'100%' }} /></div>
                                                     {
                                                         // currentType.key === 'all' 
                                                         false
@@ -108,7 +108,7 @@ function Transform({ dispatch, user, terminalMach, global }){
                                                             </div>
                                                         </div>
                                                         :
-                                                        <div>
+                                                        <div style={{ width:'54%' }}>
                                                             <div className={style['text-container']}>
                                                                 <span>编号:</span>
                                                                 <span className={style['text']}>{ item.register_code }</span>
@@ -138,9 +138,9 @@ function Transform({ dispatch, user, terminalMach, global }){
                             </div>
                             {/* 分页符 */}
                             {
-                                total > 12
+                                total > ( user.containerWidth <= 1440 ? 9 : 12 )
                                 ?                                
-                                <Pagination className={ user.theme === 'dark' ? style['custom-pagination'] + ' ' + style['dark'] : style['custom-pagination']} pageSize={12} current={currentPage} total={total} showSizeChanger={false} onChange={page=>{
+                                <Pagination className={ user.theme === 'dark' ? style['custom-pagination'] + ' ' + style['dark'] : style['custom-pagination']} pageSize={ user.containerWidth <= 1440 ? 9 : 12} current={currentPage} total={total} showSizeChanger={false} onChange={page=>{
                                     dispatch({ type:'terminalMach/fetchSeriesMach', payload:{ page }});
                                 }} />
                                 :
@@ -202,4 +202,4 @@ function Transform({ dispatch, user, terminalMach, global }){
     
 }
 
-export default connect(({ user, terminalMach, global })=>({ user, terminalMach, global }))(Transform);
+export default connect(({ user, terminalMach, global })=>({ user, terminalMach, global }))(TerminalMach);

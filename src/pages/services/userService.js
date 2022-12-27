@@ -1,7 +1,6 @@
 import request from '../utils/request';
 import { translateObj } from '../utils/translateObj';
 import { authToken, apiToken } from '../utils/encryption';
-import config from '../../../config';
 
 export function userAuth(data = {}){
     // let token = authToken(localStorage.getItem('timestamp'), localStorage.getItem('user_id'));
@@ -124,6 +123,7 @@ export function login(data = {}){
 // 通用的导出excel接口
 export function createExcel(col, row){
     let token = apiToken();
+    let config = window.g;
     let url = `http://${config.apiHost}/api/export/createexcel?col=${JSON.stringify(col)}&row=${JSON.stringify(row)}&token=${token}`;
     window.location.href = url;
 
@@ -135,6 +135,43 @@ export function getGeoJson(data = {}){
     data.token = token;
     let str = translateObj(data);
     return request('/index/geojson', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function getAlarmTypes(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/attrwarn/getTypeList', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+export function getTypeRule(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/attrwarn/getrule', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+export function setTypeRule(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/attrwarn/setrule', { 
         method:'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'

@@ -27,55 +27,41 @@ export default {
         },
         // 统一取消所有action
         *cancelAll(action, { put }){
-            yield put({ type:'cancelMachs'});
-            yield put({ type:'cancelTransformerInfo'});
-            yield put({ type:'cancelMachChartInfo'});
             yield put({ type:'reset'});
         },
-        *fetchMachs(action, { call, put, select }){
-            yield put.resolve({ type:'cancelable', task:fetchMachsCancelable, action:'cancelMachs'});
-            function* fetchMachsCancelable(params){
-                try{
-                    let { user:{ company_id }} = yield select();
-                    let { data } = yield call(getMachs, { company_id });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getMachs', payload:{ data:data.data }});
-                    } 
-                } catch(err){
-                    console.log(err);
-                }
+        *fetchMachs(action, { call, put, select }){       
+            try{
+                let { user:{ company_id }} = yield select();
+                let { data } = yield call(getMachs, { company_id });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getMachs', payload:{ data:data.data }});
+                } 
+            } catch(err){
+                console.log(err);
             }
         },
-        *fetchTransformerInfo(action, { call, put, select }){
-            yield put.resolve({ type:'cancelable', task:fetchTransformerCancelable, action:'cancelTransformerInfo' });
-            function* fetchTransformerCancelable(params){
-                try {
-                    let { user:{ company_id }, transformer:{ currentMach }} = yield select();
-                    let { data } = yield call(getTransformerInfo, { company_id, mach_id:currentMach.key });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getTransformerInfo', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001' ) {
-                        yield put({ type:'user/loginOut'});
-                    }
-                } catch(err){
-                    console.log(err);
-                }
-            }
+        *fetchTransformerInfo(action, { call, put, select }){  
+            try {
+                let { user:{ company_id }, transformer:{ currentMach }} = yield select();
+                let { data } = yield call(getTransformerInfo, { company_id, mach_id:currentMach.key });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getTransformerInfo', payload:{ data:data.data }});
+                } 
+            } catch(err){
+                console.log(err);
+            }   
         },
         *fetchMachChartInfo(action, { call, put, select }){
-            yield put.resolve({ type:'cancelMachChartInfo'});
-            yield put.resolve({ type:'cancelable', task:fetchMachChartInfoCancelable, action:'cancelMachChartInfo'});
-            function* fetchMachChartInfoCancelable(params){
-                try {
-                    yield put({ type:'toggleLoading'});
-                    let { user:{ company_id }, eleMonitor:{ startDate, endDate, timeType }, transformer:{ currentMach}} = yield select();
-                    let { data } = yield call(getMachChart, { company_id, mach_id:currentMach.key, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getMachChart', payload:{ data:data.data }});
-                    }
-                } catch(err){
-                    console.log(err);
+            try {
+                yield put({ type:'toggleLoading'});
+                let { user:{ company_id, startDate, endDate, timeType }, transformer:{ currentMach}} = yield select();
+                timeType = timeType === '10' ? '2' : timeType;
+                let { data } = yield call(getMachChart, { company_id, mach_id:currentMach.key, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getMachChart', payload:{ data:data.data }});
                 }
+            } catch(err){
+                console.log(err);
             }
         }
     },

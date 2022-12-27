@@ -1,4 +1,4 @@
-import { getCostReport, getCostAnalyze, setProductTarget, getMeterReport, getEnergyType, getEleDocument, getWaterDocument, getAnalyzeReport, getCompanyFeeRate, exportReport, translateImgToBase64, createDocument, fetchImg } from '../../services/costReportService';
+import { getCostReport, getCostAnalyze, setProductTarget, getMeterReport, getEnergyType, getEleDocument, getWaterDocument, getCombustDocument, getAnalyzeReport, getCompanyFeeRate, exportReport, translateImgToBase64, createDocument, fetchImg } from '../../services/costReportService';
 import { flattern, getDeep } from '../../utils/array';
 import moment from 'moment';
 let date = new Date();
@@ -33,9 +33,13 @@ const initialState = {
     // 切换成本/能耗
     dataType:'2',
     reportInfo:{},
+    showTimePeriod:false,
     analyzeInfo:[],
+    chartLoading:false,
     chartInfo:{},
     checkedKeys:[],
+    startHour:0,
+    isDeep:false,
     isLoading:true,
     // 生成报告相关数据
     documentInfo:{},
@@ -59,17 +63,13 @@ export default {
             // yield put({ type:'cancelCostAnalyze'});
             yield put({ type:'reset'});
         },
-        *initCostReport(action, { put, select }){
-            yield put.resolve({ type:'fields/init'});
-            let { fields:{ allFields, energyInfo, currentAttr, fieldAttrs }} = yield select();
-            let temp = [];
-            if ( currentAttr.children && currentAttr.children.length ) {
-                temp.push(currentAttr.key);
-                currentAttr.children.map(i=>temp.push(i.key));
-            } else {
-                temp.push(currentAttr.key);
-            }
-            yield put({ type:'select', payload:temp });
+        *initCostReport(action, { put, select, all }){
+            yield all([
+                put.resolve({ type:'fields/init'}),
+                put.resolve({ type:'worktime/fetchWorktimeList'})
+            ])
+            yield put({ type:'setDeep', payload:false });
+            yield put({ type:'setTimePeriod', payload:false });
             yield put({ type:'fetchCostReport'});
         },
         *setProduct(action, { put, call }){
@@ -88,29 +88,25 @@ export default {
             }
         },
         *fetchCostReport(action, { call, put, select}){
-            yield put.resolve({ type:'cancelCostReport'});
-            yield put.resolve({ type:'cancelable', task:fetchCostReportCancelable, action:'cancelCostReport'});
-            function* fetchCostReportCancelable(params){
-                try {
-                    let { startHour } = action.payload || {};
-                    let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo }, costReport:{ dataType, checkedKeys } } = yield select();
-                    timeType = timeType === '3' ? '1' : timeType === '1' ? '3' : '2';
-                    yield put({type:'toggleLoading'});
-                    let obj = { data_type:dataType, company_id, time_type:timeType, type_id:energyInfo.type_id, attr_ids:checkedKeys, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
-                    if ( startHour ) {
-                        obj.day_start_hour = startHour;
-                    }
-                    let { data } = yield call(getCostReport, obj );
-                    if ( data && data.code === '0'){
-                        yield put({type:'get', payload:{ data:data.data }});
-                    } 
-                } catch(err){
-                    console.log(err);
+            try {
+                let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo, currentAttr }, worktime:{ currentWorktime }, costReport:{ dataType, isDeep, showTimePeriod, startHour  } } = yield select();
+                timeType = timeType === '3' ? '1' : timeType === '1' ? '3' : timeType === '10' ? '2' : timeType;
+                yield put({type:'toggleLoading'});
+                let obj = { data_type:dataType, company_id,  rostering_id:currentWorktime.id, time_type:timeType, type_id:energyInfo.type_id, attr_id:currentAttr.key, is_display_time:showTimePeriod ? '1' : '0', is_show_detail:isDeep ? '1' : '0', begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
+                if ( startHour ) {
+                    obj.day_start_hour = startHour;
                 }
-            }
+                let { data } = yield call(getCostReport, obj );
+                if ( data && data.code === '0'){
+                    yield put({type:'get', payload:{ data:data.data }});
+                } 
+            } catch(err){
+                console.log(err);
+            }       
         },
         *initCostAnalyze(action, { put, select }){
             yield put.resolve({ type:'fields/init'});
+            yield put.resolve({ type:'worktime/fetchWorktimeList'});
             let { fields:{ allFields, energyInfo, currentAttr, fieldAttrs }} = yield select();
             let temp = [];
             if ( currentAttr.children && currentAttr.children.length ) {
@@ -122,43 +118,45 @@ export default {
             yield put.resolve({ type:'select', payload:temp });
             yield put.resolve({ type:'fetchCostAnalyze'});  
         },
-        *fetchCostAnalyze(action, { call, put, select }){
-            yield put.resolve({ type:'cancelCostAnalyze'});
-            yield put.resolve({ type:'cancelable', task:fetchCostAnalyzeCancelable, action:'cancelCostAnalyze' });
-            function* fetchCostAnalyzeCancelable(){
-                try {
-                    let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo }, costReport:{ checkedKeys } } = yield select();
-                    timeType = timeType === '1' ? '3' : timeType === '3' ? '1' : '2'; 
-                    let { data } = yield call(getCostAnalyze, { company_id, time_type:timeType, type_id:energyInfo.type_id, attr_ids:checkedKeys, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') });
-                    if ( data && data.code === '0'){
-                        yield put({type:'getAnalyze', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001') {
-                        yield put({ type:'user/loginOut'});
-                    }
-                } catch(err){
-                    console.log(err);
-                }
-            }
-            
+        *fetchCostAnalyze(action, { call, put, select }){ 
+            try {
+                let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo }, worktime:{ currentWorktime }, costReport:{ checkedKeys } } = yield select();
+                timeType = timeType === '1' ? '3' : timeType === '3' ? '1' : timeType === '10' ? '2' : timeType; 
+                yield put({ type:'toggleChartLoading'});
+                let { data } = yield call(getCostAnalyze, { 
+                    company_id, 
+                    time_type:timeType, 
+                    type_id:energyInfo.type_id, 
+                    attr_ids:checkedKeys, 
+                    begin_time:startDate.format('YYYY-MM-DD'), 
+                    end_time:endDate.format('YYYY-MM-DD'),
+                    rostering_id:currentWorktime.id
+                });
+                if ( data && data.code === '0'){
+                    yield put({type:'getAnalyze', payload:{ data:data.data }});
+                } 
+            } catch(err){
+                console.log(err);
+            }                
         },
         *fetchDocument(action, { call, put, select, all}){
             let { user:{ company_id, currentCompany }, fields : { energyInfo, currentAttr, currentField }} = yield select();
             let { tip_price, high_price, middle_price, bottom_price, price, year, month } = action.payload.data;
-            
-            let [ documentData, bgData ] = yield all([
-                energyInfo.type_code === 'ele' 
-                ?
-                call(getEleDocument, { company_id, attr_id:currentAttr.key, tip_price, high_price, middle_price, bottom_price, year, month })
-                :
-                call(getWaterDocument, { company_id, attr_id:currentAttr.key, price, year, month }),
-                call(fetchImg, { path:currentCompany.logo_path })
-            ]);
-            if ( documentData && documentData.data.code === '0' && bgData ) {
-                yield put({type:'getDocument', payload: { data:documentData.data.data, bgData }});
-                if ( action.payload.resolve ) action.payload.resolve();
-            } else if ( documentData.data.code === '1001') {
-                yield put({ type:'user/loginOut'});
+            let params ;
+            if ( energyInfo.type_code === 'ele') {
+                params = { company_id, attr_id:currentAttr.key, tip_price, high_price, middle_price, bottom_price, year, month };
+            } else {
+                params = { company_id, attr_id:currentAttr.key, price, year, month };
             }
+            let { data } = yield call(
+                energyInfo.type_code === 'ele' ? getEleDocument :
+                energyInfo.type_code === 'water' ? getWaterDocument :
+                energyInfo.type_code === 'combust' ? getCombustDocument : getCombustDocument,
+                params);
+            if ( data && data.code === '0' ) {
+                yield put({type:'getDocument', payload: { data:data.data }});
+                if ( action.payload.resolve ) action.payload.resolve();
+            } 
         },
         *translateImg(action, { call, put, all}){
             let { resolve } = action.payload;
@@ -217,7 +215,6 @@ export default {
             return { ...state, rateInfo:data };
         },
         getDocument(state, { payload : { data, bgData }}){
-            data['bgData'] = bgData;
             return { ...state, documentInfo:data };
         },
         getAnalyze(state, { payload: { data }}){
@@ -237,6 +234,15 @@ export default {
         select(state, { payload }){
             return { ...state, checkedKeys:payload };
         },
+        setDeep(state, { payload }){
+            return { ...state, isDeep:payload };
+        },
+        setTimePeriod(state, { payload }){
+            return { ...state, showTimePeriod:payload };
+        },
+        setStartHour(state, { payload }){
+            return { ...state, startHour:payload };
+        },
         toggleRatio(state, { payload }){
             return { ...state, curRatio:payload };
         },
@@ -245,4 +251,5 @@ export default {
         }
     }
 }
+
 

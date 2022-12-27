@@ -11,11 +11,14 @@ import { IconFont } from '@/pages/components/IconFont';
 let pattern = /\s/g;
 function TabChart({ data, toggleVisible, activeKey, onDispatch, theme, title, forReport }) {
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
+    let seriesData = [];
     const echartsRef = useRef();
-    data = data || {};
-    let seriesData = data.data.map((value,index)=>{
-        return { value, attr_id:data.field[index].attr_id, attr_name:data.field[index].attr_name };
-    });
+    if ( data.data && data.data.length ) {
+        seriesData = data.data.map((value,index)=>{
+            return { value, attr_id:data.field[index].attr_id, attr_name:data.field[index].attr_name };
+        });
+    }
+    
     let option = {
         tooltip:{
             show:true,
@@ -24,20 +27,19 @@ function TabChart({ data, toggleVisible, activeKey, onDispatch, theme, title, fo
         xAxis: {
             type: 'category',
             axisTick:{ show:false },
-            data: data.field.map(i=>i.attr_name),
+            data: data.field ? data.field.map(i=>i.attr_name) : [],
             axisLabel:{
                 color:textColor,
                 fontSize: forReport ? 10 : 12,
                 formatter:value=>{
                     let str = value;
-                    if ( forReport ){
-                        if ( value.length > 10 ) {
-                            str = value.substring(0, forReport ? 8 : 10);
-                        } else {
-                            str = value;
-                        }
-                        str = str.replace(pattern,'');
+                    if ( value.length > 10 ) {
+                        str = value.substring(0, forReport ? 8 : 12);
+                    } else {
+                        str = value;
                     }
+                    str = str.replace(pattern,'');
+                    
                     return str.split('').join('\n');
                 }
             }
@@ -71,8 +73,7 @@ function TabChart({ data, toggleVisible, activeKey, onDispatch, theme, title, fo
             // data:  [200000, 120, 200, 150, 80, 70, 110, 130],
             data:seriesData,
             type: 'bar',
-            barMaxWidth:30,
-            // barWidth:30,
+            barMaxWidth:20,
             label:{
                 formatter:'{b}'
             }
@@ -84,11 +85,11 @@ function TabChart({ data, toggleVisible, activeKey, onDispatch, theme, title, fo
             if ( forReport ) return;
             if(params.componentType === 'series' && params.componentSubType === 'bar'){
                 if ( activeKey === 'basecost') {
-                    onDispatch({ type:'demand/fetchAnalyz', payload:{ key:params.data.attr_id, title:params.data.attr_name }});
+                    onDispatch({ type:'demand/fetchAnalyz', payload:params.data.attr_id });
                 } else if ( activeKey === 'adjust') {
-                    onDispatch({ type:'demand/fetchUseless', payload:{ key:params.data.attr_id, title:params.data.attr_name }});
+                    onDispatch({ type:'demand/fetchUseless', payload:params.data.attr_id });
                 } else if ( activeKey === 'meter'){
-                    onDispatch({ type:'analyze/fetchSaveSpaceTrend', payload:{ key:params.data.attr_id, title:params.data.attr_name }});
+                    onDispatch({ type:'analyze/fetchSaveSpaceTrend', payload:params.data.attr_id });
                 }
                 toggleVisible({ visible:true, value:params.data.value, attr_name:params.data.attr_name, attr_id:params.data.attr_id });
             }

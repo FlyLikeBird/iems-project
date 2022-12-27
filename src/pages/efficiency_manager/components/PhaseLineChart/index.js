@@ -1,25 +1,27 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactEcharts from 'echarts-for-react';
 import html2canvas  from 'html2canvas';
-import { Radio } from 'antd';
+import { Radio, Modal, Form, Input, Button, Tag, message } from 'antd';
 import { PictureOutlined, FileExcelOutlined } from '@ant-design/icons';
 import { downloadExcel } from '@/pages/utils/array';
 import style from '../../../IndexPage.css';
 import XLSX from 'xlsx';
 
-function PhaseLineChart({ data, optionText, optionUnit, timeType, currentAttr, theme }) {
+function PhaseLineChart({ data, currentOption, typeRule, timeType, currentAttr, theme, dispatch }) {
+    const [visible, setVisible] = useState(false);
+    const [form] = Form.useForm();
     const seriesData = [];
     const echartsRef = useRef();
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
-    let isFourPhase = optionText === '四象限无功电能' ? true : false;
-    let isMaxDemand = optionText === '最大需量' ? true : false;
-    let isLineVoltage = optionText === '线电压' ? true : false;
-    let isAvg = optionText === '相电流' || optionText === '相电压' || optionText === '线电压' ? true : false; 
+    let isFourPhase = currentOption.title === '四象限无功电能' ? true : false;
+    let isMaxDemand = currentOption.title === '最大需量' ? true : false;
+    let isLineVoltage = currentOption.title === '线电压' ? true : false;
+    let isAvg = currentOption.title === '相电流' || currentOption.title === '相电压' || currentOption.title === '线电压' ? true : false; 
     if ( !isFourPhase ){
         seriesData.push({
             type:'line',
             symbol:'none',
-            name: isAvg ? `平均${optionText}` : `总${optionText}`,
+            name: isAvg ? `平均${currentOption.title}` : `总${currentOption.title}`,
             data:data.energy,
             itemStyle:{
                 color:'#142e60'
@@ -94,12 +96,109 @@ function PhaseLineChart({ data, optionText, optionUnit, timeType, currentAttr, t
             });
         }
     }
+    if ( typeRule && typeRule.warning_min ){
+        seriesData.push({
+            type:'line',
+            symbol:'none',
+            itemStyle:{
+                color:'#6ec71e'
+            },
+            data:data.date.map(i=>typeRule.warning_min),
+            markPoint:{
+                symbol:'rect',
+                symbolSize:[100,20],
+                data:[ { value:'下限值: '+ typeRule.warning_min, xAxis:data.date.length-2, yAxis:typeRule.warning_min } ],
+            },
+            lineStyle:{
+                type:'dashed'
+            },
+            tooltip:{ show:false }
+        });
+    }
+    if ( typeRule && typeRule.warning_max ){
+        seriesData.push({
+            type:'line',
+            symbol:'none',
+            itemStyle:{
+                color:'#ff2d2e'
+            },
+            data:data.date.map(i=>typeRule.warning_max),
+            markPoint:{
+                symbol:'rect',
+                symbolSize:[100,20],
+                data:[ { value:'上限值: '+ typeRule.warning_max, xAxis:data.date.length-2, yAxis:typeRule.warning_max } ],
+            },
+            lineStyle:{
+                type:'dashed'
+            },
+            tooltip:{ show:false }
+        });
+    }
+    useEffect(()=>{
+        if ( visible ){
+            form.setFieldsValue({
+                warning_min:typeRule && typeRule.warning_min ? typeRule.warning_min : null,
+                warning_max:typeRule && typeRule.warning_max ? typeRule.warning_max : null
+            })
+        }
+    },[visible]);
     
     return (  
         <div style={{ height:'100%', position:'relative' }}>
+            {
+                currentOption.type 
+                ?
+                <div style={{ position:'absolute', right:'90px', top:'6px' }} className={style['custom-btn']} onClick={()=>setVisible(true)} >告警设置</div>   
+                :
+                null
+            }
+            <Modal
+                visible={visible}
+                bodyStyle={{ padding:'2rem 4rem' }}
+                footer={null}
+                onCancel={()=>setVisible(false)}
+            >
+                <Form
+                    form={form}
+                    labelCol={{
+                      span: 6,
+                    }}
+                    wrapperCol={{
+                      span: 18,
+                    }}
+                    onFinish={values=>{
+                        new Promise((resolve, reject)=>{
+                            dispatch({ type:'demand/setRule', payload:{ resolve, reject, warning_min:values.warning_min, warning_max:values.warning_max }})
+                        })
+                        .then(()=>{
+                            setVisible(false);
+                            form.resetFields();
+                        })
+                        .catch(msg=>message.error(msg))
+                    }}
+                >
+                    <Form.Item label='当前节点' name='attr_id'>
+                        <Tag>{ currentAttr.title }</Tag>
+                    </Form.Item>
+                    <Form.Item label='当前属性' name='type_code'>
+                        <Tag>{ currentOption.title }</Tag>
+                    </Form.Item>
+                    <Form.Item label='告警上限值' name='warning_max' rules={[{ type:'number', message:'请输入数值类型', transform(value){ if(value) return Number(value) } }]}>
+                        <Input style={{ width:'100%' }} addonAfter={data.unit} />
+                    </Form.Item>
+                    <Form.Item label='告警下限值' name='warning_min' rules={[{ type:'number', message:'请输入数值类型', transform(value){ if(value) return Number(value) } }]}>
+                        <Input style={{ width:'100%' }} addonAfter={data.unit} />
+                    </Form.Item> 
+                    
+                    <Form.Item wrapperCol={{ offset: 6, span: 18 }}>
+                        <Button onClick={()=>setVisible(false)} style={{ marginRight:'0.5rem' }}>取消</Button>
+                        <Button type="primary" htmlType="submit">设置</Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
             <Radio.Group size='small' className={style['float-button-group'] + ' ' + style['custom-button']} onChange={e=>{
                 let value = e.target.value;
-                let fileTitle = `能源趋势-${optionText}`;
+                let fileTitle = `能源趋势-${currentOption.title}`;
                 if ( value === 'download' && echartsRef.current ){
                     html2canvas(echartsRef.current.ele, { allowTaint:false, useCORS:false, backgroundColor: theme === 'dark' ? '#191932' : '#fff' })
                     .then(canvas=>{
@@ -129,7 +228,7 @@ function PhaseLineChart({ data, optionText, optionUnit, timeType, currentAttr, t
                         let temp = [];
                         temp.push(i.name);
                         temp.push(currentAttr.title);
-                        temp.push(optionUnit);
+                        temp.push(data.unit);
                         temp.push(...i.data);
                         aoa.push(temp);
                     })
@@ -153,10 +252,10 @@ function PhaseLineChart({ data, optionText, optionUnit, timeType, currentAttr, t
                     legend:{
                         top:6,
                         textStyle:{ color:textColor },
-                        data: isFourPhase ? ['第一象限','第二象限','第三象限','第四象限'] : isMaxDemand ? [`总${optionText}`] : isLineVoltage ? [isAvg ? `平均${optionText}` : `总${optionText}`,'AB线','BC线','CA线'] : [isAvg ? `平均${optionText}` : `总${optionText}`,'A相','B相','C相']
+                        data: isFourPhase ? ['第一象限','第二象限','第三象限','第四象限'] : isMaxDemand ? [`总${currentOption.title}`] : isLineVoltage ? [isAvg ? `平均${currentOption.title}` : `总${currentOption.title}`,'AB线','BC线','CA线'] : [isAvg ? `平均${currentOption.title}` : `总${currentOption.title}`,'A相','B相','C相']
                     },
                     grid:{
-                        top:50,
+                        top:60,
                         left:30,
                         right:30,
                         bottom:40,
@@ -195,7 +294,7 @@ function PhaseLineChart({ data, optionText, optionUnit, timeType, currentAttr, t
                         }
                     },
                     yAxis:{
-                        name: `${optionText}(${optionUnit})`,
+                        name:data.unit,
                         nameTextStyle:{
                             align:'left',
                             color:textColor
@@ -230,7 +329,7 @@ function PhaseLineChart({ data, optionText, optionUnit, timeType, currentAttr, t
 }
 
 function areEqual(prevProps, nextProps){
-    if ( prevProps.data !== nextProps.data || prevProps.theme !== nextProps.theme  ) {
+    if ( prevProps.data !== nextProps.data || prevProps.typeRule !== nextProps.typeRule ||  prevProps.theme !== nextProps.theme  ) {
         return false;
     } else {
         return true;

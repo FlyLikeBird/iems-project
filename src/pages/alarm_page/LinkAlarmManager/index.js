@@ -4,7 +4,7 @@ import { Card, Tabs, Tree, DatePicker, Button, Radio, Spin, Skeleton } from 'ant
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
-
+import Loading from '@/pages/components/Loading';
 import style from '../../IndexPage.css';
 import InfoList from '../EleAlarmManager/components/InfoList';
 import PieChart from './components/PieChart';
@@ -70,7 +70,14 @@ function LinkAlarmManager({ dispatch, user, linkAlarm, fields }){
     const content = (
         Object.keys(warningInfo).length 
         ?
-        <div>
+        <div style={{ position:'relative'}}>
+            {
+                chartLoading 
+                ?
+                <Loading />
+                :
+                null
+            }
             {/* 日期控制器 */}
             <div style={{ height:'40px' }}>
                 <CustomDatePicker onDispatch={()=>{

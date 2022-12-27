@@ -10,8 +10,8 @@ import style from '../EleMonitor.css';
 import IndexStyle from '../../IndexPage.css';
 const { TabPane } = Tabs;
 let timer = null;
-function HighVolManager({ dispatch, user, highVol, eleMonitor, global }){
-    
+function HighVolManager({ dispatch, user, highVol }){
+    const { startDate, endDate, timeType, theme } = user;
     const { incomingList, currentIncoming, incomingInfo, chartInfo, optionType, isLoading } = highVol;
     useEffect(()=>{
         
@@ -72,8 +72,8 @@ function HighVolManager({ dispatch, user, highVol, eleMonitor, global }){
                                             {
                                                 item.child && item.child.length 
                                                 ?
-                                                item.child.map((sub)=>(
-                                                    <div style={{ height:'16%', display:'flex', alignItems:'center', }}>
+                                                item.child.map((sub, j)=>(
+                                                    <div key={index + j } style={{ height:'16%', display:'flex', alignItems:'center', }}>
                                                         <div className={style['flex-item-symbol']} style={{ backgroundColor:sub.type === 'A' ? '#eff400' : sub.type === 'B' ? '#00ff00' : sub.type === 'C' ? '#ff0000' : '#01f1e3' }}></div>
                                                         <div>{ sub.title }</div>
                                                         <div style={{ flex:'1', height:'1px', backgroundColor: user.theme === 'dark' ? '#34557e' : '#e4e4e4', margin:'0 6px'}}></div>
@@ -100,7 +100,7 @@ function HighVolManager({ dispatch, user, highVol, eleMonitor, global }){
                     {
                         Object.keys(chartInfo).length 
                         ?
-                        <ChartContainer theme={user.theme} data={chartInfo} dispatch={dispatch} startDate={eleMonitor.startDate} timeType={eleMonitor.timeType} optionType={optionType} isLoading={isLoading} />
+                        <ChartContainer theme={theme} data={chartInfo} dispatch={dispatch} startDate={startDate} timeType={timeType} optionType={optionType} isLoading={isLoading} />
                         :
                         <Spin className={style['spin']} size='large' />
                     }
@@ -112,4 +112,4 @@ function HighVolManager({ dispatch, user, highVol, eleMonitor, global }){
    
 }
 
-export default connect(({ user, highVol, eleMonitor, fields})=>({ user, highVol, eleMonitor, fields }))(HighVolManager);
+export default connect(({ user, highVol })=>({ user, highVol }))(HighVolManager);

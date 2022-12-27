@@ -4,8 +4,7 @@ import { Card, Tabs, Tree, DatePicker, Button, Radio, Spin, Skeleton } from 'ant
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
-import moment from 'moment';
+import Loading from '@/pages/components/Loading';
 import style from '../../IndexPage.css';
 import InfoList from './components/InfoList';
 import BarChart from './components/BarChart';
@@ -17,10 +16,9 @@ const { RangePicker }= DatePicker;
 function EleAlarmManager({ dispatch, user, eleAlarm, fields }){
     const { theme, timeType, startDate, endDate } = user;
     const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
-    const { warningInfo, realTimeInfo, typeCode, dayTimeType, attrLoading, realLoading } = eleAlarm;
+    const { warningInfo, realTimeInfo, typeCode, dayTimeType, attrLoading, isLoading } = eleAlarm;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
-    const dateRef = useRef();
     const sidebar = (
         <div>
             <div className={style['card-container']}>
@@ -85,28 +83,38 @@ function EleAlarmManager({ dispatch, user, eleAlarm, fields }){
                                 {
                                     attrLoading 
                                     ?
-                                    <Skeleton active className={style['skeleton']} />
+                                    <Loading />
                                     :
-                                    <BarChart data={warningInfo} typeCode='ele' timeType={timeType} theme={user.theme} />
+                                    null
                                 }
+                                <BarChart data={warningInfo} typeCode='ele' timeType={timeType} theme={user.theme} />
+                                
                             </div>
                         </div>
                         <div className={style['card-container-wrapper']} style={{ height:'43%', paddingBottom:'0' }}>
                             <div className={style['card-container']}>
                                 {
-                                    realLoading 
+                                    isLoading 
                                     ?
-                                    <Skeleton active className={style['skeleton']} />
+                                    <Loading />
                                     :
+                                    null
+                                }
+                                {
+                                    Object.keys(realTimeInfo).length 
+                                    ?
                                     <RealTimeChart
                                         data={realTimeInfo} 
                                         dispatch={dispatch} 
-                                        chartLoading={realLoading}
                                         typeCode={typeCode}
                                         dayTimeType={dayTimeType}
                                         theme={user.theme}
-                                    />
-                                }                             
+                                    /> 
+                                    :
+                                    null
+                                }
+                                  
+                                                             
                             </div>
                         </div>
                     </div>

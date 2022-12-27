@@ -67,7 +67,18 @@ export function getAttrWaterCost(data={}){
         body:str
         }); 
 }
-
+export function getAttrGasCost(data={}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/energycost/getattrcombustcost', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
 export function getTotalCostAnalysis(data={}){
     let token = apiToken();
     data.token = token;
@@ -231,6 +242,20 @@ export function fetchImg(data = {}){
     
     let str = translateObj(data);
     return requestImg('/index/getImage', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+// 成本日历接口
+export function getCalendarInfo(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/costreport/costCalendar', { 
         method:'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'

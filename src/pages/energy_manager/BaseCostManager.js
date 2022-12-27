@@ -21,8 +21,8 @@ function BaseCostManager({ dispatch, user, baseCost }) {
     return ( 
         Object.keys(baseCostInfo).length 
         ?
-        <div className={style['scroll-container']} style={{ height:'100%' }}>
-            <div className={style['card-container-wrapper']} style={{ height:'20%', paddingRight:'0' }}>
+        <div style={{ height:'100%' }}>
+            <div style={{ height:'22%', paddingBottom:'1rem' }}>
                 <div className={style['card-container-wrapper']} style={{ width:'50%', paddingBottom:'0' }}>
                     <div className={style['card-container']} style={{ display:'flex', flexDirection:'column', justifyContent:'center' }}>
                         <div style={{ textAlign:'center' }}>
@@ -82,16 +82,16 @@ function BaseCostManager({ dispatch, user, baseCost }) {
                     </div>
                 </div>
             </div>
-            <div className={style['card-container-wrapper']} style={{ height:'50%', paddingRight:'0' }}>
+            <div style={{ height:'78%' }}>
                 <div className={style['card-container']}>
                     <BaseCostChart data={baseCostInfo} theme={user.theme} />
                 </div>
             </div>
-            <div className={style['card-container-wrapper']} style={{ height:'auto', paddingRight:'0', overflow:'unset', paddingBottom:'0' }}>
+            {/* <div className={style['card-container-wrapper']} style={{ height:'auto', paddingRight:'0', overflow:'unset', paddingBottom:'0' }}>
                 <div className={style['card-container']}>
                     <BaseCostTable data={baseCostInfo.detail} />
                 </div>
-            </div>
+            </div> */}
         </div>
         :
         <Skeleton active className={style['skeleton']} />

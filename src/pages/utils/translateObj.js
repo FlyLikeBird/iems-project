@@ -2,6 +2,9 @@ export function translateObj(obj){
     let str='';
     Object.keys(obj).forEach(key=>{
         let temp = '';
+        if ( !obj[key] && typeof obj[key] !== 'number' ) {
+            return;
+        }
         if (Array.isArray(obj[key])  || Object.prototype.toString.call(obj[key]) === '[object Object]' ){
             // url转码会对+号以及&号进行空格替换。
             temp = encodeURIComponent(JSON.stringify(obj[key]));            

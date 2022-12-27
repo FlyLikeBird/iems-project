@@ -11,7 +11,8 @@ import IndexStyle from '../../IndexPage.css';
 
 const { TabPane } = Tabs;
 let timer;
-function TransformerManager({ dispatch, user, transformer, eleMonitor, fields }) {
+function TransformerManager({ dispatch, user, transformer }) {
+    const { timeType, startDate, theme  } = user;
     const { transformerInfo, machList, currentMach, isLoading, chartInfo } = transformer;
     useEffect(()=>{
         dispatch({ type:'transformer/initTransformer'});
@@ -20,8 +21,6 @@ function TransformerManager({ dispatch, user, transformer, eleMonitor, fields })
             dispatch({ type:'transformer/fetchMachChartInfo'});
         },3 * 60 * 1000)
         return ()=>{
-            // console.log('transformer unmounted');
-            dispatch({ type:'transformer/cancelAll'});
             clearInterval(timer);
             timer = null;
         }
@@ -99,7 +98,7 @@ function TransformerManager({ dispatch, user, transformer, eleMonitor, fields })
                     {
                         Object.keys(chartInfo).length 
                         ?
-                        <ChartContainer startDate={eleMonitor.startDate} data={chartInfo} dispatch={dispatch} isLoading={isLoading} timeType={eleMonitor.timeType} theme={user.theme} />
+                        <ChartContainer startDate={startDate} data={chartInfo} dispatch={dispatch} isLoading={isLoading} timeType={timeType} theme={theme} />
                         :
                         <Spin className={style['spin']} size='large' />
                     }
@@ -110,4 +109,4 @@ function TransformerManager({ dispatch, user, transformer, eleMonitor, fields })
     return <ColumnCollapse sidebar={sidebar} content={content} />
     
 }
-export default connect(({ user, transformer, eleMonitor, fields})=>({ user, transformer, eleMonitor, fields }))(TransformerManager);
+export default connect(({ user, transformer })=>({ user, transformer }))(TransformerManager);

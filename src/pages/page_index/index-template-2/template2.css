@@ -9,11 +9,19 @@
     height:80px;
     background-size:contain;
     background-repeat:no-repeat;
+    background-position:center;
     line-height:80px;
     text-align: center;
     font-size:2rem;
     letter-spacing: 6px;
     color:#fff;
+    position:relative;
+}
+.title-container > .title {
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
 }
 .info-container {
     height:200px;

@@ -1,7 +1,6 @@
 import request, { requestImg } from '../utils/request';
 import { translateObj } from '../utils/translateObj';
 import { apiToken } from '../utils/encryption';
-import config from '../../../config';
 
 export function getEnergyType(data = {}){
     let token = apiToken();
@@ -110,6 +109,7 @@ export function exportReport(data={}){
     let token = apiToken();
     data.token = token;
     let str = translateObj(data);
+    let config = window.g;
     let url = `http://${config.apiHost}/api/costreport/exportreport?${str}`;
     return url;
 }
@@ -132,6 +132,19 @@ export function getWaterDocument(data = {}){
     data.token = token;
     let str = translateObj(data);
     return request('/attrcostreport/getattrwatercostinfo', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
+export function getCombustDocument(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/attrcostreport/getattrcombustcostinfo', { 
         method:'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'

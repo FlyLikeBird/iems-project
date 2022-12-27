@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
-import { Radio, Spin, Card, Select, Tree, Tabs, Button, TimePicker, Modal, message, Skeleton } from 'antd';
+import { Radio, Spin, Card, Select, Tree, Tabs, Button, Checkbox, TimePicker, Modal, message, Skeleton } from 'antd';
 import { DoubleLeftOutlined , DoubleRightOutlined, PayCircleOutlined, ThunderboltOutlined, ExperimentOutlined, HourglassOutlined, FireOutlined  } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import CustomTable from './CustomTable';
@@ -13,22 +13,20 @@ import zhCN from 'antd/es/date-picker/locale/zh_CN';
 
 const { TabPane } = Tabs;
 const { Option } = Select;
-let keepState = true;
 let hourData = [];
 for(var i=0;i<24;i++){
     let temp = i < 10 ? '0' + i : i;
     hourData.push({ key:i, value:temp + ' : 00'});
 }
 function TimeEnergyReport({ dispatch, user, costReport, fields }) {
-    let [startHour, setStartHour] = useState(0);
-    const { reportInfo, dataType, checkedKeys, isLoading } = costReport;
+    const { reportInfo, dataType, isDeep, startHour, isLoading } = costReport;
     const { allFields, currentField, energyInfo, currentAttr, expandedKeys, treeLoading } = fields;
-    const { currentCompany, pagesize, timeType, startDate, endDate } = user;
+    const { currentCompany, pagesize, timeType, startDate, endDate, theme } = user;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
     const sidebar = (
         <div>
-            <div className={style['card-container']}>                         
+            <div className={style['card-container']}>                                      
                 <Tabs  
                     className={style['custom-tabs']}
                     activeKey={currentField.field_id + ''}  
@@ -36,17 +34,11 @@ function TimeEnergyReport({ dispatch, user, costReport, fields }) {
                     onChange={fieldKey=>{
                         let field = fieldList.filter(i=>i.field_id == fieldKey )[0];
                         dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
+                        dispatch({ type:'costReport/setDeep', payload:false });
                         new Promise((resolve, reject)=>{
                             dispatch({type:'fields/fetchFieldAttrs', resolve, reject })
-                        }).then((attrs)=>{
-                            let temp = [];
-                            if ( attrs.length && attrs[0].children ) {
-                                temp.push(attrs[0].key);
-                                attrs[0].children.map(i=>temp.push(i.key));
-                            } else if ( attrs.length ) {
-                                temp.push(attrs[0].key);
-                            }
-                            dispatch({type:'costReport/select', payload:temp });
+                        })
+                        .then(()=>{
                             dispatch({ type:'costReport/fetchCostReport', payload:{ startHour }});
                         })
                 }}>
@@ -67,60 +59,43 @@ function TimeEnergyReport({ dispatch, user, costReport, fields }) {
                                     ?
                                     <Spin />
                                     :
-                                    <Tree
-                                        className={style['custom-tree']}
-                                        checkable
-                                        checkStrictly
-                                        expandedKeys={expandedKeys}
-                                        onExpand={temp=>{
-                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });                                                     
-                                        }}
-                                        checkedKeys={checkedKeys}
-                                        onCheck={(checkedKeys, e)=>{
-                                            let { checked, checkedNodes, node }  = e;
-                                            if ( node.children && node.children.length  ){
-                                                if ( checked ){
-                                                    node.children.map(i=>{
-                                                        if(!checkedKeys.checked.includes(i.key)) {
-                                                            checkedKeys.checked.push(i.key);
-                                                        }
-                                                    });
-                                                } else {
-                                                    let childKeys = node.children.map(i=>i.key);
-                                                    checkedKeys.checked = checkedKeys.checked.filter(key=>{
-                                                        return !childKeys.includes(key);
-                                                    });
-                                                }
-                                            }
-                                            dispatch({type:'costReport/select', payload:checkedKeys.checked });
+                                    <div>
+                                        <Checkbox style={{ margin:'10px 10px 0 10px', color:theme === 'dark' ? '#fff' : 'rgba(0,0,0,.85)' }} checked={isDeep} onChange={e=>{
+                                            let checked = e.target.checked;
+                                            dispatch({ type:'costReport/setDeep', payload:checked });
                                             dispatch({ type:'costReport/fetchCostReport', payload:{ startHour }});
-                                        }}
-                                        treeData={fieldAttrs}
-                                    />
+                                        }}>是否下钻展开</Checkbox>
+                                        <Tree
+                                            className={style['custom-tree']}
+                                            expandedKeys={expandedKeys}
+                                            onExpand={temp=>{
+                                                dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                            }}
+                                            selectedKeys={[currentAttr.key]}
+                                            treeData={fieldAttrs}
+                                            onSelect={(selectedKeys, {node})=>{
+                                            
+                                                dispatch({type:'fields/toggleAttr', payload:node});
+                                                dispatch({ type:'costReport/fetchCostReport', payload:{ startHour }});
+                                            }}
+                                        />
+                                    </div>
                                 }
                             </TabPane>
                         ))
                         :
-                        <div className={style['text']} style={{ padding:'1rem' }}>
+                        <div className={style['text']} style={{ padding:'1rem'}}>
                             <div>{`${energyInfo.type_name}能源类型还没有设置维度`}</div>
                             <div style={{ padding:'1rem 0'}}><Button type='primary' onClick={()=>{
                                 history.push(`/energy/info_manage_menu/field_manage?type=${energyInfo.type_code}`);
                             }} >设置维度</Button></div>
                         </div>
                     }
-                </Tabs>                                            
+                </Tabs>                                                  
             </div>                
         </div>
     );
-    useEffect(()=>{
-        // 筛选时间段功能点击筛选Button才触发，默认不触发
-        if ( keepState ){
-            
-        } else {
-            setStartHour(0);
-        }
-        keepState = false;
-    },[reportInfo])
+    
     const content = (
         
                 <div style={{ position:'relative' }}>
@@ -135,21 +110,20 @@ function TimeEnergyReport({ dispatch, user, costReport, fields }) {
                         <Radio.Group size='small' buttonStyle='solid' className={style['custom-radio']} style={{ marginRight:'20px' }} value={dataType} onChange={e=>{
                             dispatch({ type:'costReport/toggleDataType', payload:e.target.value });
                             keepState = true;
-                            dispatch({ type:'costReport/fetchCostReport', payload:{ startHour }});
+                            dispatch({ type:'costReport/fetchCostReport'});
                         }}>
                             <Radio.Button value='1'>成本</Radio.Button>
                             <Radio.Button value='2'>能耗</Radio.Button>
                         </Radio.Group>
                         <CustomDatePicker onDispatch={()=>{
                             keepState = true;
-                            dispatch({ type:'costReport/fetchCostReport', payload:{ startHour }});
+                            dispatch({ type:'costReport/fetchCostReport' });
                         }} />
                         <div style={{ marginLeft:'1rem' }}>
                             <span style={{ color: user.theme === 'dark' ? '#fff' : 'rgba(0, 0, 0, 0.8)' }}>起始基准点 : </span>
                             <Select style={{ width:'140px' }} className={style['custom-select']} value={startHour} onChange={value=>{
-                                setStartHour(value);
-                                keepState = true;
-                                dispatch({ type:'costReport/fetchCostReport', payload:{ startHour:value }});
+                                dispatch({ type:'costReport/setStartHour', payload:value });
+                                dispatch({ type:'costReport/fetchCostReport' });
                             }}>
                                 {
                                     hourData.map(item=>(

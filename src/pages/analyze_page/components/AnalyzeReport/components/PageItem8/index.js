@@ -60,17 +60,17 @@ function PageItem8({ baseCost, dispatch, user, companyName }){
                         ?
                         measureInfoList.map((item,index)=>(
                             <div className={energyStyle['flex-item-wrapper']} key={index}>
-                                <div className={energyStyle['flex-item']} key={index} style={{ backgroundColor:'#f7f7f7' }}>
+                                <div className={energyStyle['flex-item']} key={index} style={{ backgroundColor:'#f7f7f7', padding:'1rem',  }}>
                                     <div className={energyStyle['title']}>
                                         <div className={energyStyle['text']}>{ timeInfo[item.time_type]}</div>
                                         <div className={energyStyle['sub-text']}>电价：{ item.fee_rate } 元</div>
                                     </div>
                                     <div className={energyStyle['info']}>
-                                        <div className={energyStyle['info-item']}>
+                                        <div className={energyStyle['info-item']} style={{ whiteSpace:'nowrap' }}>
                                             <div className={energyStyle['sub-text']}>电费(元)</div>
                                             <div className={energyStyle['text']}>{ Math.floor(+item.totalCost) }</div>
                                         </div>
-                                        <div className={energyStyle['info-item']}>
+                                        <div className={energyStyle['info-item']} style={{ whiteSpace:'nowrap' }}>
                                             <div className={energyStyle['sub-text']}>电费占比(%)</div>
                                             <div className={energyStyle['text']}>
                                                 {
@@ -79,7 +79,7 @@ function PageItem8({ baseCost, dispatch, user, companyName }){
                                                 %
                                             </div>
                                         </div>
-                                        <div className={energyStyle['info-item']}>
+                                        <div className={energyStyle['info-item']} style={{ whiteSpace:'nowrap' }}>
                                             <div className={energyStyle['sub-text']}>用电量(kwh)</div>
                                             <div className={energyStyle['text']}>{ Math.floor(+item.totalEnergy) }</div>
                                         </div>

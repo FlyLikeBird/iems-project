@@ -29,14 +29,6 @@ function ExtremeReport({ dispatch, user, extremeReport, fields }) {
                         dispatch({ type:'fields/init', payload:{ resolve, reject }});
                     })
                     .then((node)=>{
-                        let temp = [];
-                        if ( node.children ) {
-                            temp.push(node.key);
-                            node.children.map(i=>temp.push(i.key));
-                        } else if ( node.key ) {
-                            temp.push(node.key);
-                        }
-                        dispatch({type:'extremeReport/select', payload:temp });
                         dispatch({type:'extremeReport/fetchExtremeReport'});    
                     })
                 }}>
@@ -53,14 +45,6 @@ function ExtremeReport({ dispatch, user, extremeReport, fields }) {
                                         new Promise((resolve, reject)=>{
                                             dispatch({type:'fields/fetchFieldAttrs', resolve, reject })
                                         }).then((attrs)=>{
-                                            let temp = [];
-                                            if ( attrs.length && attrs[0].children ) {
-                                                temp.push(attrs[0].key);
-                                                attrs[0].children.map(i=>temp.push(i.key));
-                                            } else if ( attrs.length ) {
-                                                temp.push(attrs[0].key);
-                                            }
-                                            dispatch({type:'extremeReport/select', payload:temp });
                                             dispatch({type:'extremeReport/fetchExtremeReport'});     
                                         })
                                 }}>
@@ -83,33 +67,16 @@ function ExtremeReport({ dispatch, user, extremeReport, fields }) {
                                                     :
                                                     <Tree
                                                         className={style['custom-tree']}
-                                                        checkable
-                                                        checkStrictly
                                                         expandedKeys={expandedKeys}
                                                         onExpand={temp=>{
-                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });                                                     
+                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
                                                         }}
-                                                        checkedKeys={checkedKeys}
-                                                        onCheck={(checkedKeys, e)=>{
-                                                            let { checked, checkedNodes, node }  = e;
-                                                            if ( node.children && node.children.length  ){
-                                                                if ( checked ){
-                                                                    node.children.map(i=>{
-                                                                        if(!checkedKeys.checked.includes(i.key)) {
-                                                                            checkedKeys.checked.push(i.key);
-                                                                        }
-                                                                    });
-                                                                } else {
-                                                                    let childKeys = node.children.map(i=>i.key);
-                                                                    checkedKeys.checked = checkedKeys.checked.filter(key=>{
-                                                                        return !childKeys.includes(key);
-                                                                    });
-                                                                }
-                                                            }
-                                                            dispatch({type:'extremeReport/select', payload:checkedKeys.checked });
-                                                            dispatch({type:'extremeReport/fetchExtremeReport'});                                            
-                                                        }}
+                                                        selectedKeys={[currentAttr.key]}
                                                         treeData={fieldAttrs}
+                                                        onSelect={(selectedKeys, {node})=>{
+                                                            dispatch({type:'fields/toggleAttr', payload:node});
+                                                            dispatch({type:'extremeReport/fetchExtremeReport'});     
+                                                        }}
                                                     />
                                                 }
                                             </TabPane>

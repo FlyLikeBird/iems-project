@@ -10,7 +10,7 @@ import style from '../../AnalyzeReport.css';
 function PageItem3({ efficiency, efficiencyQuota, fields, analyze, dispatch, companyName }){
     const { regionLoading, attrData, regionData, currentDate } = efficiency;
     const { treeLoading, selectMach } = efficiencyQuota;
-    const { energyInfo } = fields;
+    const { energyInfo, currentField } = fields;
     const { reportInfo } = analyze;
     let dateArr = currentDate.format('YYYY-MM-DD').split('-');
     return (
@@ -57,6 +57,7 @@ function PageItem3({ efficiency, efficiencyQuota, fields, analyze, dispatch, com
                             data={regionData} 
                             onLink={action=>dispatch(action)} 
                             energyInfo={energyInfo} 
+                            currentField={currentField}
                             isLoading={regionLoading}
                         />                      
                     </div>
@@ -69,6 +70,7 @@ function PageItem3({ efficiency, efficiencyQuota, fields, analyze, dispatch, com
                             onLink={action=>dispatch(action)} 
                             energyInfo={energyInfo} 
                             isLoading={regionLoading}
+                            currentField={currentField}
                             multi={true}
                         />               
                     </div>

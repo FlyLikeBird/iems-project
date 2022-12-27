@@ -3,11 +3,9 @@ import { connect } from 'dva';
 import { Card, Spin, Tree, Tabs, Skeleton, DatePicker, Radio, Table } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
+import Loading from '@/pages/components/Loading';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
 import style from '../IndexPage.css';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
-import moment from 'moment';
-import HarmonicBarChart from './components/HarmonicBarChart';
 
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
@@ -116,7 +114,14 @@ function EleQualityIndex({ dispatch, fields, eleQuality, user }){
     const content = (
         Object.keys(eleIndex).length 
         ?
-        <div>
+        <div style={{ position:'relative' }}>
+            {
+                isLoading 
+                ?
+                <Loading />
+                :
+                null
+            }
             <div style={{ height:'40px'}}>
                 <CustomDatePicker onDispatch={()=>{
                     dispatch({ type:'eleQuality/fetchEleQualityIndex'});

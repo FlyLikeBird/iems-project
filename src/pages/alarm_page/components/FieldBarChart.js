@@ -63,6 +63,7 @@ function FieldBarChart({ data, type, theme }) {
                                         label:{
                                             show:true,
                                             position:'insideRight',
+                                            fontSize:14,
                                             formatter:params=>{
                                                 return `${item.total}次`
                                             }

@@ -7,8 +7,8 @@ import zhCN from 'antd/es/date-picker/locale/zh_CN';
 import AnalyzeChart from './components/AnalyzeChart';
 import style from '../IndexPage.css';
 import AnalyzeMachForm from './components/AnalyzeMachForm';
-import moment from 'moment';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
+import Loading from '@/pages/components/Loading';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -97,17 +97,20 @@ function AnalyzeMachManager({ dispatch, user, analyze, fields }){
                 Object.keys(runEffInfo).length
                 ?
                 <div>
+                    {
+                        machEffLoading 
+                        ?
+                        <Loading />
+                        :
+                        null
+                    }
                     <div style={{ height:'40px'}}>
                         <CustomDatePicker noToggle onDispatch={()=>{
-                            dispatch({type:'analyze/fetchMachEff'});
+                            dispatch({type:'analyze/fetchMachEff', payload:{ hasMach:true }});
                         }} />
                     </div>
-                    <div style={{ height:'calc( 100% - 40px)'}}>
-                    {
-                        !machEffLoading
-                        ?
-                        <div className={style['card-container-wrapper']} style={{ display:'block', height:'20%', paddingRight:'0' }}>
-                            
+                    <div style={{ height:'calc( 100% - 40px)'}}>               
+                        <div className={style['card-container-wrapper']} style={{ display:'block', height:'20%', paddingRight:'0' }}>                        
                                 {
                                     machInfoList.map((item,index)=>(
                                         <div className={style['card-container-wrapper']} key={index} style={{ width:'20%', paddingBottom:'0', paddingRight:index === machInfoList.length -1 ? '0' : '1rem' }}>
@@ -140,13 +143,8 @@ function AnalyzeMachManager({ dispatch, user, analyze, fields }){
                                         </div>
                                     ))
                                 }                         
-                        </div>                                     
-                        :
-                        <Skeleton active className={style['skeleton']} />
-                    }
-                    {
-                        !machEffLoading
-                        ?
+                        </div>                                                     
+                    
                         <div className={style['card-container']} style={{ height:'80%' }}>
                             <div className={style['card-title']} >
                                     {
@@ -296,10 +294,7 @@ function AnalyzeMachManager({ dispatch, user, analyze, fields }){
                             </div>  
                                                                                          
                         </div>
-                        :
-                        <Skeleton active className={style['skeleton']} />
-                    }
-                     
+                    
                     {/* 添加设备库表单 */}
                     <Modal visible={visible} footer={null} bodyStyle={{ padding:'40px' }} onCancel={()=>toggleVisible(false)} closable={false} destroyOnClose={true}>
                         <AnalyzeMachForm data={runEffInfo} onClose={()=>toggleVisible(false)} onDispatch={action=>dispatch(action)} />

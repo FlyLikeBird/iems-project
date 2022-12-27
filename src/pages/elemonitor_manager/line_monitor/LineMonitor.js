@@ -11,8 +11,9 @@ import IndexStyle from '../../IndexPage.css';
 
 const { TabPane } = Tabs;
 let timer ;
-function LineMonitor({ dispatch, user, eleMonitor, fields }) {
-    const { eleLoading, eleScenes, currentScene, linePoints, eleDetail, detailLoading, startDate, timeType } = eleMonitor;
+function LineMonitor({ dispatch, user, eleMonitor }) {
+    const { startDate, endDate, timeType, currentCompany, theme } = user;
+    const { eleLoading, eleScenes, currentScene, linePoints, eleDetail, detailLoading } = eleMonitor;
     useEffect(()=>{
         dispatch({ type:'eleMonitor/fetchEleLines'});
         timer = setInterval(()=>{
@@ -39,7 +40,7 @@ function LineMonitor({ dispatch, user, eleMonitor, fields }) {
                                 }}>{ item.scene_name }</div>
                             ))
                             :
-                            <Spin className={style['spin']} size='large' />
+                            null
                         }
                     </div>
                     
@@ -64,8 +65,8 @@ function LineMonitor({ dispatch, user, eleMonitor, fields }) {
                             eleDetail={eleDetail} 
                             startDate={startDate} 
                             timeType={timeType} 
-                            theme={user.theme}
-                            companyName={user.currentCompany.company_name}
+                            theme={theme}
+                            companyName={currentCompany.company_name || '--'}
                         />
                         :
                         <div className={style['empty-text']}>还没有配置电路图</div>

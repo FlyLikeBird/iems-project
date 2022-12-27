@@ -45,13 +45,12 @@ function WarningTypePieChart({ data, type, statusData, theme }) {
             })
         })
     }
-    console.log(statusData);
     return (   
                 seriesData.length 
                 ?  
                 <div style={{ height:'100%' }}>
 
-                <div style={{ position:'absolute', top:'6px', width:'100%', display:'flex', justifyContent:'space-around' }}>
+                <div style={{ height:'10%', width:'100%', display:'flex', justifyContent:'space-around' }}>
                     {
                         statusData && statusData.children 
                         ?
@@ -67,16 +66,18 @@ function WarningTypePieChart({ data, type, statusData, theme }) {
                 </div>
                 <ReactEcharts
                     notMerge={true}
-                    style={{ width:'100%', height:'100%'}}
+                    style={{ width:'100%', height:'90%'}}
                     option={{
                         legend:{
                             data:seriesData.map(i=>i.name),
                             left: '60%',
                             top:'middle',
+                            // top:'12%',
+                            // bottom:'10%',
                             orient:'vertical',
                             type:'scroll',
-                            itemWidth:10,
-                            itemHeight:10,
+                            itemWidth:8,
+                            itemHeight:8,
                             icon:'circle',
                             formatter:(name)=>{
                                 // let temp = findData(name, seriesData);
@@ -144,7 +145,7 @@ function WarningTypePieChart({ data, type, statusData, theme }) {
                                 show:false
                             },
                             type:'pie',
-                            radius:['54%','66%'],
+                            radius:['58%','70%'],
                             center:['30%','50%'],
                             data:seriesData
                         }

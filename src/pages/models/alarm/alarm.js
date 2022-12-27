@@ -208,6 +208,7 @@ export default {
                 let { user:{ company_id, startDate, endDate }} = yield select();
                 let begin_date = startDate.format('YYYY-MM-DD');
                 let end_date = endDate.format('YYYY-MM-DD');      
+                yield put({ type:'toggleLoading'});
                 let [ sumData, typeData, machData, fieldData ] = yield all([
                     call(getWarningDetail, { company_id, begin_date, end_date }),
                     call(getWarningAnalyze, { company_id, begin_date, end_date }),
@@ -217,9 +218,7 @@ export default {
                 if ( sumData.data.code === '0' && typeData.data.code === '0' && machData.data.code === '0' && fieldData.data.code === '0' ){
                     yield put({type:'getSumInfo', payload:{ sumInfo:sumData.data.data, typeInfo:typeData.data.data, machWarning:machData.data.data, fieldWarning:fieldData.data.data }});
                     if ( resolve && typeof resolve === 'function') resolve();    
-                } else if ( sumData.data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
-                }      
+                }   
             } catch(err){
                 console.log(err);
             }
@@ -395,7 +394,7 @@ export default {
                 machList.push({ attr_name:machsMap[key], key, total:machWarning[key], type:[{ name:machsMap[key], count:machWarning[key]}]});
             })
             fieldWarning['mach'] = machList;
-            return { ...state, sumInfo, sumList, warningTypeInfo:typeInfo, machWarning, fieldWarning };
+            return { ...state, sumInfo, sumList, warningTypeInfo:typeInfo, machWarning, fieldWarning, isLoading:false };
         },
         getReportSumInfo(state, { payload:{ sumInfo, detailInfo }}){
             // console.log(sumInfo);
@@ -430,7 +429,6 @@ export default {
             return { ...state, recordListInfo:{ list, count }, isLoading:false };
         },
         getExecuteType(state, { payload:{ data }}){
-            console.log(data);
             return { ...state, executeType:data };
         },
         getRecordHistory(state, { payload: { data }}){

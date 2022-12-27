@@ -5,26 +5,13 @@ import { Radio, Spin, Card, Tree, Menu, Button, Modal, Tabs, Select, Skeleton, m
 import { ArrowUpOutlined, ArrowDownOutlined, ArrowRightOutlined, RightCircleOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
+import Loading from '@/pages/components/Loading';
 import PhaseLineChart from './components/PhaseLineChart';
 import style from '../IndexPage.css';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
-import { energyIcons } from '@/pages/utils/energyIcons';
-import moment from 'moment';
+
 const { TabPane } = Tabs;
 const { Option } = Select;
 
-const optionTypes = {
-    '1':'有功电量',
-    '2':'无功电量',
-    '3':'有功功率',
-    '4':'无功功率',
-    '5':'功率因素',
-    '6':'最大需量',
-    '7':'相电流',
-    '8':'相电压',
-    '9':'四象限无功电能',
-    '10':'线电压'
-};
 const dayTimeTypes = {
     '1':'小时',
     '2':'30分钟',
@@ -32,10 +19,7 @@ const dayTimeTypes = {
     // '4':'5分钟',
 };
 
-let optionList = [], dayTimeList=[];
-for(let i=1;i<=10;i++){
-    optionList.push(i+'');
-}
+let dayTimeList=[];
 
 for(let i=1;i<5;i++){
     dayTimeList.push({
@@ -46,7 +30,7 @@ for(let i=1;i<5;i++){
 
 function EnergyPhaseManager({ dispatch, user, fields, demand }) {
     const { timeType, startDate, endDate, theme } = user;
-    const { energyList, energyInfo, phaseInfo, phaseValueList, phaseLoading, phaseDayTimeType,  phaseOptionType } = demand ;
+    const { energyList, energyInfo, optionTypes, currentOption, typeRule, phaseInfo, phaseValueList, phaseLoading, phaseDayTimeType,  phaseOptionType } = demand ;
     const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
@@ -65,7 +49,8 @@ function EnergyPhaseManager({ dispatch, user, fields, demand }) {
                     new Promise((resolve)=>{
                         dispatch({type:'fields/fetchFieldAttrs', resolve })
                     }).then(()=>{
-                        dispatch({type:'demand/fetchEnergyPhase'});                   
+                        dispatch({type:'demand/fetchEnergyPhase'});     
+                        dispatch({ type:'demand/fetchTypeRule'});              
                     })
                 }}>
                     {                       
@@ -91,6 +76,7 @@ function EnergyPhaseManager({ dispatch, user, fields, demand }) {
                                         onSelect={(selectedKeys, {node})=>{
                                             dispatch({type:'fields/toggleAttr', payload:node});
                                             dispatch({type:'demand/fetchEnergyPhase'});
+                                            dispatch({ type:'demand/fetchTypeRule'});              
                                         }}
                                     />
                                 }
@@ -104,15 +90,24 @@ function EnergyPhaseManager({ dispatch, user, fields, demand }) {
     const content = (
         Object.keys(phaseInfo).length 
         ?
-        <div>
+        <div style={{ position:'relative' }}>
+            {
+                phaseLoading
+                ?
+                <Loading />
+                :
+                null
+            }
             <div style={{ height:'40px', display:'flex' }}>
-                <Select size='small' className={style['custom-select']} style={{ width:'140px', marginRight:'1rem' }} value={phaseOptionType} onChange={(value)=>{
-                    dispatch({type:'demand/setPhaseOptionType', payload:value });
+                <Select size='small' className={style['custom-select']} style={{ width:'140px', marginRight:'1rem' }} value={currentOption.key} onChange={(value)=>{
+                    let result = optionTypes.filter(i=>i.key === value)[0];
+                    dispatch({type:'demand/toggleCurrentOption', payload:result });
                     dispatch({type:'demand/fetchEnergyPhase'});
+                    dispatch({ type:'demand/fetchTypeRule'});              
                 }}>
                     {
-                        optionList.map((item)=>(
-                            <Option value={item}>{ optionTypes[item] }</Option>
+                        optionTypes.map((item)=>(
+                            <Option value={item.key} key={item.key}>{ item.title }</Option>
                         ))
                     }
                 </Select>
@@ -122,7 +117,7 @@ function EnergyPhaseManager({ dispatch, user, fields, demand }) {
             </div>
             <div className={style['card-container']} style={{ height:'calc( 100% - 40px)'}}>
                 <div className={style['card-title']}>
-                    <div>{`能源趋势图--${optionTypes[phaseOptionType]}`}</div>
+                    <div>{`能源趋势图--${currentOption.title}`}</div>
                     {
                         Object.keys(phaseInfo).length && timeType === '1'
                         ?
@@ -154,13 +149,17 @@ function EnergyPhaseManager({ dispatch, user, fields, demand }) {
                         }
                     </div>
                     <div style={{ height:'86%'}}>
-                        {
-                            phaseLoading 
-                            ?
-                            <Skeleton active className={style['skeleton']} />                
-                            :
-                            <PhaseLineChart data={phaseInfo} optionText={optionTypes[phaseOptionType]} optionUnit={phaseInfo.unit} timeType={timeType} currentAttr={currentAttr} theme={theme} />
-                        }
+                        
+                            <PhaseLineChart 
+                                data={phaseInfo} 
+                                currentOption={currentOption}
+                                typeRule={typeRule}
+                                timeType={timeType} 
+                                currentAttr={currentAttr} 
+                                theme={theme} 
+                                dispatch={dispatch}
+                            />
+                        
                     </div>
                 </div>
             </div>

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Row, Col, Table, Button, Card, Tree, Select, Skeleton } from 'antd';
-import EditTable from '../../../../../components/EditTable';
 
 function LineLossTable({ data, forMach }){
     let dateColumns = []; 
@@ -93,7 +92,7 @@ function LineLossTable({ data, forMach }){
         ];
     }
     return (
-        <EditTable
+        <Table
             columns={columns}
             dataSource={data}
             rowKey={(text,record)=>text.date}

@@ -3,13 +3,15 @@ import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Spin, Card, Tree, Tabs, Button, Modal, DatePicker, Skeleton, Menu, message } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined,   } from '@ant-design/icons';
-import ColumnCollapse from '../../../components/ColumnCollapse';
+import ColumnCollapse from '@/pages/components/ColumnCollapse';
+import CustomDatePicker from '@/pages/components/CustomDatePicker';
+import Loading from '@/pages/components/Loading';
 import LineLossChart from './components/LineLossChart';
 import LineLossTable from './components/LineLossTable';
-import CountUp from 'react-countup';
-import style from './EfficiencyManager.css';
+import style from '../elemonitor_manager/EleMonitor.css';
+import IndexStyle from '@/pages/IndexPage.css';
 import zhCN from 'antd/es/date-picker/locale/zh_CN';
-import { energyIcons } from '../../../utils/energyIcons';
+import { energyIcons } from '../utils/energyIcons';
 
 const { TabPane } = Tabs;
 const { RangePicker } = DatePicker;
@@ -18,65 +20,74 @@ function format(dateStr){
     return dateStr.substring(5,dateStr.length);
 }
 
-function LineLossManager({ dispatch, demand }) {
-    const { mainLineList, currentMainLine, lineLossInfo, lineLossList, lineLossLoading, energyList, energyInfo, treeLoading, startDate, endDate } = demand;
+function LineLossManager({ dispatch, user, demand }) {
+    const { mainLineList, currentMainLine, lineLossInfo, lineLossList, lineLossLoading } = demand;
   
     const sidebar = (
-        <div>
-            <Card title="能耗类别" className='card-container'>
-                <Radio.Group value={energyInfo.type_id} onChange={e=>{
-                    dispatch({type:'demand/toggleEnergyType', payload:e.target.value });
-                }}>
+        <div className={IndexStyle['card-container']}>
+            <div className={IndexStyle['card-title']}>线路选择</div>
+            <div className={IndexStyle['card-content']}>
+                <div className={ user.theme === 'dark' ? style['list-container'] + ' ' + style['dark'] : style['list-container']}>
                     {
-                        energyList.map(item=>(
-                            <Radio.Button key={item.type_id} value={item.type_id}>{ energyIcons[item.type_code] }{item.type_name}</Radio.Button>
-                        ))
-                    }
-                </Radio.Group>                                                        
-            </Card>
-            <Card title="统计对象" className='card-container' >              
-                {
-                    !Object.keys(currentMainLine).length
-                    ?
-                    <Spin />
-                    :
-                    <Menu
-                        onClick={({ key })=>{
-                            if ( +currentMainLine.main_id !== +key ) {
+                        mainLineList.length 
+                        ?
+                        mainLineList.map((item,index)=>(
+                            <div className={ item.main_id === currentMainLine.main_id ? style['list-item'] + ' ' + style['selected'] : style['list-item']} key={item.main_id} onClick={()=>{
                                 let temp = mainLineList.filter(i=>i.main_id == key )[0];
                                 dispatch({type:'demand/setMainLine', payload:temp });
-                                dispatch({type:'demand/fetchLineLoss', payload:{} });
-                            }
-                        }}
-                        selectedKeys={[currentMainLine.main_id+'']}
-                    >
-                        {
-                            mainLineList && mainLineList.length 
-                            ?
-                            mainLineList.map((item)=>(
-                                <Menu.Item key={item.main_id}>{ item.main_name }</Menu.Item>
-                            ))
-                            :
-                            null
-                        }
-                    </Menu>
-                }                           
-            </Card>
+                                dispatch({type:'demand/fetchLineLoss'});
+                            }}>{ item.main_name }</div>
+                        ))
+                        :
+                        <Spin className={style['spin']} size='large' />
+                    }
+                </div>
+                
+            </div>
         </div>
     );
     const content = (
         <div>
-            <div className='card-container'>
-                <Card title='统计周期'>
-                    <div>选择日期: <RangePicker value={[startDate, endDate]} locale={zhCN} allowClear={false} onChange={momentArr=>{
-                        dispatch({type:'demand/setMachAndLineDate', payload:{ startDate:momentArr[0], endDate:momentArr[1] }});
-                        dispatch({type:'demand/fetchLineLoss', payload:{} });
-                        console.log(momentArr);
-                    }}/></div>
-                </Card>
+            {
+                lineLossLoading
+                ?
+                <Loading />
+                :
+                null
+            }
+            <div style={{ height:'40px' }}>
+                <CustomDatePicker onDispatch={()=>{ dispatch({ type:'demand/fetchLineLoss' })}} />
             </div>
-                    
-            <div className='card-container'>
+            <div style={{ height:'calc( 100% - 40px)' }}>
+                <div style={{ height:'14%'}}>
+                    {
+                        lineLossList.map((item,index)=>(
+                            <div key={index} className={IndexStyle['card-container-wrapper']} style={{ width:'25%', paddingRight:index === lineLossList.length - 1 ? '0' : '1rem' }}>
+                                <div className={IndexStyle['card-container']} style={{ display:'flex', alignItems:'center', justifyContent:'space-around' }}>
+                                    <div>
+                                        <div>{ item.text }</div>
+                                        <div>
+                                            <span className={IndexStyle['data']}>{ item.value }</span>
+                                            <span className={IndexStyle['unit']}>{ item.unit }</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div>上期对比</div>
+                                        <div>
+                                            <span className={IndexStyle['data']}>{ item.lastValue }</span>
+                                            <span className={IndexStyle['unit']}>{ item.unit }</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    }
+                </div>
+                <div className={IndexStyle['card-container']} style={{ height:'86%' }}>                        
+                    <LineLossChart data={lineLossInfo.view} theme={user.theme} />                                
+                </div>
+            </div>     
+            {/* <div className='card-container'>
                 <Card title={
                     <div className='title'>
                         <div>
@@ -113,25 +124,9 @@ function LineLossManager({ dispatch, demand }) {
                         }
                     </div>
                 </Card>
-            </div>
-            
-            {
-                lineLossLoading
-                ?
-                <Skeleton active />
-                :
-                lineLossInfo && lineLossInfo.view 
-                ?
-                <div className='card-container'>
-                    <Card>                               
-                        <LineLossChart data={lineLossInfo.view} />
-                    </Card>
-                </div>
-                :
-                null
-            }
-
-            {
+            </div> */}
+           
+            {/* {
                 lineLossLoading
                 ?
                 <Skeleton active />
@@ -146,7 +141,7 @@ function LineLossManager({ dispatch, demand }) {
                 :
                 null
             } 
-            
+             */}
         </div>
     );
    
@@ -155,4 +150,4 @@ function LineLossManager({ dispatch, demand }) {
     );
 }
 
-export default connect(({ demand })=>({ demand }))(LineLossManager);
+export default connect(({ user, demand })=>({ user, demand }))(LineLossManager);

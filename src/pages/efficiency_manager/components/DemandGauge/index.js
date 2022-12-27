@@ -11,15 +11,15 @@ function DemandGauge({ data }){
                     {
                         type:'gauge',
                         name:'当前需量',
-                        center:['50%','50%'],
+                        center:['50%','55%'],
                         min:0,
                         max:data.month_max_demand ? data.month_max_demand : 100,
-                        radius:'80%',
+                        radius:'85%',
                         startAngle:210,
                         endAngle:-30,
                         axisLine:{
                             lineStyle:{
-                                width:30,
+                                width:24,
                                 color:[
                                     [ data.month_max_demand ? data.now_demand/data.month_max_demand : 0,'#1890ff'],
                                     [1,'#a5e0fe']
@@ -46,7 +46,7 @@ function DemandGauge({ data }){
                             offsetCenter:[0,40],
                             fontSize:20,
                             fontWeight:'bold',
-                            color:'#1890ff'
+                            color:'#1890ff',
                         },
                         data:[
                             { value:Math.floor(data.now_demand), name:''}

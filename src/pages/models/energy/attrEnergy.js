@@ -34,6 +34,7 @@ export default {
         },
         *init(action, { call, put, select, all}){
             let { resolve, reject } = action.payload || {};
+            yield put.resolve({ type:'fields/init'});
             let [a,b,c] = yield all([
                 put.resolve({type:'fetchCost'}),
                 put.resolve({type:'fetchAttrQuota'}),
@@ -46,23 +47,22 @@ export default {
             yield put.resolve({ type:'cancelable', task:fetchCostCancelabe, action:'cancelCost' });
             function* fetchCostCancelabe(){
                 try {
-                    let { user:{ company_id }, fields:{ energyInfo }, attrEnergy : { currentDate }} = yield select();
+                    let { user:{ company_id }, fields:{ energyInfo, currentField }, attrEnergy : { currentDate }} = yield select();
                     let { resolve, reject } = action.payload ? action.payload : {};
                     let temp = currentDate.format('YYYY-MM-DD').split('-');
                     let year = temp[0], month = temp[1], day = temp[2];
                     yield put({ type:'toggleLoading'});
+
                     let [attrMonthData, attrDayData, attrHourData] = yield all([
-                        call(getAttrCost, { company_id, type_id:energyInfo.type_id, time_type:'2', year, month, day }),
-                        call(getAttrCost, { company_id, type_id:energyInfo.type_id, time_type:'3', year, month, day }),
-                        call(getAttrCost, { company_id, type_id:energyInfo.type_id, time_type:'4', year, month, day }),
+                        call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'2', year, month, day }),
+                        call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'3', year, month, day }),
+                        call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'4', year, month, day }),
                     ]);
                     if ( attrMonthData && attrMonthData.data.code === '0' && attrDayData && attrDayData.data.code === '0' && attrHourData && attrHourData.data.code === '0'){
                         let obj = { attrMonthData:attrMonthData.data.data, attrDayData:attrDayData.data.data, attrHourData:attrHourData.data.data };
                         yield put({type:'get', payload:obj});
                         if ( resolve && typeof resolve === 'function') resolve();
-                    } else if ( attrMonthData.data.code === '1001' ) {
-                        yield put({ type:'user/loginOut'});
-                    }
+                    } 
                 } catch(err){
                     console.log(err);
                 }
@@ -73,9 +73,9 @@ export default {
             yield put.resolve({ type:'cancelable', task:fetchAttrQuotaCancelable, action:'cancelAttrQuota' });
             function* fetchAttrQuotaCancelable(){
                 try {
-                    let { user:{ company_id }, fields:{ energyInfo }} = yield select();
+                    let { user:{ company_id }, fields:{ energyInfo, currentField }} = yield select();
                     yield put({ type:'toggleRegionLoading'});
-                    let { data } = yield call(getAttrQuota, { company_id, type_id:energyInfo.type_id });
+                    let { data } = yield call(getAttrQuota, { company_id, type_id:energyInfo.type_id, field_id:currentField.field_id });
                     if ( data && data.code === '0'){
                         yield put({type:'getAttrQuota', payload:{ data : data.data }});
                     }

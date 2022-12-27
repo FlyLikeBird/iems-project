@@ -14,19 +14,13 @@ function InfoItem({dispatch, data, type, theme, currentProject}){
     
     return ( 
         <div className={style['card-container-wrapper']} style={{ width:'auto', height:'auto' }}>
-            <div className={style['card-container']} style={{ width:'300px', height:'160px', border:`1px solid ${borderColor}`, overflow:'hidden' }}>
+            <div className={style['card-container']} style={{ cursor:'pointer', width:'300px', height:'160px', border:`1px solid ${borderColor}`, overflow:'hidden' }} onClick={()=>{
+                dispatch(routerRedux.push(`/energy/info_manage_menu/manual_input/${type}/${type_id}`))
+            }}>
                 <div style={{ height:'120px', lineHeight:'120px', textAlign:'center' }}>          
                     <span className={style['data']}>{ type_name }</span>            
-                </div>
-                
-                    
-                    <div style={{ height:'40px', lineHeight:'40px', textAlign:'center', backgroundColor:borderColor}}>
-                            <div onClick={()=>{
-                                dispatch(routerRedux.push(`/${currentProject}/info_manage_menu/manual_input/${type}/${type_id}`))
-                            }}>确定</div>,
-                            
-                    </div>
-                       
+                </div>                
+                <div style={{ height:'40px', lineHeight:'40px', textAlign:'center', backgroundColor:borderColor}}>确定</div> 
                 </div>
         
         </div>        

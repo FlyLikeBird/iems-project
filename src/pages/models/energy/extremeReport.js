@@ -29,119 +29,71 @@ export default {
         },
         *initExtremeReport(action, { put, select }){
             yield put.resolve({ type:'fields/init'});
-            let { fields:{ allFields, energyInfo, currentAttr, fieldAttrs }} = yield select();
-            let temp = [];
-            if ( currentAttr.children && currentAttr.children.length ) {
-                temp.push(currentAttr.key);
-                currentAttr.children.map(i=>temp.push(i.key));
-            } else {
-                temp.push(currentAttr.key);
-            }
-            yield put({ type:'select', payload:temp });
             yield put({ type:'fetchExtremeReport'});
         },
-        *fetchExtremeReport(action, { call, put, select}){
-            yield put.resolve({ type:'cancelExtremeReport'});
-            yield put.resolve({ type:'cancelable', task:fetchExtremeReportCancelable, action:'cancelExtremeReport'});
-            function* fetchExtremeReportCancelable(params){
-                try {
-                    let { user:{ company_id, timeType, startDate, endDate }, extremeReport:{ eleType, checkedKeys } } = yield select();
-                    yield put({type:'toggleLoading'});
-                    let { data } = yield call(getExtremeReport, { company_id, time_type:timeType, attr_ids:checkedKeys, energy_type:eleType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
-                    if ( data && data.code === '0'){
-                        yield put({type:'getReport', payload:{ data:data.data }});
-                    } 
-                } catch(err){
-                    console.log(err);
-                }
-            }
+        *fetchExtremeReport(action, { call, put, select}){     
+            try {
+                let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }, extremeReport:{ eleType } } = yield select();
+                yield put({type:'toggleLoading'});
+                timeType = timeType === '10' ? '2' : timeType;
+                let { data } = yield call(getExtremeReport, { company_id, time_type:timeType, attr_id:currentAttr.key, energy_type:eleType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
+                if ( data && data.code === '0'){
+                    yield put({type:'getReport', payload:{ data:data.data }});
+                } 
+            } catch(err){
+                console.log(err);
+            }        
         },
         *initEleReport(action, { put, select }){
             yield put.resolve({ type:'fields/init'});
-            let { fields:{ allFields, energyInfo, currentAttr, fieldAttrs }} = yield select();
-            let temp = [];
-            if ( currentAttr.children && currentAttr.children.length ) {
-                temp.push(currentAttr.key);
-                currentAttr.children.map(i=>temp.push(i.key));
-            } else {
-                temp.push(currentAttr.key);
-            }
-            yield put({ type:'select', payload:temp });
             yield put.resolve({ type:'fetchEleReport'});
         },
-        *fetchEleReport(action, { call, put, select}){
-            yield put.resolve({ type:'cancelEleReport'});
-            yield put.resolve({ type:'cancelable', task:fetchEleReportCancelable, action:'cancelEleReport'});
-            function* fetchEleReportCancelable(params){
-                try {
-                    let { user:{ company_id, timeType, startDate, endDate }, extremeReport:{ checkedKeys }} = yield select();
-                    yield put({type:'toggleLoading'});
-                    let { data } = yield call(getEleReport, { company_id, time_type:timeType, attr_ids:checkedKeys, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), energy_type:'1' })
-                    if ( data && data.code === '0'){
-                        yield put({type:'getReport', payload:{ data:data.data }});
-                    }                   
-                } catch(err){
-                    console.log(err);
-                }
-            }
+        *fetchEleReport(action, { call, put, select}){  
+            try {
+                let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }, extremeReport:{ checkedKeys }} = yield select();
+                yield put({type:'toggleLoading'});
+                timeType = timeType === '10' ? '2' : timeType;
+                let { data } = yield call(getEleReport, { company_id, time_type:timeType, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), energy_type:'1' })
+                if ( data && data.code === '0'){
+                    yield put({type:'getReport', payload:{ data:data.data }});
+                }                   
+            } catch(err){
+                console.log(err);
+            }     
         },
         *initSameRate(action, { put, select }){
             yield put.resolve({ type:'fields/init'});
-            let { fields:{ allFields, energyInfo, currentAttr, fieldAttrs }} = yield select();
-            let temp = [];
-            if ( currentAttr.children && currentAttr.children.length ) {
-                temp.push(currentAttr.key);
-                currentAttr.children.map(i=>temp.push(i.key));
-            } else {
-                temp.push(currentAttr.key);
-            }
-            yield put({ type:'select', payload:temp });
             yield put.resolve({ type:'fetchSameRate'});
         },
-        *fetchSameRate(action, { call, put, select}){
-            yield put.resolve({ type:'cancelSameRate'});
-            yield put.resolve({ type:'cancelable', task:fetchSameRateCancelable, action:'cancelSameRate'});
-            function* fetchSameRateCancelable(params){
-                try {
-                    let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo }, extremeReport:{ checkedKeys }} = yield select();
-                    yield put({type:'toggleLoading'});
-                    let { data } = yield call(getSameRate, { company_id, time_type:timeType, attr_ids:checkedKeys, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
-                    if ( data && data.code === '0'){
-                        yield put({type:'getReport', payload:{ data:data.data }});
-                    }          
-                } catch(err){
-                    console.log(err);
-                }
-            }
+        *fetchSameRate(action, { call, put, select}){   
+            try {
+                let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo, currentAttr }} = yield select();
+                yield put({type:'toggleLoading'});
+                timeType = timeType === '10' ? '2' : timeType;
+                let { data } = yield call(getSameRate, { company_id, time_type:timeType, attr_id:currentAttr.key, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
+                if ( data && data.code === '0'){
+                    yield put({type:'getReport', payload:{ data:data.data }});
+                }          
+            } catch(err){
+                console.log(err);
+            }     
         },
         *initAdjoinRate(action, { put, select }){
             yield put.resolve({ type:'fields/init'});
-            let { fields:{ allFields, energyInfo, currentAttr, fieldAttrs }} = yield select();
-            let temp = [];
-            if ( currentAttr.children && currentAttr.children.length ) {
-                temp.push(currentAttr.key);
-                currentAttr.children.map(i=>temp.push(i.key));
-            } else {
-                temp.push(currentAttr.key);
-            }
-            yield put({ type:'select', payload:temp });
             yield put.resolve({ type:'fetchAdjoinRate'});
         },
         *fetchAdjoinRate(action, { call, put, select}){
-            yield put.resolve({ type:'cancelAdjoinRate'});
-            yield put.resolve({ type:'cancelable', task:fetchAdjoinRateCancelable, action:'cancelAdjoinRate'});
-            function* fetchAdjoinRateCancelable(params){
-                try {
-                    let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo }, extremeReport:{ checkedKeys }} = yield select();
-                    yield put({type:'toggleLoading'});
-                    let { data } = yield call(getAdjoinRate, { company_id, time_type:timeType, attr_ids:checkedKeys, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
-                    if ( data && data.code === '0'){
-                        yield put({type:'getReport', payload:{ data:data.data }});
-                    } 
-                } catch(err){
-                    console.log(err);
-                }
-            }
+            try {
+                let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo, currentAttr }} = yield select();
+                yield put({type:'toggleLoading'});
+                timeType = timeType === '10' ? '2' : timeType;
+                let { data } = yield call(getAdjoinRate, { company_id, time_type:timeType, attr_id:currentAttr.key, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
+                if ( data && data.code === '0'){
+                    yield put({type:'getReport', payload:{ data:data.data }});
+                } 
+            } catch(err){
+                console.log(err);
+            }        
         },
     },
     reducers:{

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import privacyTxt from './privacy.txt';
 
 function PrivacyManager(){

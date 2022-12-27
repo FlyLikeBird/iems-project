@@ -96,8 +96,7 @@ function DemandManager({ dispatch, user, demand, fields }){
                         }}><LeftOutlined /></div>
                         <DatePicker size='small' className={style['custom-date-picker']} locale={zhCN} value={referTime} allowClear={false} onChange={moment=>{
                             dispatch({type:'demand/setDate', payload:moment });
-                            dispatch({type:'demand/fetchDemand'});
-                        
+                            dispatch({type:'demand/fetchDemand'});                     
                         }} />
                         <div className={style['date-picker-button-right']} onClick={()=>{
                             let date = new Date(referTime.format('YYYY-MM-DD'));

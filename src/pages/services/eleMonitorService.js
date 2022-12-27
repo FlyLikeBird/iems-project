@@ -19,6 +19,7 @@ export function getMachChart(data = {}){
     let token = apiToken();
     data.token = token;
     let str = translateObj(data);
+    console.log(str);
     return request('/Eleroommonitor/macharealtime', { 
         method:'POST',
         headers: {

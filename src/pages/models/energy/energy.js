@@ -1,4 +1,4 @@
-import { getTotalCost, getCurrentCost, getEnergyType, getSceneInfo, getRank, getElectricCostAnalysis, getAttrWaterCost, getTotalCostAnalysis, fetchImg } from '../../services/energyService';
+import { getTotalCost, getCurrentCost, getEnergyType, getSceneInfo, getRank, getElectricCostAnalysis, getAttrWaterCost, getAttrGasCost, getTotalCostAnalysis, fetchImg } from '../../services/energyService';
 import { setSceneInfo, uploadImg } from '../../services/alarmService';
 import { getMachs } from '../../services/demandService';
 import { getSaveSpace } from '../../services/monitorService';
@@ -22,7 +22,8 @@ const initialState = {
     showType:'0',
     // 遮罩层状态
     maskVisible:false,
-    waterCost:{}
+    waterCost:{},
+    waterLoading:true
 };
 
 export default {
@@ -50,16 +51,14 @@ export default {
                         energyInfo.type_id === 1 ?
                         getElectricCostAnalysis : 
                         getTotalCostAnalysis,
-                        { company_id }
+                        { company_id, type_id:energyInfo.type_id }
                     )   
                 ]);           
                 if ( currentCost && currentCost.data.code === '0' && costAnalysis && costAnalysis.data.code === '0'){
                     let payload = { currentCost : currentCost.data.data,  costAnalysis : costAnalysis.data.data, energyType: energyInfo.type_id };
                     yield put({type:'get', payload});
                     if ( resolve && typeof resolve === 'function') resolve();
-                } else if ( currentCost.data.code === '1001' ){
-                    yield put({ type:'user/loginOut'});
-                }
+                } 
             } catch (err){
                 console.log(err);
             }
@@ -80,29 +79,35 @@ export default {
         },
         *initWaterCost(action, { call, select, put, all }) {
             try {
-                let { user:{ company_id }, fields:{ currentAttr }} = yield select();
-                yield put.resolve({ type:'fields/init'});
-                yield put({ type:'fetchWaterCost'});
+                let { type } = action.payload;
+                yield all([
+                    put.resolve({ type:'fields/init'}),
+                    put.resolve({ type:'worktime/fetchWorktimeList'})
+                ])
+                yield put({ type:'fetchWaterCost', payload:{ type }});
             } catch(err){
                 console.log(err);
             }
         },
         *fetchWaterCost(action, { call, select, put }){
             try {
-                let { user:{ company_id }, fields:{ currentAttr }} = yield select();
-                if ( !Object.keys(currentAttr).length ) {
+                let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }, worktime:{ currentWorktime }} = yield select();
+                let { type } = action.payload || {} ;
+                if ( !currentAttr.key ) {
                     yield put({ type:'getWaterCost', payload:{ data:{ a:'1' } }});
+                    return ;
                 }
-                let { data } = yield call(getAttrWaterCost, { company_id, attr_id:currentAttr.key });
+                timeType = timeType === '10' ? '2' : timeType;
+                yield put({ type:'toggleWaterLoading', payload:true });
+                let { data } = yield call( type === 'water' ? getAttrWaterCost : type === 'combust' ? getAttrGasCost : getAttrWaterCost, { company_id, attr_id:currentAttr.key, rostering_id:currentWorktime.id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
                 if ( data && data.code === '0'){
                     yield put({ type:'getWaterCost', payload:{ data:data.data }});
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
                 }
             } catch(err){
                 console.log(err);
             }
         },
+        
         *fetchEnergy(action, { call, put, all}){
             try {
                 let { data } = yield call(getEnergyType);
@@ -176,6 +181,9 @@ export default {
         toggleMaskVisible(state, { payload }){
             return { ...state, maskVisible:payload };
         },
+        toggleWaterLoading(state, { payload }){
+            return { ...state, waterLoading:payload };
+        },
         get(state, { payload : { currentCost, costAnalysis, energyType }}){
             let costInfo=[];
             costInfo.push({ key:'day', ...currentCost['day']});
@@ -206,7 +214,7 @@ export default {
             data['costInfo'] = costInfo;
             data['cost'] = data.value;
             data['lastValueData'] = { '0':data.lastValue,'1':[] };
-            return { ...state, waterCost:data };
+            return { ...state, waterCost:data, waterLoading:false };
         },
         getScene(state, { payload : { data }}){
             return { ...state, sceneInfo:data };

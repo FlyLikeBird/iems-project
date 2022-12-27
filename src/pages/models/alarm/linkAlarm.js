@@ -33,52 +33,36 @@ export default {
             // yield put({ type:'cancelMachOffline'});
             yield put({ type:'reset'});
         },
-        *init(action,{ select, call, put, all }){
-            yield put.resolve({ type:'cancelable', task:fetchInitCancelable, action:'cancelInit'});
-            function* fetchInitCancelable(){
-                yield put.resolve({ type:'fields/init'});
-                let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }} = yield select();
-                let params = { attr_id:currentAttr.key, cate_code:'3', company_id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') };
-                yield put({ type:'fetchMachTypeAlarm', payload:params });
-                yield put({ type:'fetchAttrAlarm', payload:params });
-                yield put({ type:'fetchMachOffline', payload:params });
-            }
+        *init(action,{ select, call, put, all }){       
+            yield put.resolve({ type:'fields/init'});
+            yield put({ type:'fetchAll'});      
         },
         *fetchAll(action, { put, select }){
             let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }} = yield select();
+            timeType = timeType === '10' ? '2' : timeType;
             let params = { attr_id:currentAttr.key, cate_code:'3', company_id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') };
+            yield put({ type:'toggleChartLoading'});
             yield put({ type:'fetchMachTypeAlarm', payload:params });
             yield put({ type:'fetchAttrAlarm', payload:params });
             yield put({ type:'fetchMachOffline', payload:params });
         },
-        *fetchAttrAlarm(action,{ select, call, put}){
-            yield put.resolve({ type:'cancelable', task:fetchAttrAlarmCancelable, action:'cancelAttrAlarm'});
-            function* fetchAttrAlarmCancelable(params){
-                let { data } = yield call(getAttrWarning, action.payload );
-                if ( data && data.code === '0'){
-                    yield put({ type:'getAttrWarning', payload:{ data:data.data }});
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
-                }
-            }
+        *fetchAttrAlarm(action,{ select, call, put}){  
+            let { data } = yield call(getAttrWarning, action.payload );
+            if ( data && data.code === '0'){
+                yield put({ type:'getAttrWarning', payload:{ data:data.data }});
+            }          
         },
-        *fetchMachTypeAlarm(action, { select, call, put}){
-            yield put.resolve({ type:'cancelable', task:fetchMachTypeCancelable, action:'cancelMachTypeAlarm'});
-            function* fetchMachTypeCancelable(params){
-                let { data } = yield call(getMachTypeRatio, action.payload);
-                if ( data && data.code === '0'){
-                    yield put({ type:'getMachAlarmInfo', payload:{ data:data.data }});
-                }
-            } 
+        *fetchMachTypeAlarm(action, { select, call, put}){  
+            let { data } = yield call(getMachTypeRatio, action.payload);
+            if ( data && data.code === '0'){
+                yield put({ type:'getMachAlarmInfo', payload:{ data:data.data }});
+            }        
         },
-        *fetchMachOffline(action, { call, put}){
-            yield put.resolve({ type:'cancelable', task:fetchMachOfflineCancelable, action:'cancelMachOffline'});
-            function* fetchMachOfflineCancelable(params){
-                let { data } = yield call(getLinkAlarmRank, action.payload);
-                if ( data && data.code === '0'){
-                    yield put({ type:'getMachOfflineInfo', payload:{ data:data.data }});
-                }
-            }     
+        *fetchMachOffline(action, { call, put}){ 
+            let { data } = yield call(getLinkAlarmRank, action.payload);
+            if ( data && data.code === '0'){
+                yield put({ type:'getMachOfflineInfo', payload:{ data:data.data }});
+            }       
         }
     },
     reducers:{
@@ -93,7 +77,7 @@ export default {
             return { ...state, machAlarmInfo:data };
         },
         getMachOfflineInfo(state, { payload:{ data }}){
-            return { ...state, machOfflineInfo:data }
+            return { ...state, machOfflineInfo:data, chartLoading:false }
         },
         reset(state){
             return initialState;

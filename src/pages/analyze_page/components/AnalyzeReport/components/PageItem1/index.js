@@ -6,7 +6,6 @@ import PieChart from '@/pages/energy_manager/components/PieChart';
 import RangeBarChart from '@/pages/energy_manager/components/RangeBarChart';
 import RegionQuotaChart from '@/pages/energy_manager/components/RegionQuotaChart';
 import EnergyQuotaChart from '@/pages/energy_manager/components/EnergyQuotaChart';
-import InfoItem from '@/pages/energy_manager/components/InfoItem';
 
 import style from '../../AnalyzeReport.css';
 
@@ -53,29 +52,26 @@ function PageItem1({ energy, attrEnergy, analyze, dispatch, companyName }){
                             <Radio.Group buttonStyle='solid' size='small' value={energy.energyInfo.type_id} onChange={e=>{
                                 let prevEnergy = energyInfo;
                                 let currentEnergy = energyList.filter(i=>i.type_id === e.target.value )[0];
-                                if ( e.target.value === 0 || e.target.value === 1 || e.target.value === 2 ){
-                                    dispatch({type:'energy/toggleEnergyType', payload:currentEnergy });
-                                    dispatch({type:'energy/toggleMaskVisible', payload:true });
-                                    Promise.all([
-                                        new Promise((resolve,reject)=>{
-                                            dispatch({type:'energy/fetchCost', payload:{ resolve, reject }});
-                                        }),
-                                        new Promise((resolve, reject)=>{
-                                            dispatch({type:'energy/fetchCostByTime', payload:{ resolve, reject }})
-                                        }),
-                                        new Promise((resolve, reject)=>{
-                                            dispatch({type:'attrEnergy/fetchCost', payload:{ resolve, reject }});
-                                        })
-                                    ])
-                                    .then(()=>{
-                                        dispatch({type:'energy/toggleMaskVisible', payload:false});
+                                dispatch({type:'energy/toggleEnergyType', payload:currentEnergy });
+                                dispatch({type:'energy/toggleMaskVisible', payload:true });
+                                Promise.all([
+                                    new Promise((resolve,reject)=>{
+                                        dispatch({type:'energy/fetchCost', payload:{ resolve, reject }});
+                                    }),
+                                    new Promise((resolve, reject)=>{
+                                        dispatch({type:'energy/fetchCostByTime', payload:{ resolve, reject }})
+                                    }),
+                                    new Promise((resolve, reject)=>{
+                                        dispatch({type:'attrEnergy/fetchCost', payload:{ resolve, reject }});
                                     })
-                                    .catch(()=>{
-                                        dispatch({type:'energy/toggleEnergyType', payload:prevEnergy});
-                                    })
-                                } else {
-                                    message.info(`还没有接入${currentEnergy.type_name}能源数据`);
-                                }                           
+                                ])
+                                .then(()=>{
+                                    dispatch({type:'energy/toggleMaskVisible', payload:false});
+                                })
+                                .catch(()=>{
+                                    dispatch({type:'energy/toggleEnergyType', payload:prevEnergy});
+                                })
+                                                          
                             }}>
                                 {
                                     energyList.map((item,index)=>(
@@ -113,24 +109,24 @@ function PageItem1({ energy, attrEnergy, analyze, dispatch, companyName }){
                                                         {
                                                             sameRate 
                                                             ?
-                                                            <span style={{  marginLeft:'10px', fontSize:'1.4rem', fontWeight:'bold', color:sameRate <= 0 ? '#6fcc17' : ':#e83320' }} >
+                                                            <span style={{  marginLeft:'10px', fontSize:'1.2rem', fontWeight:'bold', color:sameRate <= 0 ? '#6fcc17' : ':#e83320' }} >
                                                                 { sameRate <= 0 ? <ArrowDownOutlined /> : <ArrowUpOutlined /> }
                                                                 { Math.abs(sameRate).toFixed(1) + '%' }
                                                             </span>
                                                             :
-                                                            <span style={{ marginLeft:'10px', fontSize:'1.4rem', fontWeight:'bold' }}><ArrowDownOutlined style={{ color:'#f7f7f7' }} />-- --</span>
+                                                            <span style={{ marginLeft:'10px', fontSize:'1.2rem', fontWeight:'bold' }}><ArrowDownOutlined style={{ color:'#f7f7f7' }} />-- --</span>
                                                         }
                                                     </div>
                                                     <div>环比
                                                         {
                                                             adjoinRate
                                                             ?
-                                                            <span style={{  marginLeft:'10px', fontSize:'1.4rem', fontWeight:'bold', color:adjoinRate <= 0 ? '#6fcc17' : ':#e83320' }} >
+                                                            <span style={{  marginLeft:'10px', fontSize:'1.2rem', fontWeight:'bold', color:adjoinRate <= 0 ? '#6fcc17' : ':#e83320' }} >
                                                                 { adjoinRate <= 0 ? <ArrowDownOutlined /> : <ArrowUpOutlined /> }
                                                                 { Math.abs(adjoinRate).toFixed(1) + '%' }
                                                             </span>
                                                             :
-                                                            <span style={{ marginLeft:'10px', fontSize:'1.4rem', fontWeight:'bold' }}><ArrowDownOutlined style={{ color:'#f7f7f7' }} />-- --</span>
+                                                            <span style={{ marginLeft:'10px', fontSize:'1.2rem', fontWeight:'bold' }}><ArrowDownOutlined style={{ color:'#f7f7f7' }} />-- --</span>
                                                         }
                                                     </div>
                                                 </div>

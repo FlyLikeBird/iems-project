@@ -24,9 +24,7 @@ function PageItem2({ efficiency, analyze, fields, dispatch, companyName }){
     const { rankInfo, chartInfo, chartLoading } = efficiency;
     return (
         <PageItem title='能源效率分析-Energy Efficiency Analysis' companyName={companyName}>
-        {
-            efficiency.costChart.date
-            ?
+        
             <div>
                 {
                     reportInfo.text && reportInfo.text[1] && reportInfo.text[1].length 
@@ -111,10 +109,7 @@ function PageItem2({ efficiency, analyze, fields, dispatch, companyName }){
                     />   
                 </div>
             </div>
-            :
-            <Skeleton active />
-        }
-
+          
     </PageItem>
     )
 }

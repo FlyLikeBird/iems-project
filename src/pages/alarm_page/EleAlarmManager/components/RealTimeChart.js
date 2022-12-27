@@ -11,11 +11,11 @@ import { IconFont } from '@/pages/components/IconFont';
 let timer = null;
 
 const typeMap = {
-    TC:'温度',
-    IR:'剩余电流',
-    ele_exceed:'电流',
-    vol_exceed:'电压',
-    power_factor:'功率因素'
+    TC:{ text:'温度', unit:'℃' },
+    IR:{ text:'剩余电流', unit:'mA' },
+    ele_exceed:{ text:'电流', unit:'A' },
+    vol_exceed:{ text:'电压', unit:'V' },
+    power_factor:{ text:'功率因素', unit:'cosΦ' }
 };
 
 const timeMap = {
@@ -52,7 +52,7 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
         
         seriesData.push({
             type:'line',
-            name: isVol ? 'AB线' : 'A相' + typeMap[typeCode],
+            name: isVol ? 'AB线' : 'A相' + typeMap[typeCode].text,
             symbol:'none',
             data: energyA,
             itemStyle:{ color:'#3f8fff'},
@@ -65,7 +65,7 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
         });
         seriesData.push({
             type:'line',
-            name: isVol ? 'BC线' : 'B相' + typeMap[typeCode],
+            name: isVol ? 'BC线' : 'B相' + typeMap[typeCode].text,
             symbol:'none',
             data:energyB,
             itemStyle:{ color:'#f5a60a'},
@@ -78,7 +78,7 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
         });
         seriesData.push({
             type:'line',
-            name: isVol ? 'CA线' : 'C相' + typeMap[typeCode],
+            name: isVol ? 'CA线' : 'C相' + typeMap[typeCode].text,
             symbol:'none',
             data:energyC,
             itemStyle:{ color:'#1fc48d'},
@@ -141,8 +141,8 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
             }
         },
         grid:{
-            top:100,
-            bottom:40,
+            top:120,
+            bottom:20,
             left:40,
             right:60,
             containLabel:true
@@ -163,7 +163,7 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
             data:data.date,
             axisLine:{
                 lineStyle:{
-                    color:'#f0f0f0'
+                    color:'rgba(255, 255, 255, 0.25)'
                 }
             },
             interval:0,
@@ -179,6 +179,8 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
         },
         yAxis:{
             show:true,
+            name:typeMap[typeCode].unit,
+            nameTextStyle:{ color:textColor },
             type:'value',
             axisLine:{
                 show:false,
@@ -240,7 +242,8 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
             </Radio.Group>
             <div className={style['float-button-group']}>
                 <Radio.Group size='small' buttonStyle="solid" className={style['custom-radio']} value={dayTimeType} onChange={e=>{
-                    
+                    dispatch({ type:'eleAlarm/toggleDayTimeType', payload:{ dayTimeType:e.target.value }});
+                    dispatch({ type:'eleAlarm/fetchRealTimeAlarm'});
                 }}>
                     {/* <Radio.Button value='4'>5分钟</Radio.Button> */}
                     <Radio.Button value='3'>15分钟</Radio.Button>
@@ -249,7 +252,7 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
                 </Radio.Group>
                 <Radio.Group style={{ marginLeft:'20px' }} size='small' buttonStyle="solid" className={style['custom-button']} value='data' onChange={e=>{
                     let value = e.target.value;
-                    let fileTitle = `今日${typeMap[typeCode]}告警实时趋势`;
+                    let fileTitle = `今日${typeMap[typeCode].text}告警实时趋势`;
                     if ( value === 'download' && echartsRef.current ){
                         html2canvas(echartsRef.current.ele, { allowTaint:false, useCORS:false, backgroundColor:'#191932' })
                         .then(canvas=>{
@@ -278,7 +281,7 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
                         aoa.push(thead);
                         seriesData.forEach(i=>{
                             let temp = [];
-                            temp.push(typeMap[typeCode]);
+                            temp.push(typeMap[typeCode].text);
                             temp.push(i.name);
                             temp.push(...i.data);
                             aoa.push(temp);

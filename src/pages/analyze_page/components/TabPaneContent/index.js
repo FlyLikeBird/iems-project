@@ -4,13 +4,9 @@ import { LineChartOutlined, BarChartOutlined, PieChartOutlined, DownloadOutlined
 import style from '../../../IndexPage.css';
 import TabChart from './components/TabChart';
 
-function TabPaneContent({ data, isLoading, toggleVisible, activeKey, onDispatch, startDate, endDate, measureDate, theme, title, forReport }) {
-    // console.log(data);
+function TabPaneContent({ data, toggleVisible, activeKey, onDispatch, theme, title, forReport }) {
     return (    
-        isLoading 
-        ?
-        <Skeleton active className={style['skeleton']} />
-        :
+      
         <div style={{ height:'100%' }}>
             <div className={style['card-container']} style={ forReport ? { height:'16%', background:'#f0f0f0', boxShadow:'none' } : { height:'16%' }}>
                 <div className={style['flex-container']}>
@@ -30,12 +26,12 @@ function TabPaneContent({ data, isLoading, toggleVisible, activeKey, onDispatch,
             </div>
             <div className={style['card-container']} style={ forReport ? { height:'84%', background:'#f0f0f0', overflow:'hidden', boxShadow:'none' } : { height:'84%', overflow:'hidden' }}>         
                 <TabChart 
-                    data={data.view} 
+                    data={data.view || {}} 
                     forReport={forReport} 
                     activeKey={activeKey} 
                     onDispatch={onDispatch} 
                     toggleVisible={toggleVisible} 
-                    theme={ forReport ? 'light' : theme} forReport={forReport} 
+                    theme={ forReport ? 'light' : theme} 
                     title={title}
                 />            
             </div>

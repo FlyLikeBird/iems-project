@@ -124,7 +124,7 @@ function BarChart({ data, theme }){
                     },
                     yAxis:{
                         type:'value',
-                        name:`(单位:t)`,
+                        name:`( t )`,
                         nameTextStyle:{
                             color:textColor
                         },

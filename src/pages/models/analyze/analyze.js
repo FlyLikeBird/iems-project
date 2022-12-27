@@ -1,6 +1,11 @@
-import { getReportInfo, getDeviceList, getMachList, getMachRunEff, getMachRefer, setMachRefer, addDevice, copyDevice, deleteDevice, getBaseSaveSpace, getMeterSaveSpace, getAdjustSaveSpace, getRankAndGrade, getEleHealth, getSaveSpaceText } from '../../services/analyzeMachService';
+import { 
+    getEPChartInfo, getEPChartTrend,
+    getReportInfo, getRankAndGrade, getEleHealth, getSaveSpaceText,
+    getDeviceList, getMachList, getMachRunEff, getMachRefer, setMachRefer, 
+    addDevice, copyDevice, deleteDevice, 
+    getBaseSaveSpace, getMeterSaveSpace, getAdjustSaveSpace 
+} from '../../services/analyzeMachService';
 import { getSaveSpaceTrend } from '../../services/energyService';
-
 import moment from 'moment';
 
 let date = new Date();
@@ -27,6 +32,12 @@ const initialState = {
     reportInfo:{},
     rankAndGrade:{},
     eleHealth:{},
+    // EP分析图
+    EPChartInfo:{},
+    sumTable:[],
+    checkedDates:[],
+    EPTrendInfo:{},
+    
 };
 
 export default {
@@ -74,27 +85,21 @@ export default {
             yield put.resolve({ type:'cancelMachEff'});
             yield put.resolve({ type:'reset'});
         },
-        *fetchMachEff(action, { call, put, select }){
-            yield put.resolve({ type:'cancelMachEff'});
-            yield put.resolve({ type:'cancelable', task:fetchMachEffCancelable, action:'cancelMachEff'});
-            function* fetchMachEffCancelable(params){
-                try {
-                    let { hasMach } = action.payload || {};
-                    if ( !hasMach ){
-                        yield put.resolve({ type:'fetchMachList'});
-                    }
-                    let { user:{ company_id, startDate, endDate }, analyze:{ currentMach }} = yield select();
-                    yield put({ type:'toggleMachEffLoading'});
-                    let { data } = yield call(getMachRunEff, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:startDate.format('YYYY-MM-DD'), mach_id:currentMach.mach_id });
-                    if ( data && data.code === '0'){
-                        yield put({ type:'getMachRunEff', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001') {
-                        yield put({ type:'user/loginOut'});
-                    }
-                } catch(err){
-                    console.log(err);   
+        *fetchMachEff(action, { call, put, select }){       
+            try {
+                let { hasMach } = action.payload || {};
+                if ( !hasMach ){
+                    yield put.resolve({ type:'fetchMachList'});
                 }
-            }
+                let { user:{ company_id, startDate, endDate }, analyze:{ currentMach }} = yield select();
+                yield put({ type:'toggleMachEffLoading'});
+                let { data } = yield call(getMachRunEff, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:startDate.format('YYYY-MM-DD'), mach_id:currentMach.mach_id });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getMachRunEff', payload:{ data:data.data }});
+                }
+            } catch(err){
+                console.log(err);   
+            }     
         },
         *setMachEff(action, { call, put, select }){
             try {
@@ -103,9 +108,7 @@ export default {
                 let { data } = yield call(setMachRefer, { company_id, mach_id:currentMach.mach_id, off_power, empty_power, over_power } );
                 if ( data && data.code === '0'){
                     yield put({type:'fetchMachEff'});
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
-                }
+                } 
             } catch(err){
                 console.log(err);
             }
@@ -167,8 +170,6 @@ export default {
                 if ( data && data.code === '0'){
                     yield put({ type:'baseSaveSpaceResult', payload:{ data:data.data } });
                     if ( resolve && typeof resolve === 'function') resolve();
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
                 } else {
                     if ( reject && typeof reject === 'function' ) reject();
                 }
@@ -215,16 +216,12 @@ export default {
         // 节能策略-电度电费接口-请求面积区域图
         *fetchSaveSpaceTrend(action, { call, put, select}){
             try {
-                let { user:{ company_id }, fields:{ currentAttr }, analyze:{ modalStartDate, modalEndDate }} = yield select();
-                let { payload } = action;
-                let finalAttr = payload || currentAttr;
+                let { user:{ company_id, startDate, endDate }, fields:{ currentAttr }} = yield select();
                 yield put({ type:'toggleSaveTrendLoading'});
-                let { data } = yield call(getSaveSpaceTrend, { company_id, begin_date:modalStartDate.format('YYYY-MM-DD'), end_date:modalEndDate.format('YYYY-MM-DD'), attr_id:finalAttr.key })
+                let { data } = yield call(getSaveSpaceTrend, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), attr_id:action.payload ? action.payload : currentAttr.key })
                 if ( data && data.code === '0'){
                     yield put({ type:'getSaveSpaceTrend', payload:{ data:data.data }});
-                } else if ( data && data.code === '1001') {
-                    yield put({ type:'user/loginOut'});
-                }
+                } 
             } catch(err){
                 console.log(err);
             }
@@ -279,6 +276,41 @@ export default {
             } catch(err){
                 console.log(err);
             }
+        },
+        *initEPChart(action, { call, put }){
+            yield put.resolve({ type:'fields/init'});
+            yield put({ type:'fetchEPChartInfo', payload:{ firstLoad:true }});
+        },
+        *fetchEPChartInfo(action, { call, put, all, select }){
+            let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }, analyze:{ checkedDates }} = yield select();
+            if ( currentAttr.key ){
+                yield put({ type:'toggleLoading'});  
+                let [data1, data2] = yield all([
+                    call(getEPChartInfo, { company_id, attr_id:currentAttr.key, check_date:checkedDates, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') }),
+                    call(getEPChartInfo, { company_id, attr_id:currentAttr.key, check_date:[], time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') })
+                ]);
+                if ( data1.data && data1.data.code === '0'){
+                    yield put({ type:'getEPChartResult', payload:{ data:data1.data.data }});
+                }
+                if ( data2.data && data2.data.code === '0'){
+                    yield put({ type:'getEPTable', payload:{ data:data2.data.data }});
+                }
+            }
+        },
+        *initEPTrend(action, { call, put }){
+            yield put.resolve({ type:'fields/init'});
+            yield put({ type:'fetchEPChartTrend'});
+        },
+        *fetchEPChartTrend(action, { put, select, call }){
+            let { user:{ company_id, timeType, startDate, endDate }, fields:{ currentAttr }} = yield select();
+            if ( currentAttr.key ) {
+                yield put({ type:'toggleLoading' });
+                let { data } = yield call(getEPChartTrend, { company_id, attr_id:currentAttr.key, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType });
+                if ( data && data.code === '0'){
+                    yield put({ type:'getEPTrendResult', payload:{ data:data.data }});
+                
+                }
+            }            
         }
         
     },
@@ -294,6 +326,23 @@ export default {
         },
         toggleMachEffLoading(state){
             return { ...state, machEffLoading:true };
+        },
+        getEPChartResult(state, { payload:{ data }}){ 
+            return { ...state, EPChartInfo:data, isLoading:false };
+        },
+        getEPTable(state, { payload:{ data }}){
+            let { date, product, energy, ratio } = data;
+            let list = [];
+            date.forEach((item,index)=>{
+                list.push({ date:item, product:product[index], energy:energy[index], ratio:ratio[index] });
+            })
+            return { ...state, sumTable:list };
+        },
+        setCheckedDates(state, { payload }){
+            return { ...state, checkedDates:payload };
+        },
+        getEPTrendResult(state, { payload:{ data }}){
+            return { ...state, EPTrendInfo:data, isLoading:false };
         },
         getMachResult(state, { payload:{ data }}){
             let currentMach = data && data.length ? data[0] : {};

@@ -72,7 +72,8 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
                         <Spin />
                         :
                         <Tree
-                            expandedKeys={expandedKeys}
+                            // expandedKeys={expandedKeys}
+                            defaultExpandAll={true}
                             onExpand={temp=>{
                                 dispatch({ type:'fields/setExpandedKeys', payload:temp });
                             }}

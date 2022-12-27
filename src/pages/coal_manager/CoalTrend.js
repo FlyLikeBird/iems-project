@@ -3,6 +3,7 @@ import { connect } from 'dva';
 import { Tabs, Tree, Spin } from 'antd';
 import style from '../IndexPage.css';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
+import Loading from '@/pages/components/Loading';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
 import InfoItem from './components/InfoItem';
 import LineChart from './components/LineChart';
@@ -10,7 +11,7 @@ import BarChart from './components/BarChart';
 
 const { TabPane } = Tabs;
 function CoalTrend({ dispatch, user, fields, carbon }){
-    const { trendInfoList, carbonTrend, regionRank } = carbon;
+    const { trendInfoList, carbonTrend, regionRank, carbonLoading } = carbon;
     const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
     let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
@@ -62,7 +63,14 @@ function CoalTrend({ dispatch, user, fields, carbon }){
         </div>
     );
     const content = (
-        <div>
+        <div style={{ position:'relative' }}>
+            {
+                carbonLoading 
+                ?
+                <Loading />
+                :
+                null
+            }
             <div style={{ height:'40px' }}>
                 <CustomDatePicker onDispatch={()=>{
                     dispatch({ type:'carbon/fetchCarbonTrend'});

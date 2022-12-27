@@ -41,7 +41,7 @@ function PreviewReport({ documentInfo, energyInfo, companyInfo, currentField, cu
     const view2 = documentInfo.view2;
     const view3 = documentInfo.view3;
     const view2Series = [], view3Series = [];
-    view2Series.push({ name:'水', type:'bar', data:view2.value, barWidth:14 });
+    view2Series.push({ name:energy, type:'bar', data:view2.value, barWidth:14 });
     view3Series.push({ name:energy, type:'bar', barWidth:14, data:view3.value });
    
     const handleTranslateImg = ()=>{
@@ -147,11 +147,6 @@ function PreviewReport({ documentInfo, energyInfo, companyInfo, currentField, cu
                         <ReactEcharts                       
                             notMerge={true}
                             option={{
-                                legend: {
-                                    top:20,
-                                    orient:'horizontal',
-                                    data: ['水']
-                                },
                                 grid:{
                                     top:60,
                                     left:20,

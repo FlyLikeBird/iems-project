@@ -45,7 +45,7 @@ function BaseCostChart({ data, theme, forReport }) {
     return (  
         <div style={{ width:'100%', height:'100%', position:'relative' }}>
             <div className={style['float-button-group']}>
-                <Radio.Group size='small' className={style['custom-radio']} value={type} onChange={e=>setType(e.target.value)}>
+                <Radio.Group size='small' className={ forReport ? '' : style['custom-radio']} value={type} onChange={e=>setType(e.target.value)}>
                     <Radio.Button key='line' value='line'><AreaChartOutlined /></Radio.Button>
                     <Radio.Button key='bar' value='bar'><BarChartOutlined /></Radio.Button>
                 </Radio.Group>

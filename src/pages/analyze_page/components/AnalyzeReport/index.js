@@ -115,8 +115,7 @@ function AnalyzeReport({ dispatch, user, demand, energy, monitor, baseCost, attr
                     pdf.addPage();
                 })
                 pdf.save('诊断报告.pdf');
-                toggleLoading(false);
-                
+                toggleLoading(false);            
             })
         }
     }
@@ -150,6 +149,7 @@ function AnalyzeReport({ dispatch, user, demand, energy, monitor, baseCost, attr
                     </div> */}
                 </div>
                 {/* 全局日期和维度控制 */}
+                
                 {/* 诊断结论 */}
                 <PageItem0 analyze={analyze} monitor={monitor} dispatch={dispatch} companyName={companyName} />
                 {/* 能源成本分析 */}

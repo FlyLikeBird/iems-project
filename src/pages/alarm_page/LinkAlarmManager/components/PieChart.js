@@ -4,6 +4,10 @@ import { Radio } from 'antd';
 import { BarChartOutlined, LineChartOutlined } from '@ant-design/icons';
 
 const machMap = {
+    '0':{
+        name:'漏保空开',
+        color:'#3f8fff'
+    },
     '1':{
         name:'电表',
         color:'#1fc48d'
@@ -38,8 +42,10 @@ function PieChart({ data, timeType, theme }){
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     let seriesData = [];
     let total = 0;
+    console.log(data);
     Object.keys(data).forEach(key=>{
         total += +data[key];
+        console.log(machMap[key]);
         seriesData.push({
             name:machMap[key].name,
             value:data[key],

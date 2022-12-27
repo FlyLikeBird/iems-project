@@ -1,7 +1,6 @@
 import request from '../utils/request';
 import { translateObj } from '../utils/translateObj';
 import { apiToken } from '../utils/encryption';
-import config from '../../../config';
 
 export function getInfoType(data = {}){
     let token = apiToken();
@@ -59,6 +58,7 @@ export function exportInfo(data={}){
     let token = apiToken();
     data.token = token;
     let str = translateObj(data);
+    let config = window.g;
     let url =  `http://${config.apiHost}/api/export/exportinfofill?${str}`;
     return url;
 }
@@ -67,6 +67,7 @@ export function importTpl(data={}){
     let token = apiToken();
     data.token = token;
     let str = translateObj(data);
+    let config = window.g;
     let url = `http://${config.apiHost}/api/export/createinfotpl?${str}`;
     return url;
 }

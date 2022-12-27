@@ -34,7 +34,7 @@ function FieldItem({ dispatch, field, theme}){
     
     return ( 
         <div className={style['card-container-wrapper']} style={{ width:'auto', height:'auto' }}>
-            <div className={style['card-container']} style={{ width:'300px', height:'160px', border:`1px solid ${borderColor}`, overflow:'hidden' }}>
+            <div className={style['card-container']} style={{ width:'300px', height:'180px', border:`1px solid ${borderColor}`, overflow:'hidden' }}>
                 <div style={{ height:'120px', lineHeight:'120px', textAlign:'center' }}>
                 {
                     editing
@@ -44,16 +44,16 @@ function FieldItem({ dispatch, field, theme}){
                     <span className={style['data']}>{ FieldItemIcons[field.field_type]} { field.field_name}</span>
                 }
                 </div>
-                <div style={{ height:'40px', lineHeight:'40px'}}>
+                <div style={{ height:'60px', lineHeight:'60px'}}>
                     {
                         editing
                         ?
-                        <div style={{ display:'flex', height:'40px', alignItems:'center', backgroundColor:borderColor}}>
-                            <Button style={{ flex:'1' }} size="small" type="primary" onClick={()=>handleEdit(field)}>确定</Button>,
+                        <div style={{ display:'flex', height:'60px', alignItems:'center', backgroundColor:borderColor}}>
+                            <Button style={{ flex:'1' }} size="small" type="primary" onClick={()=>handleEdit(field)}>确定</Button>
                             <Button style={{ flex:'1' }} size="small" onClick={()=>toggleEditing(false)}>取消</Button>
                         </div>
                         :
-                        <div style={{ display:'flex', height:'40px', alignItems:'center', backgroundColor:borderColor}}>
+                        <div style={{ display:'flex', height:'60px', alignItems:'center', backgroundColor:borderColor}}>
                             <SettingOutlined style={{ flex:'1' }} key="setting" onClick={()=>{
                                 dispatch({type:'fieldDevice/toggleField', payload : { visible:true, field }});
                                 new Promise((resolve, reject)=>{

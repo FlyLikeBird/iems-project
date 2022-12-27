@@ -3,9 +3,8 @@ import { connect } from 'dva';
 import { Card, Tabs, Tree, DatePicker, Button, Radio, Spin, Skeleton } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import ColumnCollapse from '@/pages/components/ColumnCollapse';
+import Loading from '@/pages/components/Loading';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
-
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
 import style from '../../IndexPage.css';
 import InfoList from '../EleAlarmManager/components/InfoList';
 import BarChart from '../EleAlarmManager/components/BarChart';
@@ -83,13 +82,20 @@ function OverAlarmManager({ dispatch, user, overAlarm, fields }){
                 <InfoList data={warningInfo.typeTmp} typeCode='over' />
                 <div className={style['card-container-wrapper']} style={{ height:'43%'}}>
                     <div className={style['card-container']}>
-                        
+                        {
+                            chartLoading 
+                            ?
+                            <Loading />
+                            :
+                            null
+                        }
                         <BarChart data={warningInfo} typeCode='over' timeType={timeType} theme={theme} />
                         
                     </div>
                 </div>
                 <div className={style['card-container-wrapper']} style={{ height:'43%', paddingBottom:'0' }}>
                     <div className={style['card-container']}>
+                        
                         {
                             Object.keys(regionAlarmInfo).length
                             ?

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import style from '../EleMonitor.css';
 import LineChart from '../ele_monitor/LineChart';
-import EleMonitorDatePicker from '../components/EleMonitorDatePicker';
+import CustomDatePicker from '@/pages/components/CustomDatePicker';
 import Loading from '@/pages/components/Loading';
 
 const buttons = [
@@ -32,23 +32,26 @@ function ChartContainer({ dispatch, currentMach, data, startDate, timeType, isLo
                 null
             }
             <div style={{ height:'2rem', fontSize:'1.2rem', lineHeight:'2rem', color:'#fff'}}>{ `${currentMach.scene_name || ''} -- ${currentMach.meter_name || ''}` }</div>
-            <div className={style['button-group-container']}>
-                {
-                    buttons.map((item,index)=>(
-                        <div key={index} className={ item.code === optionType ? style['button-group-item'] + ' ' + style['selected'] : style['button-group-item']} onClick={()=>{
-                            toggleOptionType(item.code);
-                        }}>{ item.title }</div>
-                    ))
-                }
+            <div style={{ height:'3rem', display:'flex' }}>
+                <div className={style['button-group-container']}>
+                    {
+                        buttons.map((item,index)=>(
+                            <div key={index} className={ item.code === optionType ? style['button-group-item'] + ' ' + style['selected'] : style['button-group-item']} onClick={()=>{
+                                toggleOptionType(item.code);
+                            }}>{ item.title }</div>
+                        ))
+                    }
+                </div>
+                <CustomDatePicker onDispatch={()=>{
+                    dispatch({ type:'eleMonitor/fetchEleLinesDetail', payload:{ mach_id:currentMach.mach_id, optionType }});
+                }} />
             </div>
-            <EleMonitorDatePicker theme='dark' optionStyle={{ margin:'16px 0'}} onDispatch={()=>{
-                dispatch({ type:'eleMonitor/fetchEleLinesDetail', payload:{ mach_id:currentMach.mach_id, optionType }});
-            }} />
-            <div style={{ height:'calc( 100% - 2rem -  2rem - 56px)'}}>
+            
+            <div style={{ height:'calc( 100% - 5rem)'}}>
                 {
                     Object.keys(data).length 
                     ?
-                    <LineChart theme='dark' xData={data.date} energy={data.energy} energyA={ data.energyA} energyB={data.energyB} energyC={data.energyC} info={info} startDate={startDate} timeType={timeType} optionType={optionType} />
+                    <LineChart theme='dark' currentAttr={{}} xData={data.date} energy={data.energy} energyA={ data.energyA} energyB={data.energyB} energyC={data.energyC} info={info} startDate={startDate} timeType={timeType} optionType={optionType} />
                     :
                     null
                 }

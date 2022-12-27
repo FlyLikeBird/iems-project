@@ -52,7 +52,8 @@ function filterMulti(arr){
     return [population, mach_num, area];
 }
 
-function RegionQuotaChart({ data, energyInfo, showType, onLink, multi, theme, isLoading, forReport }) {
+function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, multi, theme, isLoading, forReport }) {
+    
     theme = forReport ? 'light' : theme;
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     const [sort, toggleSort] = useState('default');
@@ -64,10 +65,11 @@ function RegionQuotaChart({ data, energyInfo, showType, onLink, multi, theme, is
     });
     let showTitle = showType ? showType === '0' ? '成本' : '能耗' : '能效产值比';
     let cardTitle = multi ? 
-            '责任区域综合能效对比' :
+            // '责任区域综合能效对比' :
+            `${currentField ? currentField.field_name : ''}综合能效对比` :
             showType ?
-            `本月区域${showTitle}排行(${ showType === '0' ? '元' : energyInfo.unit})`:
-            '责任区域能效产值比(元/万元产值)';
+            `本月${ currentField ? currentField.field_name : ''}${showTitle}排行(${ showType === '0' ? '元' : energyInfo.unit})`:
+            `${currentField ? currentField.field_name : ''}能效产值比(元/万元)`;
     const onEvents = {
         'click':(params)=>{
             if(params.componentType === 'markPoint' && params.type === 'click'){
@@ -292,7 +294,7 @@ function RegionQuotaChart({ data, energyInfo, showType, onLink, multi, theme, is
                             </Radio.Group>
                             :
                             <div style={{ top:'2px' }} className={style['float-button-group']}>
-                                <Radio.Group size='small' className={style['custom-radio']} value={sort} onChange={e=>{
+                                <Radio.Group size='small' className={ forReport ? '' : style['custom-radio']} value={sort} onChange={e=>{
                                     toggleSort(e.target.value);
                                 }}>
                                     <Radio.Button value="default">升序</Radio.Button>

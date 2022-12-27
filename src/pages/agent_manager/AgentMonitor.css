@@ -236,7 +236,7 @@ html,body{
     justify-content:space-around; 
     border:1px solid #000;
     text-align:center; 
-    background-color:rgba(0,0,0,0.4); 
+    background-color:rgba(0,0,0,0.6); 
     font-size:0.8rem;
     white-space:nowrap;
     cursor:pointer;
@@ -609,7 +609,7 @@ html,body{
 */
 .scene-container {
     position:absolute;
-    width:86%;
+    width:70%;
     left:50%;
     top:120px;
     transform:translateX(-50%);
@@ -676,8 +676,8 @@ html,body{
     transform:translateY(-50%);
 }
 .custom-tooltip:global(.ant-tooltip) {
-    width:600px;
-    max-width:600px;
+    width:640px;
+    max-width:640px;
     height:400px;
 }
 

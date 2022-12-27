@@ -34,7 +34,7 @@ const IconsObj = {
 let stationMaps = {
     // 配电房子站
     '83':'pr',
-    '121':'acs'
+    '121':'acs',
 }
 
 const MenuComponent = ({user, dispatch})=>{
@@ -101,7 +101,8 @@ const MenuComponent = ({user, dispatch})=>{
                                                         let temp = location.host.split('-');
                                                         let prefix = temp.length === 2 ? temp[1].split('.')[0] : '';
                                                         let linkPath = ( prefix ? stationMaps[sub.menu_id] + '-' + prefix : stationMaps[sub.menu_id] ) + '.h1dt.com';
-                                                        window.open(`http://${linkPath}?pid=${Math.random()}&&userId=${userInfo.user_id}&&companyId=${company_id}`);
+                                                        // let linkPath = ( prefix ? stationMaps[sub.menu_id] + '-' + prefix : stationMaps[sub.menu_id] ) + '';
+                                                        window.open(`http://${linkPath}?pid=${Math.random()}&&userId=${userInfo.user_id}&&companyId=${company_id}&&mode=full`);
                                                     }                                          
                                                 }}>{`进入${sub.menu_name}`}</Button>
                                             }>

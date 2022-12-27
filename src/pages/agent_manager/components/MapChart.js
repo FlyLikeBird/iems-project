@@ -198,6 +198,7 @@ function MapChart({ currentProvince, currentCity, companys, userId, autoMode, ag
                         if ( !pos ) return;
                         tooltipRef.current.style.display = 'block';
                         tooltipRef.current.style.left = pos[0] + 'px';
+                        setCurrentInfo(warningInfo);
                         // 减去tooltip自身的高度
                         tooltipRef.current.style.top = Math.floor(pos[1] * Math.sin(Math.PI/4)) - 20 + 'px';                    
                         points.push({ name:warningInfo.company_name, selected:true, itemStyle:{ color:'red' }, value:[+warningInfo.lng, +warningInfo.lat, 2]});
@@ -252,9 +253,11 @@ function MapChart({ currentProvince, currentCity, companys, userId, autoMode, ag
             // 减去tooltip自身的高度
             tooltipRef.current.style.top = Math.floor(pos[1] * Math.sin(Math.PI/4)) - 20 + 'px';
             let prevOption = myChart.getOption();
+            let warningIndex = 0;
             if ( prevOption.series && prevOption.series[1] ) {
-                let temp = prevOption.series[1].data.map(item=>{
+                let temp = prevOption.series[1].data.map((item, index) =>{
                     if ( item.name === agentMsg.company_name) {
+                        warningIndex = index;
                         item.selected = true;
                         item.itemStyle = {
                             color:'red'
@@ -267,7 +270,10 @@ function MapChart({ currentProvince, currentCity, companys, userId, autoMode, ag
                         }
                         return item;
                     }
-                })
+                });
+                // 确保告警的定位点在Z轴最外层
+                let warningItem = temp.splice(warningIndex, 1)[0] || null;
+                temp.push(warningItem);
                 prevOption.series[1].data = temp;
                 myChart.setOption(prevOption);
                 setCurrentInfo(agentMsg);

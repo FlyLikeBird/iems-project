@@ -32,7 +32,6 @@ function BarChart({ data, typeCode, timeType, theme }){
     let seriesData = [];
     const echartsRef = useRef();
     const [chartType, toggleChartType] = useState('bar');
-    
     if ( chartType === 'bar'){
         seriesData = Object.keys(data.typeArr).map(key=>{
             let obj = {
@@ -149,7 +148,7 @@ function BarChart({ data, typeCode, timeType, theme }){
                     color:['#62a3ff','#1fc48d','#f5a70d','#f53f2e','#0298c2','#002060'],
                     xAxis: {
                         show: true,
-                        name: timeType === '1' ? '小时' : timeType === '2' ? '日' : '月',
+                        name: timeType === '1' ? '时' : timeType === '2' || timeType === '10' ? '日' : timeType === '3' ? '月' : '年',
                         nameTextStyle:{ color:textColor},
                         type:'category',
                         data:data.date,
@@ -164,10 +163,10 @@ function BarChart({ data, typeCode, timeType, theme }){
                                 let result = '';
                                 if ( timeType === '1'){
                                     result = value.split(' ')[1];
-                                } else if ( timeType === '2'){
-                                    result = strArr[2]
+                                } else if ( timeType === '2' || timeType === '10' ){
+                                    result = strArr[2];
                                 } else {
-                                    result = strArr[1];
+                                    result = value
                                 }
                                 return result;
                             }

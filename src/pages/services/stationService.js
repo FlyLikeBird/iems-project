@@ -1,7 +1,6 @@
 import request from '../utils/request';
 import { translateObj } from '../utils/translateObj';
 import { apiToken } from '../utils/encryption';
-import config from '../../../config';
 
 export function getAirStation(data = {}){
     data.token = apiToken();

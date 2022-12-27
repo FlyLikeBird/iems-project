@@ -12,12 +12,13 @@ import SaveSpacePieChart from '../components/SaveSpacePieChart';
 import ScrollTable from '../components/ScrollTable';
 import style from './template1.css'
 import IndexStyle from '../../IndexPage.css';
-import icons from '../../../../public/icons/energy-type-white.png';
+import icons from '../../../../public/icons/energy-type-white-2.png';
 
 const energyIcons = {
     'ele':0,
     'water':2,
     'gas':1,
+    'combust':1,
     'hot':3
 };
 

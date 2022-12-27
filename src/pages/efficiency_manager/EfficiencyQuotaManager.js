@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { connect } from 'dva';
+import { history } from 'umi';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Spin, Card, Tree, Tabs, Select, Button, Skeleton, message } from 'antd';
 import { DoubleLeftOutlined , DoubleRightOutlined, ArrowDownOutlined, ArrowUpOutlined  } from '@ant-design/icons';
@@ -42,9 +43,9 @@ function getQuotaRatio(energy, quota){
 
 function EfficiencyQuota({ dispatch, user, efficiencyQuota, fields }) {
     const { quotaInfo, timeType, year } = efficiencyQuota;
-    const { allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
-    let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
-    let fieldAttrs = allFields['ele'] && allFields['ele'].fieldAttrs ? allFields['ele']['fieldAttrs'][currentField.field_name] : [];
+    const { allFields, currentField, currentAttr, energyList, energyInfo, expandedKeys, treeLoading } = fields;
+    let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
+    let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
     let totalEnergy = getSum(quotaInfo.energy), totalQuota = getSum(quotaInfo.quota);
     let quotaRatio = 0;
     let setQuota = hasSetQuota(quotaInfo.quota);
@@ -57,51 +58,82 @@ function EfficiencyQuota({ dispatch, user, efficiencyQuota, fields }) {
         }
     },[])
     const sidebar = (
-        <div>
-            <div className={style['card-container']}>
-                <Tabs className={style['custom-tabs']} activeKey={currentField.field_id + ''} onChange={activeKey=>{
-                    let field = fieldList.filter(i=>i.field_id == activeKey )[0];
-                    dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
-                    new Promise((resolve)=>{
-                        dispatch({type:'fields/fetchFieldAttrs', resolve })
-                    }).then(()=>{
+        <div className={style['card-container']}>
+                <Tabs className={style['custom-tabs']} activeKey={energyInfo.type_id} onChange={activeKey=>{
+                    let temp = energyList.filter(i=>i.type_id === activeKey)[0];
+                    dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
+                    new Promise((resolve, reject)=>{
+                        dispatch({ type:'fields/init', payload:{ resolve, reject }});
+                    })
+                    .then((node)=>{
                         dispatch({type:'efficiencyQuota/fetchQuota'});
                     })
                 }}>
-                    {                       
-                        fieldList.map(field=>(
-                            <TabPane 
-                                key={field.field_id} 
-                                tab={field.field_name}
-                                                        
-                            >
-                                {
-                                    treeLoading
-                                    ?
-                                    <Spin />
-                                    :
-                                    <Tree
-                                        className={style['custom-tree']}
-                                        expandedKeys={expandedKeys}
-                                        onExpand={temp=>{
-                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
-                                        }}
-                                        selectedKeys={[currentAttr.key]}
-                                        treeData={fieldAttrs}
-                                        onSelect={(selectedKeys, {node})=>{
-                                            dispatch({type:'fields/toggleAttr', payload:node});
+                    {
+                        energyList.map((item,index)=>(
+                            <TabPane key={item.type_id} tab={item.type_name}>
+                                <Tabs  
+                                    className={style['custom-tabs']}
+                                    activeKey={currentField.field_id + ''}  
+                                    type='card'                      
+                                    onChange={fieldKey=>{
+                                        let field = fieldList.filter(i=>i.field_id == fieldKey )[0];
+                                        dispatch({type:'fields/toggleField', payload:{ visible:false, field } });
+                                        new Promise((resolve, reject)=>{
+                                            dispatch({type:'fields/fetchFieldAttrs', resolve, reject })
+                                        })
+                                        .then(()=>{
                                             dispatch({type:'efficiencyQuota/fetchQuota'});
-                                        }}
-                                    />
-                                }
-                                
+                                        })
+                                        
+                                }}>
+                                    {   
+                                        fields.isLoading
+                                        ?
+                                        null
+                                        :
+                                        fieldList && fieldList.length
+                                        ?                    
+                                        fieldList.map(field=>(
+                                            <TabPane 
+                                                key={field.field_id} 
+                                                tab={field.field_name}
+                                            >
+                                                {
+                                                    treeLoading
+                                                    ?
+                                                    <Spin />
+                                                    :
+                                                    <Tree
+                                                        className={style['custom-tree']}
+                                                        expandedKeys={expandedKeys}
+                                                        onExpand={temp=>{
+                                                            dispatch({ type:'fields/setExpandedKeys', payload:temp });
+                                                        }}
+                                                        selectedKeys={[currentAttr.key]}
+                                                        treeData={fieldAttrs}
+                                                        onSelect={(selectedKeys, {node})=>{
+                                                            dispatch({type:'fields/toggleAttr', payload:node});
+                                                            dispatch({type:'efficiencyQuota/fetchQuota'});
+                                                        }}
+                                                    />
+                                                }
+                                            </TabPane>
+                                        ))
+                                        :
+                                        <div className={style['text']} style={{ padding:'1rem'}}>
+                                            <div>{`${energyInfo.type_name}能源类型还没有设置维度`}</div>
+                                            <div style={{ padding:'1rem 0'}}><Button type='primary' onClick={()=>{
+                                                history.push(`/energy/info_manage_menu/field_manage?type=${energyInfo.type_code}`);
+                                            }} >设置维度</Button></div>
+                                        </div>
+                                    }
+                                </Tabs>
                             </TabPane>
                         ))
                     }
                 </Tabs>
             </div>
-            
-        </div>
     );
     const content = (
         Object.keys(quotaInfo).length 

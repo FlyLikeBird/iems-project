@@ -174,7 +174,7 @@ function EnergyCostChart({ data, currentField, theme }) {
                     yAxis:{
                         show:chartType === 'pie' ? false : true,
                         type:'value',
-                        name:'(单位:元)',
+                        name:'(元)',
                         nameTextStyle:{ color:textColor },
                         axisTick:{
                             show:false

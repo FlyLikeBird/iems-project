@@ -54,70 +54,53 @@ export default {
         *fetchInit(action, { call, select, put, all}){
             try{
                 let { resolve, reject, forReport } = action.payload || {};
+                yield put.resolve({ type:'fields/init'});
                 yield all([
-                    put.resolve({type:'fetchEnergy'}),
-                    put.resolve({type:'fetchFlowInit', payload:forReport }),
-                    put.resolve({type:'fetchRatio'}),
-                    put.resolve({type:'fetchCost'}),
-                    put.resolve({type:'fetchOutput'}),
+                    put({type:'fetchEnergy'}),
+                    put({type:'fetchFlowChart', payload:forReport }),
+                    put({type:'fetchRatio'}),
+                    put({type:'fetchCost'}),
+                    put({type:'fetchOutput'}),
+                    put({ type:'fetchRank'})
                 ]);
                 if ( resolve && typeof resolve === 'function') resolve();
             } catch(err){
                 console.log(err);
             }
         },
-        *fetchFlowInit(action, { select, call, put, all }){
-            try{
-                let { user:{ company_id }, fields:{ currentAttr }} = yield select();
-                if ( !action.payload ) {
-                    yield put.resolve({ type:'fields/init'});
-                }
-                let [rankData, fieldData] = yield all([
-                    call(getRank, { company_id }),
-                    put.resolve({ type:'fetchFlowChart'})
-                ]);
-                if ( rankData.data.code === '0'){
-                    yield put({ type:'getRankInfo', payload:{ rankInfo:rankData.data.data }});
+        *fetchRank(action, { select, put, call }){
+            let { user:{ company_id }} = yield select();
+            let { data } = yield call(getRank, { company_id });
+            if ( data && data.code === '0'){
+                yield put({ type:'getRankResult', payload:{ data:data.data }});
+            }
+        },
+        *fetchFlowChart(action, { select, call, put, all }){
+            try {
+                let { user:{ company_id, startDate, endDate }, fields:{ currentAttr, energyInfo }, efficiency:{ chartInfo } } = yield select();
+                // yield put({ type:'toggleChartLoading', payload:true });
+                let { clickNode } = action.payload || {};
+                let finalAttr = clickNode || currentAttr;
+                // console.log(clickNode);
+                let { data } = yield call(getEnergyFlow, { company_id, attr_id:finalAttr.key, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
+                if ( data && data.code === '0'){
+                    if ( data.data.children && data.data.children.length && data.data.cost ) {
+                        yield put({ type:'getChart', payload:{ data:data.data, parentChart:chartInfo, clickNode }});
+                    } else {
+                        if ( clickNode ){
+                            message.info('没有下一级节点');
+                        } else {
+                            yield put({ type:'getChart', payload:{ data:{ empty:true } }});
+                        }
+                    }
+                } else {
+                    yield put({ type:'getChart', payload:{ data:{ empty:true } }});
                 }
             } catch(err){
                 console.log(err);
             }
         },
-        *fetchFlowChart(action, { select, call, put, all }){
-            yield put.resolve({ type:'cancelFlowChart'});
-            yield put.resolve({ type:'cancelable', task:fetchFlowChartCancelable, action:'cancelFlowChart' });
-            function* fetchFlowChartCancelable(){
-                try {
-                    let { user:{ company_id, startDate, endDate }, fields:{ currentAttr, energyInfo }, efficiency:{ chartInfo } } = yield select();
-                    // yield put({ type:'toggleChartLoading', payload:true });
-                    let { clickNode } = action.payload || {};
-                    let finalAttr = clickNode || currentAttr;
-                    // console.log(clickNode);
-                    let { data } = yield call(getEnergyFlow, { company_id, attr_id:finalAttr.key, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
-                    if ( data && data.code === '0'){
-                        if ( data.data.children && data.data.children.length && data.data.cost ) {
-                            yield put({ type:'getChart', payload:{ data:data.data, parentChart:chartInfo, clickNode }});
-                        } else {
-                            if ( clickNode ){
-                                message.info('没有下一级节点');
-                            } else {
-                                yield put({ type:'getChart', payload:{ data:{ empty:true } }});
-                            }
-                        }
-                    } else if ( data && data.code === '1001') {
-                        yield put({ type:'user/loginOut'});
-                    } else {
-                        yield put({ type:'getChart', payload:{ data:{ empty:true } }});
-                    }
-                } catch(err){
-                    console.log(err);
-                }
-            }
-        },
         *fetchCost(action, { select, call, put}){
-            yield put.resolve({ type:'cancelCost'});
-            yield put.resolve({ type:'cancelable', task:fetchCostCancelable, action:'cancelCost' });
-            function* fetchCostCancelable(){
                 try {
                     let { user:{ company_id }} = yield select();
                     let { data } = yield call(getEnergyCostInfo, { company_id });
@@ -127,7 +110,6 @@ export default {
                 } catch(err){
                     console.log(err);
                 }
-            }
         },
         *fetchEnergy(action, { call, put, all}){
             let { data } = yield call(getEnergyType);
@@ -136,8 +118,6 @@ export default {
             }
         },
         *fetchOutput(action, { select, call, put}){
-            yield put.resolve({ type:'cancelable', task:fetchOutputCancelable, action:'cancelOutput'});
-            function* fetchOutputCancelable(){
                 try {
                     let { user:{ company_id }} = yield select();
                     let { data } = yield call(getOutputCompare, { company_id });
@@ -147,11 +127,8 @@ export default {
                 } catch(err){
                     console.log(err);
                 }
-            }  
         },
         *fetchRatio(action, { call, put, select}){
-            yield put.resolve({ type:'cancelable', task:fetchRatioCancelable, action:'cancelRatio'});
-            function* fetchRatioCancelable(){
                 let { user:{ company_id }, fields:{ energyInfo }} = yield select();
                 let { resolve, reject } = action.payload ? action.payload : {};
                 let { data } = yield call(getOutputRatio, { company_id, energy_type : energyInfo.type_id });
@@ -159,7 +136,6 @@ export default {
                     yield put({ type:'getRatio', payload:{ data:data.data }})
                     if ( resolve && typeof resolve === 'function') resolve();
                 }
-            } 
         }, 
         *cancelEffTrend(action, { put }){
             yield put({ type:'cancelAttrRatio'});
@@ -169,6 +145,7 @@ export default {
         *fetchEffTrend(action, { call, put, select, all}){
             try {
                 let { resolve, reject } = action.payload || {};
+                yield put.resolve({ type:'fields/init'});
                 yield all([
                     put.resolve({type:'fetchAttrRatio'}),
                     put.resolve({type:'fetchRegionRatio'}),
@@ -180,50 +157,37 @@ export default {
             }
         },
         *fetchAttrRatio(action, { call, put, select, all }){
-            yield put.resolve({ type:'cancelAttrRatio'});
-            yield put.resolve({ type:'cancelable', task:fetchAttrRatioCancelable, action:'cancelAttrRatio' });
-            function* fetchAttrRatioCancelable(){
                 try {
-                    let { user:{ company_id }, fields:{ energyInfo }, efficiency : { currentDate }} = yield select();
+                    let { user:{ company_id }, fields:{ energyInfo, currentField }, efficiency : { currentDate }} = yield select();
                     let { resolve, reject } = action.payload ? action.payload : {};
                     let temp = currentDate.format('YYYY-MM-DD').split('-');
                     yield put({ type:'toggleLoading'});
                     let [attrMonthData, attrDayData, attrHourData] = yield all([
-                        call(getAttrOutput, { company_id, type_id:energyInfo.type_id, time_type:2, year:temp[0], month:temp[1], day:temp[2] }),
-                        call(getAttrOutput, { company_id, type_id:energyInfo.type_id, time_type:3, year:temp[0], month:temp[1], day:temp[2] }),
-                        call(getAttrOutput, { company_id, type_id:energyInfo.type_id, time_type:4, year:temp[0], month:temp[1], day:temp[2] }),
+                        call(getAttrOutput, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:2, year:temp[0], month:temp[1], day:temp[2] }),
+                        call(getAttrOutput, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:3, year:temp[0], month:temp[1], day:temp[2] }),
+                        call(getAttrOutput, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:4, year:temp[0], month:temp[1], day:temp[2] }),
                     ]);
                     if ( attrMonthData && attrMonthData.data.code === '0' && attrDayData && attrDayData.data.code === '0' && attrHourData && attrHourData.data.code === '0'){
                         let obj = { attrMonthData:attrMonthData.data.data, attrDayData:attrDayData.data.data, attrHourData:attrHourData.data.data };
                         yield put({type:'getAttrRatio', payload:obj});
                         if ( resolve && typeof resolve === 'function') resolve();
-                    } else if ( attrMonthData.data.code === '1001' ) {
-                        yield put({ type:'user/loginOut'});
-                    }
+                    } 
                 } catch(err){
                     console.log(err);
-                }
-            }
-            
+                } 
         },
         *fetchRegionRatio(action, { select, call, put}){
-            yield put.resolve({ type:'cancelRegionRatio'});
-            yield put.resolve({ type:'cancelable', task:fetchRegionRatioCancelable, action:'cancelRegionRatio' });
-            function* fetchRegionRatioCancelable(){
                 try {
-                    let { user:{ company_id }, fields:{ energyInfo }} = yield select();
+                    let { user:{ company_id }, fields:{ energyInfo, currentField }} = yield select();
                     yield put({ type:'toggleRegionLoading'});
-                    let { data } = yield call(getRegionOutput, { company_id, type_id:energyInfo.type_id });
+                    let { data } = yield call(getRegionOutput, { company_id, type_id:energyInfo.type_id, field_id:currentField });
                     if ( data && data.code === '0'){
                         yield put({type:'getRegionRatio', payload:{ data:data.data }});
-                    } else if ( data && data.code === '1001') {
-                        yield put({ type:'user/loginOut'});
-                    }
+                    } 
                 } catch(err){
                     console.log(err);
                 }
-            }
-        }
+        }   
     },
     reducers:{
         toggleLoaded(state){
@@ -238,8 +202,8 @@ export default {
         toggleRegionLoading(state){
             return { ...state, regionLoading:true };
         },
-        getRankInfo(state, { payload:{ rankInfo }}){
-            return { ...state, rankInfo }
+        getRankResult(state, { payload:{ data }}){
+            return { ...state, rankInfo:data };
         },   
         // 用于打开新窗口时传递状态
         setFlowChartInfo(state, { payload:{ chartInfo, rankInfo }}){

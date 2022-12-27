@@ -3,13 +3,12 @@ import { connect } from 'dva';
 import { AlertOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { Radio, Button, Skeleton, DatePicker } from 'antd';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
+import Loading from '@/pages/components/Loading';
 import AlarmDetailTable from './components/AlarmDetailTable';
 import TotalPieChart from './components/TotalPieChart';
 import WarningTypePieChart from './components/WarningTypePieChart';
 import FieldBarChart from './components/FieldBarChart';
 import style from '../IndexPage.css';
-import moment from 'moment';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
 const { RangePicker } = DatePicker;
 let colorsMap = {
     'total':'#ff7862',
@@ -19,11 +18,18 @@ let colorsMap = {
 }
 
 function AlarmTrend({ dispatch, user, alarm }){
-    const { sumInfo, sumList, warningTypeInfo, fieldWarning, machWarning, timeType, beginDate, endDate } = alarm;
+    const { sumInfo, sumList, warningTypeInfo, fieldWarning, isLoading, machWarning, timeType, beginDate, endDate } = alarm;
     const dateRef = useRef();
     
     return (
         <div className={style['page-container']}>
+            {
+                isLoading 
+                ?
+                <Loading />
+                :
+                null
+            }
             <div style={{ height:'40px' }}>
                 <CustomDatePicker onDispatch={()=>{
                     dispatch({ type:'alarm/fetchSumInfo'});

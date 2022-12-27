@@ -6,9 +6,9 @@ import { createFromIconfontCN, MenuFoldOutlined, MenuUnfoldOutlined, AlertOutlin
 import ScrollTable from '@/pages/page_index/components/ScrollTable';
 import style from './Header.css';
 import { getToday } from '@/pages/utils/parseDate';
-
 import avatarBg from '../../../../public/avatar-bg.png';
 import UploadLogo from './UploadLogo';
+import GlobalMonitor from '@/pages/page_index/GlobalMonitor';
 
 let timer;
 let alarmTimer = null;
@@ -24,7 +24,6 @@ const weekObj = {
     5:'周五',
     6:'周六',
 }
-
 
 function isFullscreen(){
     return document.fullscreenElement    ||
@@ -43,7 +42,6 @@ function enterFullScreen(el){
     } catch(err){
         console.log(err);
     }
-    
 }
 
 function cancelFullScreen(el ){
@@ -60,27 +58,23 @@ const IconFont = createFromIconfontCN({
 });
 
 const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
-    let { userInfo, weatherInfo, thirdAgent, newThirdAgent, currentCompany, fromAgent, theme, currentMenu, audioAllowed } = data;
+    let { userInfo, weatherInfo, thirdAgent, newThirdAgent, currentCompany, fromAgent, theme, currentMenu } = data;
     let week = new Date().getDay();
     const [curTime, updateTime] = useState(getToday(2));
-    const [muted, setMuted] = useState(false);
+    const [muted, setMuted] = useState(true);
     const [visible, toggleVisible] = useState(false);
+    const [screen, setScreen] = useState(0);
     const containerRef = useRef();
     useEffect(()=>{
         timer = setInterval(()=>{
             updateTime(getToday(2));
         },1000);
-        if ( !audioAllowed ) {
-            function handleAudio(){
-                onDispatch({ type:'user/setAudioAllowed'});
-                setMuted(true);
-                alarmTimer = setTimeout(()=>{
-                    setMuted(false);
-                    document.onclick = null;
-                },100);  
-            }
-            document.onclick = handleAudio;
-        }   
+        function handleAudio(){
+            setMuted(false);
+            document.onclick = null;  
+        }
+        document.onclick = handleAudio;
+          
         function handleUnload(e){
             gapTimer = new Date().getTime() - startTimer;
             if ( gapTimer <= 20 ){
@@ -110,23 +104,24 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
         //  1.登录时通过登录button获取到交互权限
         //  2.刷新时监听整个文档的click事件，当有click时才触发audio的play();
         let audio = document.getElementById('my-audio');
-        if ( msg.count ){
-            try {           
-                if ( !audio ) return;         
-                if ( !muted && audioAllowed ){
-                    audio.currentTime = 0;
-                    audio.play(); 
-                    closeTimer = setTimeout(()=>{
+        if ( audio ){
+            if ( msg.count ){
+                try {           
+                    if ( !muted ){
+                        audio.currentTime = 0;
+                        audio.play(); 
+                        closeTimer = setTimeout(()=>{
+                            audio.pause();
+                        },5000)                              
+                    } else {
                         audio.pause();
-                    },5000)                              
-                } else {
-                    audio.pause();
+                    }
+                } catch(err){
+                    console.log(err);
                 }
-            } catch(err){
-                console.log(err);
+            } else {
+                if ( audio && audio.pause ) audio.pause();
             }
-        } else {
-            if ( audio && audio.pause ) audio.pause();
         }
     },[msg, muted]);
     // console.log(currentCompany);
@@ -155,22 +150,44 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                         <MenuFoldOutlined />
                     }
                 </div>
-                <div style={{ position:'absolute', top:'50%', transform:'translateY(-50%)', left:sidebarWidth + 20 + 40 + 'px' }}>
-                    <Switch checked={ theme === 'light' ? false : true } onChange={(boolean)=>{
-                        if ( boolean ) {    
-                            onDispatch({ type:'user/toggleTheme', payload:'dark'});
-                        } else {
-                            onDispatch({ type:'user/toggleTheme', payload:'light'});
-                        }
-                    }} />     
-                </div>
-                <div className={style['title-container']}>
+                {
+                    window.g && window.g.xiaoe 
+                    ?
+                    null
+                    :
+                    <div style={{ position:'absolute', top:'50%', transform:'translateY(-50%)', left:sidebarWidth + 20 + 40 + 'px' }}>
+                        <Switch checked={ theme === 'light' ? false : true } onChange={(boolean)=>{
+                            if ( boolean ) {    
+                                onDispatch({ type:'user/toggleTheme', payload:'dark'});
+                            } else {
+                                onDispatch({ type:'user/toggleTheme', payload:'light'});
+                            }
+                        }} />     
+                    </div>
+                }
+                
+                <div className={style['title-container']} style={{ transform:currentCompany.company_id === 124 ? collapsed ? 'translate(-40%, -50%)' : 'translate(-20%,-50%)' : 'translate(-50%,-50%)'}}>
                     <div className={style['title']}>
-                    {/* { `${currentCompany.company_name}-智慧能源管理系统`} */}
-                    { `${currentCompany.company_name}-企业智慧能源管理平台`}
+                    
+                    {
+                        currentCompany.company_id === 124 
+                        ?
+                        `${currentCompany.company_name}`
+                        :
+                        `${currentCompany.company_name}-企业智慧能源管理平台`
+                    }
                     </div>
                 </div>
                 <div className={style['weather-container']}>
+                    {
+                        window.g && window.g.xiaoe 
+                        ?
+                        <div>
+                            <Button onClick={()=>setScreen(1)}>智慧大屏</Button>
+                        </div>
+                        :
+                        null
+                    }
                     {
                         isFulled
                         ?
@@ -224,17 +241,29 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                         
                     </span>
                 </div>
-            </div>       
+            </div> 
+            {/* 监控主页的Modal弹窗 */}
+            <Modal
+                visible={screen ? true : false }
+                footer={null}
+                className='fullscreen-modal'
+                width='100%'
+                height='100%'
+                destroyOnClose={true}
+                onCancel={()=>setScreen(0)}
+            >
+                <GlobalMonitor />
+            </Modal>
         </div>
     )
 }
 
 function areEqual(prevProps, nextProps){
-    if ( prevProps.data !== nextProps.data 
-        || prevProps.collapsed !== nextProps.collapsed 
-        || prevProps.fullscreen !== nextProps.fullscreen
+    if ( 
+        prevProps.collapsed !== nextProps.collapsed 
         || prevProps.sidebarWidth !== nextProps.sidebarWidth
-        || prevProps.msg.count !== nextProps.msg.count    
+        || prevProps.msg.count !== nextProps.msg.count   
+        ||  prevProps.theme !== nextProps.theme
     ) {
         return false;
     } else {

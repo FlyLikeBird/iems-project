@@ -5,8 +5,10 @@ const initialState = {
     energyList:[
         { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'},
         { type_name:'水', type_code:'water', type_id:'2', unit:'m³'},
-        { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' },
-        { type_name:'热', type_code:'hot', type_id:'4', unit:'GJ' }
+        // { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' },
+        { type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'},
+        // { type_name:'压缩空气', type_code:'compressed', type_id:'8', unit:'m³'},
+        // { type_name:'热', type_code:'hot', type_id:'4', unit:'GJ' },
     ],
     energyInfo:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh' },
     // {
@@ -66,85 +68,76 @@ export default {
                 yield put({type:'getFieldType', payload:{data:data.data}});
             }
         },
-        *fetchField(action, { call, put, select}){
-            yield put.resolve({ type:'cancelField'});
-            yield put.resolve({ type:'cancelable', task:fetchFieldCancelable, action:'cancelField' });
-            function* fetchFieldCancelable(){
-                try {
-                    let { user:{ company_id }, fields:{ energyInfo, allFields }} = yield select();
-                    let { resolve, reject, needsUpdate } = action.payload || {};
-                    //  初始化维度列表
-                    // needsUpdate字段是维度源数据变化时强制更新, 否则从缓存中读取维度属性和属性树状态不变
-                    if ( !allFields[energyInfo.type_code] || needsUpdate ) {            
-                        yield put({type:'toggleLoading'}); 
-                        let { data } = yield call(getFields, { company_id, energy_type:energyInfo.type_id });
-                        if ( data && data.code == 0 ){
-                            yield put({type:'getFields', payload:{ data:data.data, energyInfo }}); 
-                            //  默认以第一个维度为当前维度
-                            if ( resolve && typeof resolve === 'function') resolve();
-                        } 
-                    } else {
-                        yield put({ type:'updateField'});
+        *fetchField(action, { call, put, select}){     
+            try {
+                let { user:{ company_id }, fields:{ energyInfo, allFields }} = yield select();
+                let { resolve, reject, needsUpdate } = action.payload || {};
+                //  初始化维度列表
+                // needsUpdate字段是维度源数据变化时强制更新, 否则从缓存中读取维度属性和属性树状态不变
+                if ( !allFields[energyInfo.type_code] || needsUpdate ) {            
+                    yield put({type:'toggleLoading'}); 
+                    let { data } = yield call(getFields, { company_id, energy_type:energyInfo.type_id });
+                    if ( data && data.code == 0 ){
+                        yield put({type:'getFields', payload:{ data:data.data, energyInfo }}); 
+                        //  默认以第一个维度为当前维度
+                        if ( resolve && typeof resolve === 'function') resolve();
                     } 
-                } catch(err){
-                    console.log(err);
+                } else {
+                    yield put({ type:'updateField'});
+                    if ( resolve && typeof resolve === 'function') resolve();
                 }
-            } 
-        },
-        
-        *fetchFieldAttrs(action, { call, put, select}){
-            yield put.resolve({ type:'cancelFieldAttrs'});
-            yield put.resolve({ type:'cancelable', task:fetchFieldAttrsCancelable, action:'cancelFieldAttrs' });
-            function* fetchFieldAttrsCancelable(){
-                try {
-                    // console.log('a');
-                    // resolve 用于定额管理 确保先获取fieldAttrs的异步控制
-                    let { needsUpdate, resolve, reject, passField } = action;
-                    let { fields: { currentField, allFields, energyInfo } } = yield select();
-                    // 如果维度列表为空
-                    let finalField = passField || currentField;
-                    if ( !finalField.field_id ) {
-                        if ( resolve && typeof resolve === 'function' ) resolve();
-                        return ;
-                    }
-                    if ( needsUpdate || !(allFields[energyInfo.type_code] && allFields[energyInfo.type_code]['fieldAttrs'] && allFields[energyInfo.type_code]['fieldAttrs'][finalField.field_name] )) {
-                        // console.log('b'); 
+            } catch(err){
+                console.log(err);
+            }         
+        },      
+        *fetchFieldAttrs(action, { call, put, select}){    
+            try {
+                // resolve 用于定额管理 确保先获取fieldAttrs的异步控制
+                let { needsUpdate, resolve, reject, passField } = action;
+                let { fields: { currentField, allFields, energyInfo } } = yield select();
+                // 如果维度列表为空
+                let finalField = passField || currentField;
+                if ( !finalField.field_id ) {
+                    if ( resolve && typeof resolve === 'function' ) resolve();
+                    return ;
+                }
+                if ( needsUpdate || !(allFields[energyInfo.type_code] && allFields[energyInfo.type_code]['fieldAttrs'] && allFields[energyInfo.type_code]['fieldAttrs'][finalField.field_name] )) {
+                    // console.log('b'); 
+                    if ( !needsUpdate ) {
                         yield put({type:'toggleTreeLoading'});
-                        let { data } = yield call(getFieldAttrs, { field_id : finalField.field_id });           
-                        if ( data && data.code == 0 ){
-                            //  以维度属性树的第一个节点为当前属性节点 
-                            yield put({type:'getFieldAttrs', payload:{ data:data.data, energyInfo, finalField }});         
-                            // 如果是维度管理传递来的field，要同时更新fieldDevice里的selectedAttr;
-                            if ( passField ) {
-                                let { list } = data.data;
-                                yield put({ type:'fieldDevice/toggleAttr', payload:list && list.length ? list[0] : {}});
-                            }
-                            if ( resolve ) resolve(data.data.list);
-                        } else {
-                            if ( reject ) reject(data.msg);
-                        }
-                    } else {
-                        // console.log('c');
-                        // 如果某个维度属性树已经存在，则当前节点更新为树的根节点
-                        let fieldAttrs = allFields[energyInfo.type_code]['fieldAttrs'][finalField.field_name];
-                        let attr = fieldAttrs && fieldAttrs.length ? fieldAttrs[0] : {}; 
-                        let result = [], deep = 0;
-                       
-                        yield put({ type:'toggleAttr', payload:attr });
-                        getExpendKeys( fieldAttrs && fieldAttrs.length ? fieldAttrs : [], result, deep);
-                        yield put({ type:'setExpandedKeys', payload:result });
+                    }
+                    let { data } = yield call(getFieldAttrs, { field_id : finalField.field_id });           
+                    if ( data && data.code == 0 ){
+                        //  以维度属性树的第一个节点为当前属性节点 
+                        yield put({type:'getFieldAttrs', payload:{ data:data.data, energyInfo, finalField }});         
+                        // 如果是维度管理传递来的field，要同时更新fieldDevice里的selectedAttr;
                         if ( passField ) {
-                            yield put({ type:'fieldDevice/toggleAttr', payload:attr });
+                            let { list } = data.data;
+                            yield put({ type:'fieldDevice/toggleAttr', payload:list && list.length ? list[0] : {}});
                         }
-                        if ( resolve && typeof resolve === 'function') resolve(fieldAttrs);
-                    } 
-
-                } catch(err){
-                    console.log(err);
+                        if ( resolve ) resolve(data.data.list);
+                    } else {
+                        if ( reject ) reject(data.msg);
+                    }
+                } else {
+                    // console.log('c');
+                    // 如果某个维度属性树已经存在，则当前节点更新为树的根节点
+                    let fieldAttrs = allFields[energyInfo.type_code]['fieldAttrs'][finalField.field_name];
+                    let attr = fieldAttrs && fieldAttrs.length ? fieldAttrs[0] : {}; 
+                    let result = [], deep = 0;
+                   
+                    yield put({ type:'toggleAttr', payload:attr });
+                    getExpendKeys( fieldAttrs && fieldAttrs.length ? fieldAttrs : [], result, deep);
+                    yield put({ type:'setExpandedKeys', payload:result });
+                    if ( passField ) {
+                        yield put({ type:'fieldDevice/toggleAttr', payload:attr });
+                    }
+                    if ( resolve && typeof resolve === 'function') resolve(fieldAttrs);
                 } 
-            }           
-        }
-        
+            } catch(err){
+                console.log(err);
+            }
+        }                            
     },
     reducers:{
         toggleLoading(state){

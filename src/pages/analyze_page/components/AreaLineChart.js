@@ -10,13 +10,17 @@ import XLSX from 'xlsx';
 function AreaLine({ data, theme, forModal }) {
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     const echartsRef = useRef();
-    const seriesData = [
-        { type:'line', symbol:'none', itemStyle:{ color:'#ccc' }, areaStyle: { opacity:0.6 }, data:data.tipArr.map(i=>i || null), name:'尖' },
-        { type:'line', symbol:'none', itemStyle:{ color:'#57e29f' }, areaStyle: { opacity:0.6 }, data:data.topArr.map(i=>i || null), name:'峰' },
-        { type:'line', symbol:'none', itemStyle:{ color:'#ffc84b' }, areaStyle: { opacity:0.6 }, data:data.middleArr.map(i=>i || null), name:'平' },
-        { type:'line', symbol:'none', itemStyle:{ color:'#65cae3' }, areaStyle: { opacity:0.6 }, data:data.bottomArr.map(i=>i || null), name:'谷' },
-        { type:'line', symbol:'none', itemStyle:{ color:'#c23531' }, lineStyle:{type:'dashed'}, data:data.referArr, name:'参考线' }
-    ] 
+    let seriesData = [];
+    if ( Object.keys(data).length ) {
+        seriesData = [
+            { type:'line', symbol:'none', itemStyle:{ color:'#ccc' }, areaStyle: { opacity:0.6 }, data:data.tipArr.map(i=>i || null), name:'尖' },
+            { type:'line', symbol:'none', itemStyle:{ color:'#57e29f' }, areaStyle: { opacity:0.6 }, data:data.topArr.map(i=>i || null), name:'峰' },
+            { type:'line', symbol:'none', itemStyle:{ color:'#ffc84b' }, areaStyle: { opacity:0.6 }, data:data.middleArr.map(i=>i || null), name:'平' },
+            { type:'line', symbol:'none', itemStyle:{ color:'#65cae3' }, areaStyle: { opacity:0.6 }, data:data.bottomArr.map(i=>i || null), name:'谷' },
+            { type:'line', symbol:'none', itemStyle:{ color:'#c23531' }, lineStyle:{type:'dashed'}, data:data.referArr, name:'参考线' }
+        ] 
+    }
+    
     return (    
         <div style={{ height:'100%'}}>
             <Radio.Group size='small' className={style['float-button-group'] + ' ' + style['custom-button']} value='data' onChange={e=>{
@@ -107,7 +111,7 @@ function AreaLine({ data, theme, forModal }) {
                                 shadowOffsetY: 2
                             },
                             startValue: 0,
-                            endValue: data.date.length > 48 ? 48 : data.date.length  
+                            endValue: data.date ? data.date.length > 48 ? 48 : data.date.length : 0
                         }
                     ],
                     xAxis:{
@@ -125,7 +129,7 @@ function AreaLine({ data, theme, forModal }) {
                     },
                     yAxis:{
                         type:'value',
-                        name:'(单位:kw)',
+                        name:'(kw)',
                         nameTextStyle:{ color:textColor },
                         axisTick:{ show:false },
                         axisLine:{ show:false },

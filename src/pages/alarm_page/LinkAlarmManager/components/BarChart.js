@@ -9,6 +9,10 @@ import XLSX from 'xlsx';
 import { IconFont } from '@/pages/components/IconFont';
 
 const machMap = {
+    '0':{
+        name:'漏保空开',
+        color:'#3f8fff'
+    },
     '1':{
         name:'电表',
         color:'#1fc48d'
@@ -147,7 +151,7 @@ function BarChart({ data, cateCode, timeType, theme }){
                     },
                     xAxis: {
                         show: true,
-                        name: timeType === '1' ? '小时' : timeType === '2' ? '日' : '月',
+                        name: timeType === '1' ? '小时' : timeType === '2' || timeType === '10' ? '日' : timeType === '3' ?  '月' : '年',
                         nameTextStyle:{ color:textColor },
                         type:'category',
                         data:data.date,
@@ -169,11 +173,12 @@ function BarChart({ data, cateCode, timeType, theme }){
                                 let result = '';
                                 if ( timeType === '1'){
                                     result = value.split(' ')[1];
-                                } else if ( timeType === '2'){
-                                    result = strArr[2]
+                                } else if ( timeType === '2' || timeType === '10' ) {
+                                    result = strArr[2];
                                 } else {
-                                    result = strArr[1];
+                                    result = value;
                                 }
+                               
                                 return result;
                             }
                         },

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select, Radio, Calendar } from 'antd';
 import CustomDatePicker from '@/pages/components/CustomDatePicker';
 import CustomCalendar from '@/pages/components/CustomCalendar'; 
@@ -14,11 +14,7 @@ for(let i=1;i<=12;i++){
     months.push(i);
 }
 
-function CalendarContainer({ theme }){
-    let [mode, setMode] = useState('month');
-    let [dataType, setDataType] = useState('cost');
-    let [currentEnergy, setCurrentEnergy] = useState('total');
-    let [currentDate, setCurrentDate] = useState(moment(new Date()));
+function CalendarContainer({ data, theme, onDispatch, energyInfo, isLoading, mode, currentDate, onUpdateMode, onUpdateDate }){
     let dateArr = currentDate.format('YYYY-MM').split('-');
     return (
         <div style={{ height:'100%' }}>
@@ -29,7 +25,8 @@ function CalendarContainer({ theme }){
                     labelInValue={true}
                     style={{ width:'100px', marginRight:'0.5rem' }}
                     onChange={obj=>{
-                        setCurrentDate(moment(new Date(`${obj.value}-${currentDate.month() + 1}`)))
+                        onUpdateDate(moment(new Date(`${obj.value}-${currentDate.month() + 1}`)));
+                        onDispatch({ type:'baseCost/fetchCalendar', payload:{ mode, year:obj.value, month:dateArr[1] }})
                     }}
                 >
                     {
@@ -44,7 +41,8 @@ function CalendarContainer({ theme }){
                     labelInValue={true}
                     style={{ width:'100px', marginRight:'1rem' }}
                     onChange={obj=>{
-                        setCurrentDate(moment(new Date(`${currentDate.year()}-${obj.value}`)));
+                        onUpdateDate(moment(new Date(`${currentDate.year()}-${obj.value}`)));
+                        onDispatch({ type:'baseCost/fetchCalendar', payload:{ mode, year:dateArr[0], month:obj.value }});
                     }}
                 >
                     {
@@ -54,37 +52,40 @@ function CalendarContainer({ theme }){
                     }
                 </Select>
                 <Radio.Group style={{ marginRight:'1rem' }} className={style['custom-radio']} value={mode} onChange={e=>{
-                    setMode(e.target.value);
+                    onUpdateMode(e.target.value);
+                    onDispatch({ type:'baseCost/fetchCalendar', payload:{ mode:e.target.value, year:dateArr[0], month:dateArr[1] }});
                 }}>
                     <Radio.Button key='month' value='month' >日</Radio.Button>
                     <Radio.Button key='year' value='year'>月</Radio.Button>
                 </Radio.Group>
-                <Radio.Group className={style['custom-radio']} value={dataType} onChange={e=>{
-                    setDataType(e.target.value);
-                }}>
-                    <Radio.Button key='cost' value='cost' >成本</Radio.Button>
-                    <Radio.Button key='energy' value='energy'>能耗</Radio.Button>
-                </Radio.Group>
-                <Radio.Group className={style['custom-radio']} value={currentEnergy} onChange={e=>{
-                    setCurrentEnergy(e.target.value);
-                }}>
-                    {
-                        [{ key:'total', value:'总' }].map((type,i)=>(
-                            <Radio.Button key='cost' value='cost' >成本</Radio.Button>
-                        ))
-                    }
-                </Radio.Group>
             </div>
             <div style={{ height:'calc( 100% - 40px)'}}>
-                <CustomCalendar 
-                    currentDate={currentDate} 
-                    onChangeDate={value=>setCurrentDate(value)} 
-                    theme={theme} 
-                    mode={mode}
-                />
+                {
+                    isLoading 
+                    ?
+                    null
+                    :
+                    <CustomCalendar 
+                        data={data}
+                        currentDate={currentDate} 
+                        onChangeDate={value=>onUpdateDate(value)} 
+                        onDispatch={action=>onDispatch(action)}
+                        theme={theme} 
+                        mode={mode}
+                        energyInfo={energyInfo}
+                    />
+                }
+                
             </div>
         </div>
     )
 }
 
-export default CalendarContainer;
+function areEqual(prevProps, nextProps){
+    if ( prevProps.data !== nextProps.data || prevProps.theme !== nextProps.theme || prevProps.isLoading !== nextProps.isLoading ) {
+        return false;
+    } else {
+        return true;
+    }
+}
+export default React.memo(CalendarContainer, areEqual);

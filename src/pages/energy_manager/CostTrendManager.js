@@ -118,6 +118,7 @@ function CostTrendManager({ dispatch, user, fields, attrEnergy }){
                         isLoading={regionLoading} 
                         currentField={currentField}
                         theme={user.theme}
+                        startDate={user.startDate}
                     />                                         
                     <EnergyQuotaChart 
                         data={energyQuota} 
@@ -125,7 +126,7 @@ function CostTrendManager({ dispatch, user, fields, attrEnergy }){
                         energyList={energyList}
                         theme={user.theme}
                         onToggleTimeType={value=>{
-                            dispatch({type:'attrEnergy/fetchEnergyQuota', payload:value });
+                            dispatch({type:'attrEnergy/fetchEnergyQuota', payload:{ timeType:value }});
                         }} 
                     />             
                 </div>

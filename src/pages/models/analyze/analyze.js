@@ -253,11 +253,12 @@ export default {
                 console.log(err);
             }
         },
-        *fetchRankAndGrade(action, { call, put}){
+        *fetchRankAndGrade(action, { select, call, put}){
             try {
+                let { user:{ startDate, endDate }} = yield select();
                 let { timeType } = action.payload || {};
-                timeType = timeType || '2';
-                let { data } = yield call(getRankAndGrade,{ time_type:timeType })
+                timeType = timeType || '2';       
+                let { data } = yield call(getRankAndGrade,{ begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType })
                 if ( data && data.code === '0'){
                     yield put({ type:'getRankResult', payload:{ data:data.data }})
                 }
@@ -265,11 +266,12 @@ export default {
                 console.log(err);
             }
         },
-        *fetchEleHealth(action, { call, put}){
+        *fetchEleHealth(action, { select, call, put}){
             try {
+                let { user:{ startDate, endDate }} = yield select();
                 let { timeType } = action.payload || {};
                 timeType = timeType || '1';
-                let { data } = yield call(getEleHealth, { time_type:timeType });
+                let { data } = yield call(getEleHealth, { time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
                 if ( data && data.code === '0' ){
                     yield put({ type:'getHealthResult', payload:{ data:data.data }})
                 }

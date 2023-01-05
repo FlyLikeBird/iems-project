@@ -15,23 +15,20 @@ let energyMaps = {
     'top':'峰',
     'middle':'平',
     'bottom':'谷',
-    'base':'基',
-    'ele':'电',
-    'water':'水',
-    'hot':'热',
-    'gas':'气',
-    'combust':'燃气',
-    'compressed':'压缩气体'
+    'base':'基'
 }
-function PieChart({ data, energyInfo, showType, theme, forReport }) {
+function PieChart({ data, energyInfo, energyList, showType, theme, startDate, forReport }) {
     let textColor = theme === 'dark' ? '#b0b0b0' : 'rgba(0,0,0,0.8)';   
     let legendData = [];
     let total = 0;
     // 获取到能源饼图的数据
     const valueArr = Object.keys(data).map(key=>{
         let obj = {};
-        obj.name = energyMaps[key];
+        let info = energyList.filter(i=>i.type_code === key)[0];
+        info = info || {};
+        obj.name = energyInfo.type_id === 1 ? energyMaps[key] : info.type_name;
         obj.value = showType === '0' ? ( data[key].cost || 0 ) : ( data[key].energy || 0);
+        obj.unit = energyInfo.type_id === 0 ? info.unit : energyInfo.unit;
         obj.label = { show:false };
         obj.labelLine = { show:false };
         if ( obj.name ){
@@ -40,9 +37,9 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
         }
         return obj;
     });
-
+    console.log(startDate);
     const echartsRef = useRef();
-    let title = energyInfo.type_id === 0 ? `本月总${ showType === '0' ? '费用' : '能耗'}` : `本月${ energyInfo.type_name}${ showType === '0' ? '费用':'能耗'}`;
+    let title = `${ forReport && startDate ? ( startDate.month() + 1 ) + '月' : '本月'}${ energyInfo.type_name }${ showType === '0' ? '费用' : '能耗'}`;
     return (   
         <div style={{ height:'100%'}}>
             {
@@ -54,7 +51,7 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                     let value = e.target.value;
                     let fileTitle = title;
                     if ( value === 'download' && echartsRef.current ){
-                        html2canvas(echartsRef.current.ele, { allowTaint:false, useCORS:false, backgroundColor:'#191932' })
+                        html2canvas(echartsRef.current.ele, { allowTaint:false, useCORS:false, backgroundColor: theme === 'dark' ? '#191932' : '#fff' })
                         .then(canvas=>{
                             let MIME_TYPE = "image/png";
                             let url = canvas.toDataURL(MIME_TYPE);
@@ -78,7 +75,7 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                         valueArr.filter(i=>i.name).forEach(i=>{
                             let temp = [];
                             temp.push(i.name);
-                            temp.push(energyInfo.unit);
+                            temp.push(i.unit);
                             temp.push(i.value);
                             temp.push(`${total ? Math.round(i.value/total*100) : 0 }%`);
                             aoa.push(temp);
@@ -100,7 +97,10 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                 option={{
                     tooltip: {
                         trigger: 'item',
-                        formatter: `{b}: {c}${showType === '0' ? '元' : energyInfo.unit }({d}%)`
+                        // `{b}: {c}${showType === '0' ? '元' : energyInfo.unit }({d}%)`
+                        formatter: (params)=>{
+                            return `${params.data.name} : ${params.data.value} ${ showType === '0' ? '元' : params.data.unit } (${total ? Math.round(params.data.value/total*100) : 0.0 }%)`
+                        } 
                     },
                     title:{
                         text:title,
@@ -120,7 +120,8 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                         textStyle:{ color:textColor },
                         formatter:(name)=>{
                             let temp = valueArr.filter(i=>i.name === name)[0];
-                            return `{title|本月${name}}\n{value|${Math.round(temp.value)}}{title|${showType === '0' ? '元' : energyInfo.unit }}    {value|${total ? (temp.value / total * 100).toFixed(1) : 0.0 }}{title|%}`
+                            let info = energyList.filter(i=>i.type_name === name)[0];
+                            return `{title|${name}}\n{value|${Math.round(temp.value)}}{title|${showType === '0' ? '元' : info ? info.unit : energyInfo.unit }}  {value|${total ? (temp.value / total * 100).toFixed(1) : 0.0 }}{title|%}`
                         },
                         textStyle:{
                             rich: {
@@ -139,17 +140,16 @@ function PieChart({ data, energyInfo, showType, theme, forReport }) {
                             }
                         }
                     },
-                    color:['#4ccdef','#a61dfb','#ffba58','#7a7ab3','#57e29f'],  
-                        
+                    color:['#4ccdef','#a61dfb','#ffba58','#7a7ab3','#57e29f'],                 
                     series: [
                         {
                             type: 'pie',
                             center:['30%','55%'],
-                            radius: ['42%', '55%'],
+                            radius: ['45%', '55%'],
                             avoidLabelOverlap: true,
                             itemStyle:{
                                 borderColor: theme === 'dark' ? '#191932' : '#fff',
-                                borderWidth:2,
+                                borderWidth:4,
                             },
                             label:{
                                 // position:'inside',

@@ -1,15 +1,15 @@
-import { getFields, deleteField, editField, getFieldType, addField, getFieldAttrs, addFieldAttr, deleteFieldAttr, editFieldAttr, getAttrDevice, getAllDevice, addAttrDevice, deleteAttrDevice } from '../../services/fieldsService';
-import { message } from 'antd';
+import { getEnergyType, getFields, deleteField, editField, getFieldType, addField, getFieldAttrs, addFieldAttr, deleteFieldAttr, editFieldAttr, getAttrDevice, getAllDevice, addAttrDevice, deleteAttrDevice } from '../../services/fieldsService';
 const initialState = {
     // 能源类型
-    energyList:[
-        { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'},
-        { type_name:'水', type_code:'water', type_id:'2', unit:'m³'},
-        // { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' },
-        { type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'},
-        // { type_name:'压缩空气', type_code:'compressed', type_id:'8', unit:'m³'},
-        // { type_name:'热', type_code:'hot', type_id:'4', unit:'GJ' },
-    ],
+    // energyList:[
+    //     { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'},
+    //     { type_name:'水', type_code:'water', type_id:'2', unit:'m³'},
+    //     { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' },
+    //     { type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'},
+    //     { type_name:'压缩空气', type_code:'compressed', type_id:'8', unit:'m³'},
+    //     { type_name:'热', type_code:'hot', type_id:'4', unit:'GJ' },
+    // ],
+    energyList:[],
     energyInfo:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh' },
     // {
     //     'ele':{
@@ -54,12 +54,26 @@ export default {
         },
         *init(action, { call, put, select }){
             let { needsUpdate, resolve, reject } = action.payload || {};
+            yield put.resolve({ type:'fetchEnergy'});
             yield put.resolve({ type:'fetchField', payload:{ needsUpdate }});
             yield put.resolve({ type:'fetchFieldAttrs', payload:{ needsUpdate }});
             if ( resolve && typeof resolve === 'function' ) {
                 // 切换能源类型时，将更新后的当前节点状态传递给promise;
                 let { fields:{ currentAttr }} = yield select();
                 if ( resolve && typeof resolve === 'function' ) resolve(currentAttr);
+            }
+        },
+        *fetchEnergy(action, { call, put, select }){
+            try {
+                let { fields:{ energyList }} = yield select();
+                if ( !energyList.length ) {
+                    let { data } = yield call(getEnergyType);
+                    if ( data && data.code === '0'){
+                        yield put({type:'getEnergyTypeResult', payload:{ data:data.data }});
+                    }
+                }
+            } catch(err){
+                console.log(err);
             }
         },
         *fetchFieldType(action, { call, put}){
@@ -144,7 +158,14 @@ export default {
             return { ...state, isLoading:true };
         },
         toggleTreeLoading(state){
-            return { ...state, treeLoading:true }
+            return { ...state, treeLoading:true };
+        },
+        getEnergyTypeResult(state, { payload:{ data }}){
+            let arr = data.map(i=>{
+                i.type_id = i.type_id + '';
+                return i;
+            })
+            return { ...state, energyList:arr };
         },
         getFields(state, { payload:{ data, energyInfo }} ){
             let { fields } = data;
@@ -159,8 +180,7 @@ export default {
             let currentField = temp.fieldList && temp.fieldList.length ? temp.fieldList[0] : {};
             let currentAttr = temp.fieldAttrs && temp.fieldAttrs[currentField.field_name] ? temp.fieldAttrs[currentField.field_name][0] : {};
             // 当维度为空时，维度相关的属性树也为空
-            let result = [], deep = 0;
-            
+            let result = [], deep = 0;  
             getExpendKeys( temp.fieldAttrs && temp.fieldAttrs[currentField.field_name] ? temp.fieldAttrs[currentField.field_name] : [], result, deep); 
             return { ...state, currentField, currentAttr:Object.keys(currentField).length ? currentAttr : {}, expandedKeys:result };
         },

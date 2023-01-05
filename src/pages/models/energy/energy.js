@@ -1,11 +1,11 @@
-import { getTotalCost, getCurrentCost, getEnergyType, getSceneInfo, getRank, getElectricCostAnalysis, getAttrWaterCost, getAttrGasCost, getTotalCostAnalysis, fetchImg } from '../../services/energyService';
+import { getTotalCost, getCurrentCost, getSceneInfo, getRank, getElectricCostAnalysis, getAttrWaterCost, getAttrGasCost, getTotalCostAnalysis, fetchImg } from '../../services/energyService';
+import { getEnergyType } from '../../services/fieldsService';
 import { setSceneInfo, uploadImg } from '../../services/alarmService';
-import { getMachs } from '../../services/demandService';
 import { getSaveSpace } from '../../services/monitorService';
 
 
 const initialState = {
-    energyInfo:{},
+    energyInfo:{ type_id:0, type_name:'总', type_code:'total', unit:'tce' },
     energyList:[],
     //  时间维度，切换小时/日/月，默认以小时为单位
     chartLoading:true,
@@ -30,34 +30,36 @@ export default {
     namespace:'energy',
     state:initialState,
     effects:{
-        *fetchInit(action, { call, put, all}){
-            try {
-                let { resolve, reject } = action.payload ? action.payload : {};       
-                yield put.resolve({ type:'fetchEnergy'}),
-                yield put.resolve({ type:'fetchCost'}),
-                yield put.resolve({ type:'fetchCostByTime'})        
-                if ( resolve && typeof resolve === 'function') resolve();               
-            } catch(err){
-                console.log(err);
+        *fetchEnergy(action, { put, select, call }){
+            let { fields:{ energyList }} = yield select();
+            if ( !energyList.length ) {
+                let { data } = yield call(getEnergyType);
+                if ( data && data.code === '0') {
+                    yield put({ type:'getEnergyTypeResult', payload:{ data:data.data }});
+                }
+            } else {
+                yield put({ type:'getEnergyTypeResult', payload:{ data:energyList }});
             }
         },
         *fetchCost(action, { call, put, all, select }){
             try {
-                let { resolve, reject } = action.payload || {};
-                let { user:{ company_id }, energy : { energyInfo }} = yield select(); 
+                let { resolve, reject, forReport } = action.payload || {};
+                let { user:{ company_id, startDate, endDate }, energy:{ energyInfo }} = yield select(); 
+                // 诊断报告，关联到时间段信息
                 let [ currentCost, costAnalysis ] = yield all([
-                    call(getCurrentCost, { company_id, type_id : energyInfo.type_id }),
+                    call(getCurrentCost, forReport ? { company_id, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')} : { company_id, type_id : energyInfo.type_id }),
                     call(
                         energyInfo.type_id === 1 ?
                         getElectricCostAnalysis : 
                         getTotalCostAnalysis,
-                        { company_id, type_id:energyInfo.type_id }
+                        forReport ? { company_id, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') } : { company_id, type_id:energyInfo.type_id }
                     )   
                 ]);           
                 if ( currentCost && currentCost.data.code === '0' && costAnalysis && costAnalysis.data.code === '0'){
-                    let payload = { currentCost : currentCost.data.data,  costAnalysis : costAnalysis.data.data, energyType: energyInfo.type_id };
-                    yield put({type:'get', payload});
+                    yield put({type:'get', payload:{ data:{ currentCost:currentCost.data.data,  costAnalysis : costAnalysis.data.data }}});
                     if ( resolve && typeof resolve === 'function') resolve();
+                } else {
+                    if ( reject && typeof reject ) reject(data.msg);
                 } 
             } catch (err){
                 console.log(err);
@@ -65,12 +67,12 @@ export default {
         },
         *fetchCostByTime(action, { call, put, select } ){
             try {
-                let { user:{ company_id }, energy : { energyInfo, timeType }} = yield select();
-                let { resolve, reject } = action.payload || {};
+                let { user:{ company_id, startDate, endDate }, energy : { energyInfo, timeType }} = yield select();
+                let { resolve, reject, forReport } = action.payload || {};
                 yield put({ type:'toggleChartLoading'});
-                let { data } = yield call(getTotalCost, { company_id, type_id:energyInfo.type_id, time_type:timeType })
+                let { data } = yield call(getTotalCost, forReport ? { company_id, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:'2' } : { company_id, type_id:energyInfo.type_id, time_type:timeType })
                 if ( data && data.code === '0'){
-                    yield put({type:'getCostByTime', payload:{ data:data.data, timeType, energyType:energyInfo.type_id }});
+                    yield put({type:'getCostByTime', payload:{ data:data.data, energyType:energyInfo.type_id }});
                     if ( resolve && typeof resolve === 'function' ) resolve();
                 }
             } catch(err){
@@ -102,18 +104,6 @@ export default {
                 let { data } = yield call( type === 'water' ? getAttrWaterCost : type === 'combust' ? getAttrGasCost : getAttrWaterCost, { company_id, attr_id:currentAttr.key, rostering_id:currentWorktime.id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
                 if ( data && data.code === '0'){
                     yield put({ type:'getWaterCost', payload:{ data:data.data }});
-                }
-            } catch(err){
-                console.log(err);
-            }
-        },
-        
-        *fetchEnergy(action, { call, put, all}){
-            try {
-                let { data } = yield call(getEnergyType);
-                if ( data && data.code === '0'){
-                    yield put({type:'getType', payload:{ data:data.data }});
-                    return data.data;
                 }
             } catch(err){
                 console.log(err);
@@ -184,14 +174,18 @@ export default {
         toggleWaterLoading(state, { payload }){
             return { ...state, waterLoading:payload };
         },
-        get(state, { payload : { currentCost, costAnalysis, energyType }}){
+        getEnergyTypeResult(state, { payload:{ data }}){
+            let arr = [{ type_id:0, type_name:'总', type_code:'total', unit:'tce' }, ...data];
+            return { ...state, energyList:arr };
+        },
+        get(state, { payload:{ data:{ currentCost, costAnalysis }}}){
             let costInfo=[];
             costInfo.push({ key:'day', ...currentCost['day']});
             costInfo.push({ key:'month',  ...currentCost['month']});
             costInfo.push({ key:'year', ...currentCost['year']});
             return { ...state, costInfo, costAnalysis, isLoading:false };
         },
-        getCostByTime(state, { payload : { data, timeType, energyType }}){
+        getCostByTime(state, { payload : { data, energyType }}){
             let chartInfo = data;
             if ( energyType === 0 ){
                 // 总能源数据结构
@@ -218,12 +212,6 @@ export default {
         },
         getScene(state, { payload : { data }}){
             return { ...state, sceneInfo:data };
-        },
-        getType(state, { payload : { data } }){
-            // let energyInfo = data.filter(i=>i.type_code === 'ele')[0];
-            let energyInfo = { type_id : 0, type_name:'总', type_code:'total', unit:'kgce' };
-            data.unshift(energyInfo);
-            return { ...state, energyList:data, energyInfo:energyInfo };
         },
         toggleChartLoading(state){
             return { ...state, chartLoading:true };

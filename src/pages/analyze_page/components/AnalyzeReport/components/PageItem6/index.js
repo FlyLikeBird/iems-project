@@ -11,8 +11,7 @@ import AlarmDetailTable from '@/pages/alarm_page/components/AlarmDetailTable';
 import AlarmPieChart from '@/pages/alarm_page/components/AlarmPieChart';
 import style from '../../AnalyzeReport.css';
 import IndexStyle from '@/pages/IndexPage.css';
-import moment from 'moment';
-import zhCN from 'antd/es/date-picker/locale/zh_CN';
+
 const warningColors = {
     'total':'#ff7862',
     'ele':'#198efb',
@@ -21,10 +20,9 @@ const warningColors = {
 };
 const { RangePicker } = DatePicker;
 
-function PageItem6({ alarm, user, analyze, dispatch, companyName }){
+function PageItem6({ alarm, analyze, dispatch, companyName }){
     const { alarmInfo, regionChartInfo, warningChartInfo, reportAlarmInfo, timeType, beginDate, endDate } = alarm;
     const { reportInfo } = analyze;
-    const dateRef = useRef();
     return (
         <PageItem title='能源安全分析-Energy Safety Analysis' companyName={companyName}>  
             {   
@@ -80,37 +78,11 @@ function PageItem6({ alarm, user, analyze, dispatch, companyName }){
                     <Skeleton active />
                 }  
             </div>
-            {/* <div className={style['layout-container']}>
-                {
-                    sumList && sumList.length ?
-                    sumList.map((item,index)=>(
-                        <div key={item.type} className={style['item-container-wrapper']} style={{ width:'25%' }} onClick={()=>{
-                            dispatch(routerRedux.push({
-                                pathname:'/energy/alarm_manage/alarm_execute',
-                                query:item.type
-                            }))
-                        }}>
-                            <div className={style['item-container']} style={{ display:'flex', alignItems:'center', backgroundColor:warningColors[item.type], borderRadius:'6px', color:'#fff', padding:'10px' }} >
-                                <div style={{ marginRight:'10px'}}><AlertFilled /></div>
-                                <div>
-                                    <div>{ item.text }</div>
-                                    <div className={style['item-title']}>{ item.count ? item.count : 0 }条</div>
-                                </div>
-                            </div> 
-                        </div>
-                    )) : null
-                }
-            </div> */}
+          
             <div className={style['layout-container']} style={{ height:'380px'}}>
                 <div className={style['item-container-wrapper']}>
                     <div className={style['item-container']} style={{ overflow:'hidden scroll'}}>
-                        {/* {
-                            reportAlarmInfo.view 
-                            ?
-                            <AlarmSumChart data={reportAlarmInfo.view} warningColors={warningColors} /> 
-                            :
-                            <Skeleton active />
-                        } */}
+                       
                         {
                             reportAlarmInfo.view 
                             ?

@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { connect } from 'dva';
-import { Input, Skeleton, Spin, Radio, Button, message } from 'antd';
+import { Input, Skeleton, Spin, Radio, DatePicker, Button, message } from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
-import PageItem from './components/PageItem';
-import ReactEcharts from 'echarts-for-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import style from './AnalyzeReport.css';
-// import codeImg from '../../../../../../public/code.png';
+import IndexStyle from '@/pages/IndexPage.css';
+import zhCN from 'antd/es/date-picker/locale/zh_CN';
 
 import reportBg from '../../../../../public/report-bg.jpg';
 // import reportFooter from '../../../../../../public/report-footer.jpg';
@@ -24,7 +23,6 @@ import PageItem8 from './components/PageItem8';
 
 let canDownload = false;
 let timer ;
-let date = new Date();
 function getBase64(dom){
     return html2canvas(dom, { dpi:96, scale:1 })
         .then(canvas=>{
@@ -41,64 +39,65 @@ function getPromise(dispatch, action){
 }
 
 
-function AnalyzeReport({ dispatch, user, demand, energy, monitor, baseCost, attrEnergy, fields, efficiency, efficiencyQuota, alarm, analyze }){
+function AnalyzeReport({ dispatch, user, energy, monitor, attrEnergy, fields, alarm, analyze }){
     const containerRef = useRef(null);
     const [loading, toggleLoading] = useState(false);
-    const { currentCompany } = user;
+    const { currentCompany, timeType, startDate, endDate } = user;
+    const { allFields, energyInfo, energyList, currentField } = fields;
     let companyName = currentCompany.company_name ? currentCompany.company_name : '';
+    let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
+
+    function updateData(){
+        canDownload = false;
+        Promise.all([
+            getPromise(dispatch, { type:'analyze/fetchReportInfo'}),
+            getPromise(dispatch, { type:'monitor/fetchSaveSpace'}),
+            getPromise(dispatch, { type:'energy/fetchCost'}),
+            getPromise(dispatch, { type:'energy/fetchCostByTime'}),
+            getPromise(dispatch, { type:'attrEnergy/fetchAttrQuota'}),
+            getPromise(dispatch, { type:'attrEnergy/fetchEnergyQuota'}),
+            getPromise(dispatch, { type:'alarm/fetchMonitorInfo'}),
+            getPromise(dispatch, { type:'alarm/fetchReportSumInfo'}),
+            getPromise(dispatch, { type:'analyze/fetchBaseSaveSpace'}),
+            getPromise(dispatch, { type:'analyze/fetchMeterSaveSpace'}),
+            getPromise(dispatch, { type:'analyze/fetchAdjustSaveSpace'})
+            // getPromise(dispatch, { type:'efficiency/fetchInit'}),
+            // getPromise(dispatch, { type:'efficiency/fetchEffTrend'}),
+            // getPromise(dispatch, { type:'efficiencyQuota/fetchTreeInit'}),              
+            // getPromise(dispatch, { type:'efficiencyQuota/fetchQuotaInit'}),
+            // getPromise(dispatch, { type:'demand/fetchDemandEntry'}),
+            // getPromise(dispatch, { type:'baseCost/fetchEleAnalyze'}),
+           
+        ])
+        .then(()=>{
+            // 如果数据还没加载完，则标记为开始下载状态，等数据加载完自动生成文件
+            // 如果数据加载完，用户没有点击下载，则待定
+            canDownload = true;
+            // console.log('b');
+            // if ( canDownload && startDownload ) {
+            //     timer = setTimeout(()=>{
+            //         handleDownload();
+            //     },500)
+            // }
+        })
+        .catch(err=>{
+            console.log(err);
+        })
+    }
     useEffect(()=>{
         new Promise((resolve, reject)=>{
-            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
+            dispatch({ type:'user/toggleTimeType', payload:'2' });                    
+            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});  
             dispatch({ type:'fields/init', payload:{ resolve, reject }});
         })
         .then(()=>{
-            Promise.all([
-                getPromise(dispatch, { type:'analyze/fetchReportInfo'}),
-                getPromise(dispatch, { type:'monitor/fetchSaveSpace'}),
-                getPromise(dispatch, { type:'energy/fetchInit'}),
-                getPromise(dispatch, { type:'attrEnergy/init'}),
-                getPromise(dispatch, { type:'efficiency/fetchInit'}),
-                getPromise(dispatch, { type:'efficiency/fetchEffTrend'}),
-                // getPromise(dispatch, { type:'efficiencyQuota/fetchTreeInit'}),              
-                getPromise(dispatch, { type:'efficiencyQuota/fetchQuotaInit'}),
-                getPromise(dispatch, { type:'demand/fetchDemandEntry'}),
-                getPromise(dispatch, { type:'baseCost/fetchEleAnalyze'}),
-                getPromise(dispatch, { type:'alarm/fetchMonitorInfo'}),
-                getPromise(dispatch, { type:'alarm/fetchReportSumInfo'}),
-                getPromise(dispatch, { type:'analyze/fetchBaseSaveSpace'}),
-                getPromise(dispatch, { type:'analyze/fetchMeterSaveSpace'}),
-                getPromise(dispatch, { type:'analyze/fetchAdjustSaveSpace'})
-            ])
-            .then(()=>{
-                // 如果数据还没加载完，则标记为开始下载状态，等数据加载完自动生成文件
-                // 如果数据加载完，用户没有点击下载，则待定
-                canDownload = true;
-                // console.log('b');
-                // if ( canDownload && startDownload ) {
-                //     timer = setTimeout(()=>{
-                //         handleDownload();
-                //     },500)
-                // }
-            })
-            .catch(err=>{
-                console.log(err);
-            })
+            updateData();
         })
         
         return ()=>{
             canDownload = false;
             clearTimeout(timer);
-            // 重置各个model状态
-            dispatch({ type:'analyze/reset'});
-            dispatch({ type:'monitor/reset'});
             dispatch({ type:'energy/reset'});
-            dispatch({ type:'attrEnergy/reset'});
-            dispatch({ type:'efficiency/reset'});
-            dispatch({ type:'efficiencyQuota/reset'});
-            dispatch({ type:'demand/reset'});
-            dispatch({ type:'baseCost/reset'});
-            dispatch({ type:'alarm/reset'});
-            dispatch({ type:'analyze/reset'});
         }
     },[]);
     
@@ -134,6 +133,12 @@ function AnalyzeReport({ dispatch, user, demand, energy, monitor, baseCost, attr
                 null
             }
             <div style={{ width:'100%'}} ref={containerRef}>
+                <div style={{ position:'fixed', left:'14%', top:'50%', transform:'translateY(-50%)' }}>
+                    <DatePicker className={style['custom-date-picker']} locale={zhCN}  picker='month' allowClear={false} value={startDate}  onChange={(value)=>{
+                        dispatch({ type:'user/setDate', payload:{ startDate:value, endDate:value.endOf('month') }})
+                        updateData();
+                    }} />
+                </div>
                 {/* 报告封面 */}
                 <div className={`${style['page-container']}`} style={{ color:'#fff', backgroundImage:`url(${reportBg})`}}>
                     <div style={{ position:'absolute', width:'160px', left:'100px', top:'40px'}}>
@@ -142,7 +147,7 @@ function AnalyzeReport({ dispatch, user, demand, energy, monitor, baseCost, attr
                     <div style={{ position:'absolute', right:'40px', top:'50px' }}>能源云 | 节能咨询 | 设备运维 | 能源大数据</div>
                     <div style={{ position:'absolute', left:'100px', fontSize:'3rem', whiteSpace:'nowrap', top:'400px', textAlign:'left'}}>
                         <div style={{ fontWeight:'bold' }}>{ companyName }</div>
-                        <div>{`${date.getMonth() + 1}月能源运行报告`}</div>
+                        <div>{`${startDate.year()}年-${startDate.month() + 1}月能源运行报告`}</div>
                     </div>
                     {/* <div style={{ position:'absolute', width:'120px', bottom:'10%', left:'100px'}}>
                         <img src={codeImg} style={{ width:'100%', height:'auto' }} />
@@ -153,19 +158,19 @@ function AnalyzeReport({ dispatch, user, demand, energy, monitor, baseCost, attr
                 {/* 诊断结论 */}
                 <PageItem0 analyze={analyze} monitor={monitor} dispatch={dispatch} companyName={companyName} />
                 {/* 能源成本分析 */}
-                <PageItem1 energy={energy} attrEnergy={attrEnergy} analyze={analyze} dispatch={dispatch} companyName={companyName}/>
+                <PageItem1 energy={energy} attrEnergy={attrEnergy} fieldList={fieldList} currentField={currentField} energyList={energyList} startDate={startDate} analyze={analyze} dispatch={dispatch} companyName={companyName}/>
                 {/* 能源成本分析---计量电费、基本电费 */}
-                <PageItem8 energy={energy} baseCost={baseCost} dispatch={dispatch} user={user} companyName={companyName} />
+                {/* <PageItem8 energy={energy} baseCost={baseCost} dispatch={dispatch} user={user} companyName={companyName} /> */}
                 {/* 能源效率分析 */}
-                <PageItem2 efficiency={efficiency} dispatch={dispatch} analyze={analyze} fields={fields} companyName={companyName}/>
+                {/* <PageItem2 efficiency={efficiency} dispatch={dispatch} analyze={analyze} fields={fields} companyName={companyName}/> */}
                 {/* 能源效率分析 */}
-                <PageItem3 efficiency={efficiency} efficiencyQuota={efficiencyQuota} analyze={analyze} fields={fields} dispatch={dispatch} companyName={companyName}/>
+                {/* <PageItem3 efficiency={efficiency} efficiencyQuota={efficiencyQuota} analyze={analyze} fields={fields} dispatch={dispatch} companyName={companyName}/> */}
                 {/* 能源效率分析---定额概况 */}
-                <PageItem4 efficiency={efficiency} efficiencyQuota={efficiencyQuota} demand={demand} analyze={analyze} fields={fields} dispatch={dispatch} companyName={companyName}/>
+                {/* <PageItem4 efficiency={efficiency} efficiencyQuota={efficiencyQuota} demand={demand} analyze={analyze} fields={fields} dispatch={dispatch} companyName={companyName}/> */}
                 {/* 能源效率分析 ---- 需量分析 */}
-                <PageItem5 demand={demand} analyze={analyze} dispatch={dispatch} companyName={companyName}/>
+                {/* <PageItem5 demand={demand} analyze={analyze} dispatch={dispatch} companyName={companyName}/> */}
                 {/* 能源安全分析 */}
-                <PageItem6 alarm={alarm} user={user} analyze={analyze} dispatch={dispatch} companyName={companyName}/>
+                <PageItem6 alarm={alarm} analyze={analyze} dispatch={dispatch} companyName={companyName}/>
                 {/* 诊断结论 */}
                 <PageItem7 analyze={analyze} dispatch={dispatch} companyName={companyName}/>
                 {/* 报告结尾 */}
@@ -197,4 +202,4 @@ function AnalyzeReport({ dispatch, user, demand, energy, monitor, baseCost, attr
     )
 }
 
-export default connect(({ user, energy, baseCost, attrEnergy, efficiency, efficiencyQuota, fields, alarm, analyze, demand, monitor })=>({ user, energy, baseCost, demand, attrEnergy, efficiency, efficiencyQuota, fields, alarm, analyze, monitor }))(AnalyzeReport);
+export default connect(({ user, energy, attrEnergy, fields, alarm, analyze, monitor })=>({ user, energy, attrEnergy, fields, alarm, analyze, monitor }))(AnalyzeReport);

@@ -7,8 +7,8 @@ import TabChart from './components/TabChart';
 function TabPaneContent({ data, toggleVisible, activeKey, onDispatch, theme, title, forReport }) {
     return (    
       
-        <div style={{ height:'100%' }}>
-            <div className={style['card-container']} style={ forReport ? { height:'16%', background:'#f0f0f0', boxShadow:'none' } : { height:'16%' }}>
+        <div style={ forReport ? { height:'calc( 100% - 46px)'} : { height:'100%' }}>
+            <div className={style['card-container']} style={ forReport ? { height:'60px', background:'#f0f0f0', boxShadow:'none', overflow:'hidden' } : { height:'16%', overflow:'hidden' }}>
                 <div className={style['flex-container']}>
                     {
                         data.info && data.info.length
@@ -24,7 +24,7 @@ function TabPaneContent({ data, toggleVisible, activeKey, onDispatch, theme, tit
                     }
                 </div>
             </div>
-            <div className={style['card-container']} style={ forReport ? { height:'84%', background:'#f0f0f0', overflow:'hidden', boxShadow:'none' } : { height:'84%', overflow:'hidden' }}>         
+            <div className={style['card-container']} style={ forReport ? { height:'calc( 100% - 60px)', background:'#f0f0f0', overflow:'hidden', boxShadow:'none' } : { height:'84%', overflow:'hidden' }}>         
                 <TabChart 
                     data={data.view || {}} 
                     forReport={forReport} 

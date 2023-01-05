@@ -165,7 +165,7 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
             }
         },
         yAxis: {
-            name: showType === '0' ? '(单位:元)' : `(单位:${data.unit})`,
+            name: showType === '0' ? '(元)' : `(${energyInfo.unit})`,
             nameTextStyle:{ color:textColor },
             type:'value',
             splitArea: {
@@ -186,7 +186,7 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
     // 如果是电能源，添加图例
     if ( energyInfo.type_id === 1 ){
         option['legend'].data.push(
-            '峰','平','谷','基'
+            '尖', '峰','平','谷','基'
         ) ;
     }
     // 如果是电能源，日维度下，多维度折线图对tooltip做特殊处理
@@ -215,7 +215,7 @@ function RangeBarChart({ data, timeType, energyInfo, showType, onDispatch, isLoa
                 null
             }
             {
-                forWater
+                forWater || forReport
                 ?
                 null
                 :

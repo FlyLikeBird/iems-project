@@ -98,22 +98,28 @@ function EnergyQuotaChart({ data, showType, onToggleTimeType, forReport }) {
             <div className={IndexStyle['card-container']} style={ forReport ? { backgroundColor:'#f0f0f0', boxShadow:'none' } : {}}>
                 <div className={IndexStyle['card-title']} style={ forReport ? { borderBottom:'1px solid #f1f1f1'} : {}}>
                     <div>{`${ showType === '0' ? '成本定额' : '能耗定额'}执行概况`}</div>              
-                    <div>
-                        <Radio.Group size='small' style={{ top:'0' }} className={IndexStyle['float-button-group'] + ' ' + ( forReport ? '' : IndexStyle['custom-radio'])} value={timeType} onChange={e=>{
-                            if ( !data.length ){
-                                message.info('数据加载中，请稍后...');
-                                return ;
-                            }
-                            if ( showType === '0' ) {
-                                changeTimeType(e.target.value);
-                                onToggleTimeType(e.target.value);
-                            }
-                        }}>
-                            <Radio.Button value='2'>{ showType === '0' ? '本月定额' : '本月能耗' }</Radio.Button>
-                            { showType === '0' ? <Radio.Button value='1'>本年定额</Radio.Button> : null }
-                            
-                        </Radio.Group>     
-                    </div>
+                    {
+                        forReport 
+                        ?
+                        null
+                        :
+                        <div>
+                            <Radio.Group size='small' style={{ top:'0' }} className={IndexStyle['float-button-group'] + ' ' + IndexStyle['custom-radio']} value={timeType} onChange={e=>{
+                                if ( !data.length ){
+                                    message.info('数据加载中，请稍后...');
+                                    return ;
+                                }
+                                if ( showType === '0' ) {
+                                    changeTimeType(e.target.value);
+                                    onToggleTimeType(e.target.value);
+                                }
+                            }}>
+                                <Radio.Button value='2'>{ showType === '0' ? '本月定额' : '本月能耗' }</Radio.Button>
+                                { showType === '0' ? <Radio.Button value='1'>本年定额</Radio.Button> : null }
+
+                            </Radio.Group>     
+                        </div>
+                    }        
                 </div>
                 <div className={IndexStyle['card-content']} style={{ padding:'0' }}>
                     {

@@ -36,8 +36,8 @@ const energyUnit = {
     'hot':'GJ'
 }
 
-function IndexTemplate1({ dispatch, monitor }){
-    const { sceneInfo, imgURL, energyInfoList, energyList, energyInfo, tplInfo, saveSpace, monitorInfo, chartLoading, levelInfo, sceneList } = monitor;
+function IndexTemplate1({ dispatch, energyList, monitor }){
+    const { sceneInfo, imgURL, energyInfoList, energyInfo, tplInfo, saveSpace, monitorInfo, chartLoading, levelInfo, sceneList } = monitor;
     const [showType, toggleShowType] = useState('energy');
     const [template, toggleTemplate] = useState('1');
     

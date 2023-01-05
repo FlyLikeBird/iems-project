@@ -145,10 +145,10 @@ export default {
         },
         *fetchMonitorInfo(action, { all, call, put, select}){
             try {
-                let { resolve, reject } = action.payload || {};
+                let { resolve, reject, forReport } = action.payload || {};
                 yield all([
-                    put.resolve({type:'fetchAlarmInfo'}),
-                    put.resolve({type:'fetchChartInfo'})
+                    put.resolve({type:'fetchAlarmInfo', payload:{ forReport }}),
+                    put.resolve({type:'fetchChartInfo', payload:{ forReport }})
                 ]);
                 if ( resolve && typeof resolve === 'function') resolve();    
             } catch(err){
@@ -176,8 +176,9 @@ export default {
         },
         *fetchAlarmInfo(action, { select, call, put}){
             try {
-                let { user:{ company_id }} = yield select();
-                let { data } = yield call(getTodayInfo, { company_id });
+                let { forReport } = action.payload || {};
+                let { user:{ company_id, startDate, endDate }} = yield select();
+                let { data } = yield call(getTodayInfo, forReport ? { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')} : { company_id });
                 if ( data && data.code === '0'){
                     yield put({ type:'getAlarmInfo', payload: { data:data.data }});
                 } else if ( data && data.code === '1001') {
@@ -189,10 +190,12 @@ export default {
         },
         *fetchChartInfo(action, { select, call, put, all}){
             try {
-                let { user:{ company_id }} = yield select();
+                let { forReport } = action.payload || {};
+                let { user:{ company_id, startDate, endDate }} = yield select();
+                let params = forReport ? { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') } : { company_id };
                 let [warningChart, regionChart] = yield all([
-                    call(getWarningChartInfo, { company_id }),
-                    call(getRegionChartInfo, { company_id })
+                    call(getWarningChartInfo, params),
+                    call(getRegionChartInfo, params)
                 ]);
                 if ( warningChart && warningChart.data.code === '0' && regionChart && regionChart.data.code === '0') {
                     yield put({type:'getChartInfo', payload:{ warningChartInfo:warningChart.data.data, regionChartInfo:regionChart.data.data }})

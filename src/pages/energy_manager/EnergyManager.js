@@ -20,11 +20,9 @@ const dotStyle = {
     left:'-14px',
     transform:'translateY(50%)',
 }
-let clearIndex;
-let loaded = false;
 let timer;
-function EnergyManager({ dispatch, user, energy, attrEnergy }){ 
-    const { timeType, maskVisible, energyInfo, showType, energyList, chartInfo, sceneInfo, costInfo, costAnalysis, isLoading, chartLoading } = energy;
+function EnergyManager({ dispatch, user, energy }){
+    const { timeType, maskVisible, energyInfo, energyList, showType, chartInfo, sceneInfo, costInfo, costAnalysis, isLoading, chartLoading } = energy;
     // 添加滚动事件，如果滚出视图区，则变为固定定位
     // const  handleScroll = (e)=>{
     //         clearTimeout(clearIndex);
@@ -37,6 +35,9 @@ function EnergyManager({ dispatch, user, energy, attrEnergy }){
     //     };
     useEffect(()=>{
         // 当组件卸载时重置loaded的状态
+        dispatch({ type:'energy/fetchEnergy'});
+        dispatch({ type:'energy/fetchCost'});
+        dispatch({ type:'energy/fetchCostByTime'});
         timer = setInterval(()=>{
             dispatch({ type:'energy/fetchCost'});
             dispatch({ type:'energy/fetchCostByTime'});
@@ -145,6 +146,7 @@ function EnergyManager({ dispatch, user, energy, attrEnergy }){
                 <div style={{ height:'60%' }}>
                     <div className={style['card-container-wrapper']} style={{ width:'70%'}}>
                         <div className={style['card-container']}>
+                        
                         {
                             Object.keys(sceneInfo).length                 
                             ?
@@ -196,22 +198,18 @@ function EnergyManager({ dispatch, user, energy, attrEnergy }){
                     <div className={style['card-container-wrapper']} style={{ width:'30%', paddingRight:'0', paddingBottom:'0' }}>
                         <div className={style['card-container']}>
                             {
-                                isLoading 
+                                Object.keys(costAnalysis).length 
                                 ?
-                                <Spin size='large' className={style['spin']} />
+                                <PieChart data={costAnalysis} energyInfo={energyInfo} energyList={energyList} showType={showType} theme={user.theme} />
                                 :
-                                <PieChart data={costAnalysis} energyInfo={energyInfo} showType={showType} theme={user.theme} />
-
+                                <Spin size='large' className={style['spin']} />
                             }   
                         </div>               
                     </div> 
                 </div>
-            </div>
-            
-        </div>
-            
-    )
-        
+            </div>         
+        </div>     
+    )    
 }
 
-export default connect(({ user, energy, attrEnergy })=>({ user, energy, attrEnergy }))(EnergyManager);
+export default connect(({ user, energy })=>({ user, energy }))(EnergyManager);

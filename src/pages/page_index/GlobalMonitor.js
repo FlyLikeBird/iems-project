@@ -7,10 +7,11 @@ import IndexTemplate1 from './index-template-1';
 import IndexTemplate2 from './index-template-2';
 
 let timer = null;
-function GlobalMonitor({ dispatch, monitor, user }){
+function GlobalMonitor({ dispatch, fields, monitor, user }){
     const [template, toggleTemplate] = useState('2');
     const { monitorInfo } = monitor;
     const { authorized } = user;
+    const { energyList } = fields;
     useEffect(()=>{       
         return ()=>{
             clearInterval(timer);
@@ -19,6 +20,7 @@ function GlobalMonitor({ dispatch, monitor, user }){
     },[]);
     useEffect(()=>{
         if ( authorized ){
+            dispatch({ type:'user/toggleTimeType', payload:'2' });
             dispatch({ type:'monitor/init'});
             timer = setInterval(()=>{
                 dispatch({ type:'monitor/init' });
@@ -46,7 +48,7 @@ function GlobalMonitor({ dispatch, monitor, user }){
             {
                 template === '1' 
                 ?
-                <IndexTemplate1 monitor={monitor} dispatch={dispatch} />
+                <IndexTemplate1 monitor={monitor} energyList={energyList} dispatch={dispatch} />
                 :
                 template === '2' 
                 ?
@@ -63,5 +65,5 @@ function GlobalMonitor({ dispatch, monitor, user }){
 
 // };
 
-export default connect(({ user, monitor })=>({ user, monitor }))(GlobalMonitor);
+export default connect(({ user, fields, monitor })=>({ user, fields, monitor }))(GlobalMonitor);
 

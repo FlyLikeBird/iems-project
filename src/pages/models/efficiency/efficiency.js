@@ -1,6 +1,4 @@
 import { getEnergyFlow, getRank, getOutputCompare, getEnergyCostInfo, getOutputRatio, getAttrOutput, getRegionOutput } from '../../services/efficiencyService';
-import { getEnergyType } from '../../services/energyService';
-import { getFields, getFieldAttrs } from '../../services/fieldsService';
 
 import moment from 'moment';
 import { message } from 'antd';
@@ -56,7 +54,6 @@ export default {
                 let { resolve, reject, forReport } = action.payload || {};
                 yield put.resolve({ type:'fields/init'});
                 yield all([
-                    put({type:'fetchEnergy'}),
                     put({type:'fetchFlowChart', payload:forReport }),
                     put({type:'fetchRatio'}),
                     put({type:'fetchCost'}),
@@ -110,12 +107,6 @@ export default {
                 } catch(err){
                     console.log(err);
                 }
-        },
-        *fetchEnergy(action, { call, put, all}){
-            let { data } = yield call(getEnergyType);
-            if ( data && data.code === '0'){
-                yield put({type:'getType', payload:{ data:data.data }});
-            }
         },
         *fetchOutput(action, { select, call, put}){
                 try {
@@ -222,10 +213,6 @@ export default {
         },
         getCost(state, { payload : { data }}){
             return { ...state, costChart:data, allCostChart:data };
-        },
-        getType(state, { payload : { data } }){
-            data.unshift({ type_id : 0, type_name:'总', type_code:'total', unit:'kwh' });
-            return { ...state, energyList:data, energyInfo: data.length && data[0] };
         },
         getRatio(state, { payload : { data }}){
             let ratioInfo = [];

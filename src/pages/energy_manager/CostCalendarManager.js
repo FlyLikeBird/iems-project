@@ -16,7 +16,6 @@ function CostCalendarManager({ dispatch, user, fields, baseCost }){
     const { timeType, startDate, endDate, theme, authorized } = user;
     const { isLoading, calendarInfo } = baseCost;
     const { allFields, currentField, currentAttr, energyList, energyInfo, expandedKeys, treeLoading } = fields;
-    const inputRef = useRef();
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
     // console.log(fieldAttrs);

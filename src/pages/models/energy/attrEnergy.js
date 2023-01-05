@@ -43,62 +43,68 @@ export default {
             if ( resolve && typeof resolve === 'function' ) resolve();
         },
         *fetchCost(action, { call, put, select, all }){
-            yield put.resolve({ type:'cancelCost'});
-            yield put.resolve({ type:'cancelable', task:fetchCostCancelabe, action:'cancelCost' });
-            function* fetchCostCancelabe(){
-                try {
-                    let { user:{ company_id }, fields:{ energyInfo, currentField }, attrEnergy : { currentDate }} = yield select();
-                    let { resolve, reject } = action.payload ? action.payload : {};
-                    let temp = currentDate.format('YYYY-MM-DD').split('-');
-                    let year = temp[0], month = temp[1], day = temp[2];
-                    yield put({ type:'toggleLoading'});
-
-                    let [attrMonthData, attrDayData, attrHourData] = yield all([
-                        call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'2', year, month, day }),
-                        call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'3', year, month, day }),
-                        call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'4', year, month, day }),
-                    ]);
-                    if ( attrMonthData && attrMonthData.data.code === '0' && attrDayData && attrDayData.data.code === '0' && attrHourData && attrHourData.data.code === '0'){
-                        let obj = { attrMonthData:attrMonthData.data.data, attrDayData:attrDayData.data.data, attrHourData:attrHourData.data.data };
-                        yield put({type:'get', payload:obj});
-                        if ( resolve && typeof resolve === 'function') resolve();
-                    } 
-                } catch(err){
-                    console.log(err);
-                }
-            }  
+           
+            try {
+                let { user:{ company_id }, fields:{ energyInfo, currentField }, attrEnergy : { currentDate }} = yield select();
+                let { resolve, reject } = action.payload ? action.payload : {};
+                let temp = currentDate.format('YYYY-MM-DD').split('-');
+                let year = temp[0], month = temp[1], day = temp[2];
+                yield put({ type:'toggleLoading'});
+                let [attrMonthData, attrDayData, attrHourData] = yield all([
+                    call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'2', year, month, day }),
+                    call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'3', year, month, day }),
+                    call(getAttrCost, { company_id, field_id:currentField.field_id, type_id:energyInfo.type_id, time_type:'4', year, month, day }),
+                ]);
+                if ( attrMonthData && attrMonthData.data.code === '0' && attrDayData && attrDayData.data.code === '0' && attrHourData && attrHourData.data.code === '0'){
+                    let obj = { attrMonthData:attrMonthData.data.data, attrDayData:attrDayData.data.data, attrHourData:attrHourData.data.data };
+                    yield put({type:'get', payload:obj});
+                    if ( resolve && typeof resolve === 'function') resolve();
+                } 
+            } catch(err){
+                console.log(err);
+            }        
         },
-        *fetchAttrQuota(action, { select, call, put, all }){
-            yield put.resolve({ type:'cancelAttrQuota'});
-            yield put.resolve({ type:'cancelable', task:fetchAttrQuotaCancelable, action:'cancelAttrQuota' });
-            function* fetchAttrQuotaCancelable(){
-                try {
-                    let { user:{ company_id }, fields:{ energyInfo, currentField }} = yield select();
+        *fetchAttrQuota(action, { select, call, put, all }){    
+            try {
+                let { resolve, reject, forReport } = action.payload || {};
+                let { user:{ company_id, startDate, endDate }, energy, fields:{ currentField, energyInfo }} = yield select();
+                if ( currentField.field_id ){
+                    let finalEnergyInfo = forReport ? energy.energyInfo.type_id === 0 ? { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh' } : energy.energyInfo : energyInfo;
+                    let params = 
+                        forReport 
+                        ? 
+                        { company_id, type_id:finalEnergyInfo.type_id, field_id:currentField.field_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')}
+                        :
+                        { company_id, type_id:finalEnergyInfo.type_id, field_id:currentField.field_id }
                     yield put({ type:'toggleRegionLoading'});
-                    let { data } = yield call(getAttrQuota, { company_id, type_id:energyInfo.type_id, field_id:currentField.field_id });
+                    let { data } = yield call(getAttrQuota, params);
                     if ( data && data.code === '0'){
                         yield put({type:'getAttrQuota', payload:{ data : data.data }});
+                        if ( resolve ) resolve();
+                    } else {
+                        if ( reject ) reject();
                     }
-                } catch(err){
-                    console.log(err);
-                }
-            }
+                }  
+            } catch(err){
+                console.log(err);
+            }       
         },
-        *fetchEnergyQuota(action, { call, put, select }){
-            yield put.resolve({ type:'cancelEnergyQuota' });
-            yield put.resolve({ type:'cancelable', task:fetchEnergyQuotaCancelable, action:'cancelEnergyQuota'});
-            function* fetchEnergyQuotaCancelable(){
-                try {
-                    let { user:{ company_id }} = yield select();
-                    let timeType = action && action.payload || '2';
-                    let { data } = yield call(getEnergyQuota, { company_id, time_type:timeType });
-                    if ( data && data.code === '0'){
-                        yield put({type:'getEnergyQuota', payload:{ data : data.data }});
-                    }
-                } catch(err){
-                    console.log(err);
+        *fetchEnergyQuota(action, { call, put, select }){       
+            try {
+                let { resolve, reject, forReport, timeType } = action.payload || {};
+                timeType = timeType || '2';
+                let { user:{ company_id, startDate, endDate }} = yield select();
+                let params = forReport ? { company_id, timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') } : { company_id, timeType };
+                let { data } = yield call(getEnergyQuota, params);
+                if ( data && data.code === '0'){
+                    yield put({type:'getEnergyQuota', payload:{ data : data.data }});
+                    if ( resolve ) resolve();
+                } else {
+                    if ( reject ) reject();
                 }
-            }
+            } catch(err){
+                console.log(err);
+            }    
         }
     },
     reducers:{

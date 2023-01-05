@@ -48,11 +48,17 @@ function AlarmCountChart({ data, warningColors, theme, forReport }) {
     });
     return (   
         <div style={{ height:'100%', position:'relative'}}>
-
-            <Radio.Group style={{ right:'unset', left:'6px' }} className={style['float-button-group'] + ' ' + ( forReport ? '' : style['custom-radio'])} value={timeType} onChange={(e)=>toggleTimeType(e.target.value)}>
-                <Radio.Button key='month' value='month'>12M</Radio.Button>
-                <Radio.Button key='day' value='day'>30D</Radio.Button>
-            </Radio.Group>
+            {
+                forReport
+                ?
+                null
+                :
+                <Radio.Group style={{ right:'unset', left:'6px' }} className={style['float-button-group'] + ' ' + ( forReport ? '' : style['custom-radio'])} value={timeType} onChange={(e)=>toggleTimeType(e.target.value)}>
+                    <Radio.Button key='month' value='month'>12M</Radio.Button>
+                    <Radio.Button key='day' value='day'>30D</Radio.Button>
+                </Radio.Group>
+            }
+            
             {
                 forReport 
                 ?

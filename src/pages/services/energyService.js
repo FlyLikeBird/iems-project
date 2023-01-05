@@ -2,19 +2,6 @@ import request, { requestImg } from '../utils/request';
 import { translateObj } from '../utils/translateObj';
 import { apiToken } from '../utils/encryption';
 
-export function getEnergyType(data = {}){
-    let token = apiToken();
-    data.token = token;
-    let str = translateObj(data);
-    return request('/energycost/getenergytype', { 
-        method:'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body:str
-        }); 
-}
-
 export function getTotalCost(data = {}){
     let token = apiToken();
     data.token = token;

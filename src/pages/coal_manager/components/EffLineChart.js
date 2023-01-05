@@ -23,6 +23,22 @@ function EffLineChart({ data, info, currentAttr, typeRule, startDate, timeType, 
         },
         symbolSize:0,
     });
+    seriesData.push({
+        type:'bar',
+        barWidth:14,
+        name:'同比',
+        data:data.sameValue,
+        itemStyle:{ color:'#71bef4'},
+        symbolSize:0
+    });
+    seriesData.push({
+        type:'bar',
+        barWidth:14,
+        name:'环比',
+        data:data.lastValue,
+        itemStyle:{ color:'#67ed9a'},
+        symbolSize:0
+    });
     if ( typeRule && typeRule.warning_min ){
         seriesData.push({
             type:'line',
@@ -176,6 +192,11 @@ function EffLineChart({ data, info, currentAttr, typeRule, startDate, timeType, 
                     },
                     tooltip:{
                         trigger:'axis'
+                    },
+                    legend:{
+                        top:10,
+                        data:[info.tab, '同比', '环比'],
+                        textStyle:{ color:textColor }
                     },
                     xAxis:{
                         type:'category',

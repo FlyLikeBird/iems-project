@@ -12,7 +12,7 @@ import XLSX from 'xlsx';
 
 function filterArr(arr){
     return arr.map(i=>{
-        if ( i.cost >= i.quota ) {
+        if ( i.quota && i.cost >= i.quota ) {
             let obj = {};
             obj.value = Math.floor(i.cost);
             obj.itemStyle = { color:'#f35444'};
@@ -25,7 +25,7 @@ function filterArr(arr){
 
 function filterRatio(arr){
     return arr.map(i=>{
-        if ( i.output_ratio >= i.ratio_target ) {
+        if ( i.ratio_target && i.output_ratio >= i.ratio_target ) {
             let obj = {};
             obj.value = i.output_ratio;
             obj.itemStyle = { color:'#f35444'};
@@ -52,8 +52,7 @@ function filterMulti(arr){
     return [population, mach_num, area];
 }
 
-function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, multi, theme, isLoading, forReport }) {
-    
+function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, multi, theme, isLoading, startDate, forReport }) {
     theme = forReport ? 'light' : theme;
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     const [sort, toggleSort] = useState('default');
@@ -68,21 +67,20 @@ function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, mu
             // '责任区域综合能效对比' :
             `${currentField ? currentField.field_name : ''}综合能效对比` :
             showType ?
-            `本月${ currentField ? currentField.field_name : ''}${showTitle}排行(${ showType === '0' ? '元' : energyInfo.unit})`:
+            `${ forReport ? (startDate.month()+1) + '月' : '本月'}${ currentField ? currentField.field_name : ''}${showTitle}排行(${ showType === '0' ? '元' : forReport && energyInfo.type_id === 0 ? 'kwh' : energyInfo.unit})`:
             `${currentField ? currentField.field_name : ''}能效产值比(元/万元)`;
     const onEvents = {
         'click':(params)=>{
             if(params.componentType === 'markPoint' && params.type === 'click'){
-                onLink(routerRedux.push('/energy/info_manage_menu/quota_manage'));
+                if ( onLink ) {
+                    onLink(routerRedux.push('/energy/info_manage_menu/quota_manage'));
+                }
             }
         }
     };
     let option = {
         tooltip: {
-            trigger: 'axis',
-            axisPointer: {            // 坐标轴指示器，坐标轴触发有效
-                type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
-            },
+            trigger: 'axis'
             // formatter:(params)=>{
             //     let str = '';
             //     let item = params.map((param,index)=>{
@@ -97,51 +95,39 @@ function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, mu
         },
         grid: {
             top:40,
-            left:100,
-            right:80,
+            left:20,
+            right:20,
             bottom:40,
-            // containLabel: true
+            containLabel: true
         },
         dataZoom:[
             {
                 show:true,
-                yAxisIndex:0,
                 startValue:0,
                 endValue: multi ? 5 : 10
             }
         ],
         xAxis: {
+            type: 'category',
+            splitLine:{ show:false },
+            axisTick:{ show:false },
+            axisLabel:{ color:textColor },
+            data:categoryData
+        },
+        yAxis: {
             type: 'value',
+            data: categoryData,
             splitLine:{
                 show:true,
                 lineStyle:{
                     color: theme === 'dark' ? '#22264b' : '#f0f0f0'
                 }
             },
-            axisTick:{ show:false },
-            axisLabel:{ color:textColor },
-            position:'top'
-        },
-        yAxis: {
-            type: 'category',
-            inverse:true,
-            data: categoryData,
-            splitLine:{
-                show:false
-            },
             axisTick:{
                 show:false
             },
             axisLabel:{
-                color:textColor,
-                formatter:value=>{
-                    if ( value.length &&  value.length > 8) {
-                        let temp = value.substring(0, 6) + '...';
-                        return temp;
-                    } else {
-                        return value;
-                    }
-                }
+                color:textColor
             }
         },
         color:['#1890ff'],
@@ -161,11 +147,10 @@ function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, mu
                         if(params.value) {
                             return params.value;
                         } else {
-                            return '';
-                            
+                            return '';   
                         }
                     },
-                    position: 'right',
+                    position: 'top',
                 },
                 data:item.data
             })
@@ -178,7 +163,7 @@ function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, mu
     } else {
         option.series.push({               
             type: 'bar',
-            barWidth: forReport ? 10 : 6, 
+            barWidth:14, 
             // barCategoryGap:'100%',
             // barGap:'100%',
             name: showTitle, 
@@ -195,7 +180,7 @@ function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, mu
                         return '';
                     }
                 },
-                position: 'right',
+                position: 'top',
             },
             data: showType ? showType === '0' ? filterArr(resultData) : resultData.map(i=>i.energy) : filterRatio(resultData)            
         });
@@ -219,7 +204,7 @@ function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, mu
                     }
                 },
                 data:[
-                    { value:'定额值', yAxis:categoryData.length-1, xAxis:quotaData[quotaData.length-1] }
+                    { value:'定额值', xAxis:categoryData.length-1, yAxis:quotaData[quotaData.length-1] }
                 ]               
             }                 
         });
@@ -297,8 +282,8 @@ function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, mu
                                 <Radio.Group size='small' className={ forReport ? '' : style['custom-radio']} value={sort} onChange={e=>{
                                     toggleSort(e.target.value);
                                 }}>
-                                    <Radio.Button value="default">升序</Radio.Button>
-                                    <Radio.Button value="upAndDown">降序</Radio.Button>
+                                    <Radio.Button value="default">降序</Radio.Button>
+                                    <Radio.Button value="upAndDown">升序</Radio.Button>
                                 </Radio.Group>
                                 {
                                     forReport 

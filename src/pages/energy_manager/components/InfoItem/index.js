@@ -3,7 +3,6 @@ import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio } from 'antd';
 import { CaretUpOutlined, CaretDownOutlined } from '@ant-design/icons';
-import CountUp from 'react-countup';
 import style from '../../../IndexPage.css';
 const labelStyle = {
     display:'inline-block',
@@ -27,14 +26,11 @@ function InfoItem({ data, energyInfo, showType }) {
             <div className={style['flex-item']} style={{ flex:'1' }}>
                 <span>
                     {
-                        key === 'day' ? energyInfo.type_id === 0 ? `今日总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'tce' : energyInfo.unit })` : `今日${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
-                        key === 'month' ? energyInfo.type_id === 0 ? `本月总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'tce' : energyInfo.unit })` : `本月${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
-                        key === 'year' ? energyInfo.type_id === 0 ? `年度总${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.type_id === 0 ? 'tce' : energyInfo.unit })` : `本年${ energyInfo.type_name} ${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })` :
-                        null
+                        `${ key === 'day' ? '今日' : key === 'month' ? '本月' : '本年'}${ energyInfo.type_name }${ showType ==='0' ? '费用' : '能耗'}(${ showType === '0' ? '元' : energyInfo.unit })`
                     }
                 </span>
                 <br/>
-                <span className={style['data']} ><CountUp  start={0} end={Math.floor(+value)} useGrouping={true} separator=',' decimal='.' /></span>
+                <span className={style['data']} >{Math.round(+value)}</span>
             </div>  
             <div className={style['flex-item']} style={{ flex:'1' }}>
                 <span>同比</span>

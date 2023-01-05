@@ -171,13 +171,11 @@ export default {
                         }
                         // 成本报表和复合计费报表
                         if ( pathname === '/energy/stat_report/energy_cost_report' || pathname === '/energy/stat_report/timereport' ) {
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
                             dispatch({ type:'costReport/initCostReport'});
                         }
                         
                         // 成本透视页面
                         if ( pathname === '/energy/energy_manage/cost_analyz'){
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
                             dispatch({ type:'costReport/initCostAnalyze'});
                             return;
                         }
@@ -187,7 +185,6 @@ export default {
                         }
                         // 极值报表
                         if ( pathname === '/energy/stat_report/extreme') {     
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                      
                             dispatch({ type:'extremeReport/initExtremeReport'});                          
                             return;
                         }
@@ -199,13 +196,11 @@ export default {
                         }
                         // 同比报表
                         if ( pathname === '/energy/stat_report/sameReport') {     
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                                         
                             dispatch({ type:'extremeReport/initSameRate'});                          
                             return;
                         }
                         // 环比报表
                         if ( pathname === '/energy/stat_report/adjoinReport') {  
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                                      
                             dispatch({ type:'extremeReport/initAdjoinRate'});
                             return;
                         }
@@ -252,19 +247,16 @@ export default {
                         }
                         // 能源效率能流图页面
                         if ( pathname === '/energy/energy_eff'){
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});
                             dispatch({type:'efficiency/fetchInit'});
                             return;
                         } 
                         // 能效趋势页面
                         if ( pathname === '/energy/energy_eff/eff_trend') {
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});
                             dispatch({ type:'efficiency/fetchEffTrend'});
                             return;
                         }
                         // 能耗定额页面
                         if ( pathname === '/energy/energy_eff/energy_eff_quota') {
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                                                     
                             dispatch({ type:'efficiencyQuota/fetchQuotaInit'});
                             return;
                         }
@@ -390,11 +382,6 @@ export default {
                         }
                         // 信息管理 --- 维度管理
                         if ( pathname === '/energy/info_manage_menu/field_manage' ) {
-                            let type = location.query.type;
-                            let temp = energyList.filter(i=>i.type_code === type )[0];
-                            if ( temp ){
-                                dispatch({ type:'fields/toggleEnergyInfo', payload:temp });                      
-                            }
                             dispatch({ type:'fields/fetchField'});
                             dispatch({ type:'fields/fetchFieldType'});
                             return;

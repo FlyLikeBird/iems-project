@@ -31,7 +31,8 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
         }
     },[])
     const containerRef = useRef();
-   
+    console.log(energyList);
+    console.log(energyInfo);
     return (
         <div 
             className={style['page-container']} 

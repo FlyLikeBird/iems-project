@@ -1,12 +1,11 @@
 import { getMonitorInfo, getCoalTrend, getEnergyScene, getEfficiencyScene, getAlarmScene, getTplInfo, getTplRank, fetchImg, getSaveSpace } from '../services/monitorService';
-import { getEnergyType } from '../services/energyService';
+import { getEnergyType } from '../services/fieldsService';
 
 const initialState = {
     sceneList:[],
     monitorInfo:{},
     energyInfoList:[],
-    energyList:[],
-    energyInfo:{},
+    energyInfo:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh' },
     coalInfo:{},
     tplInfo:{},
     // 节省空间
@@ -24,32 +23,25 @@ export default {
             })
         },
         *cancelAll(action, { put }){
-            yield put({ type:'cancelMonitorInfo'});
-            yield put({ type:'cancelTplInfo'});
-            yield put({ type:'cancelSaveSpace'});
             yield put({ type:'reset'});
         },
         *init(action, { put }){
+            yield put.resolve({ type:'fields/fetchEnergy'});
             yield put({ type:'fetchMonitorInfo'});
-            yield put({ type:'fetchEnergyType'});
             yield put({ type:'fetchTplInfo'});
             yield put({ type:'fetchSaveSpace'});
             yield put({ type:'fetchCoalTrend'});
         },
         *fetchMonitorInfo(action, { select, call, put}){
-            yield put.resolve({ type:'cancelMonitorInfo'});
-            yield put.resolve({ type:'cancelable', task:fetchMonitorInfoCancelabl, action:'cancelMonitorInfo' });
-            function* fetchMonitorInfoCancelabl(){
-                try {
-                    let { user:{ company_id }} = yield select();
-                    let { data } = yield call(getMonitorInfo, { company_id });
-                    if ( data && data.code === '0') {
-                        yield put({ type:'getInfo', payload:{ data : data.data }});
-                    } 
-                } catch(err){        
-                    console.log(err);
-                }
-            }
+            try {
+                let { user:{ company_id }} = yield select();
+                let { data } = yield call(getMonitorInfo, { company_id });
+                if ( data && data.code === '0') {
+                    yield put({ type:'getInfo', payload:{ data : data.data }});
+                } 
+            } catch(err){        
+                console.log(err);
+            }   
         },
         *fetchCoalTrend(action, { select, call, put }){
             try {
@@ -62,20 +54,8 @@ export default {
                 console.log(err);
             }
         },
-        *fetchEnergyType(action, { call, put}){
-            try {
-                let { data } = yield call(getEnergyType);
-                if ( data && data.code === '0'){
-                    yield put({ type:'getEnergy', payload:{ data:data.data }});
-                }
-            } catch(err){
-                console.log(err);
-            }
-        },
         *fetchTplInfo(action, { select, call, put, all }){
-            yield put.resolve({ type:'cancelTplInfo'});
-            yield put.resolve({ type:'cancelable', task:fetchTplInfoCancelable, action:'cancelTplInfo' });
-            function* fetchTplInfoCancelable(){
+          
                 try {
                     let { user:{ company_id }} = yield select();
                     let [infoData, rankData] = yield all([
@@ -88,17 +68,14 @@ export default {
                     }
                 } catch(err){
                     console.log(err);
-                }
-            } 
+                }         
         },
         *fetchSaveSpace(action, { call, put, select }){
-            yield put.resolve({ type:'cancelSaveSpace'});
-            yield put.resolve({ type:'cancelable', task:fetchSaveSpaceCancelable, action:'cancelSaveSpace'});
-            function* fetchSaveSpaceCancelable(){
+            
                 try{
-                    let { user:{ company_id }} = yield select();
+                    let { user:{ company_id, startDate, endDate }} = yield select();
                     let { resolve, reject } = action.payload || {};
-                    let { data } = yield call(getSaveSpace, { company_id });
+                    let { data } = yield call(getSaveSpace, { company_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
                     if ( data && data.code === '0'){
                         yield put({type:'getSaveResult', payload:{ data:data.data }});
                         if ( resolve && typeof resolve === 'function' ) resolve();
@@ -108,7 +85,7 @@ export default {
                 } catch(err){
                     console.log(err);
                 }
-            }   
+              
         },
         // *fetchScenes(action, { call, put, all, select }){
         //     try {
@@ -160,10 +137,6 @@ export default {
         },
         getScenes(state, { payload :{ sceneList }}){
             return { ...state, sceneList, chartLoading:false };
-        },
-        getEnergy(state, { payload:{ data }}){
-            let energyInfo = data.filter(i=>i.type_code === 'ele')[0];
-            return { ...state, energyList:data, energyInfo:energyInfo || {} };
         },
         getSaveResult(state, { payload:{ data }}){
             return { ...state, saveSpace:data };

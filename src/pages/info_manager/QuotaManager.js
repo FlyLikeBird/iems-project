@@ -119,17 +119,17 @@ function QuotaManager({ dispatch, user, quota, fields }){
     const content = (
         <div>
             <div style={{ height:'40px', display:'flex' }}>
-                <Radio.Group size='small' className={style['custom-radio']} value={optionInfo.type_id} onChange={e=>{
-                    let temp = optionList.filter(i=>i.type_id == e.target.value )[0];
+                <Select size='small' style={{ width:'240px' }} className={style['custom-select']} value={optionInfo.type_id} onChange={value=>{
+                    let temp = optionList.filter(i=>i.type_id == value )[0];
                     dispatch({type:'quota/toggleOption', payload:temp });
                     dispatch({type:'quota/fetchQuota'});
                 }}>
                     {
                         optionList.map(item=>(
-                            <Radio.Button key={item.type_id} value={item.type_id}>{item.type_name}</Radio.Button>
+                            <Option key={item.type_id} value={item.type_id}>{item.type_name}</Option>
                         ))
                     }
-                </Radio.Group> 
+                </Select> 
                 <Select value={time_type} className={style['custom-select']} style={{width:120, marginLeft:'14px'}} onChange={value=>{
                     dispatch({type:'quota/toggleTimeType', payload:value});
                     dispatch({type:'quota/fetchQuota'});

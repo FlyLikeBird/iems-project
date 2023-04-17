@@ -31,13 +31,12 @@ export default {
             }
         },
         *fetchQuota(action, { call, put, select}){
-            let { user:{ company_id }, fields:{ currentAttr }, efficiencyQuota :{ timeType, energyInfo, year, month  } } = yield select();
+            let { user:{ company_id }, fields:{ currentAttr }, efficiencyQuota :{ timeType, energyInfo, year, month  } } = yield select();       
             let { data } = yield call(getEfficiencyQuota, { company_id, time_type:timeType, energy_type:energyInfo.type_id, attr_id:currentAttr.key, year, month })
             if ( data && data.code === '0'){
                 yield put({type:'getQuota', payload:{ data:data.data }});
-            } else if ( data && data.code === '1001') {
-                yield put({ type:'user/loginOut'});
-            }
+            } 
+            
         },
         *fetchEnergy(action ,{ call, put}){
             try{
@@ -81,6 +80,9 @@ export default {
         },
         getQuota(state, { payload : { data }}){
             return { ...state, quotaInfo:data };
+        },
+        resetQuota(state){
+            return { ...state, quotaInfo:{} };
         },
         getTree(state, { payload: { data }}){
             return { ...state, quotaTree:data, chartLoading:false };

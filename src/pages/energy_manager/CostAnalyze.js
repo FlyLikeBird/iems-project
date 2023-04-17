@@ -96,12 +96,15 @@ function CostAnalyze({ dispatch, costReport, fields, user, worktime }) {
                                                         onCheck={(checkedKeys, { checked, checkedNodes, node })=>{
                                                             let result = checkedKeys.checked;
                                                             if ( checked ){
-                                                                // 选中当前节点和此节点的下一级节点                                              
-                                                                node.children.map(i=>{
-                                                                    if(!result.includes(i.key)) {
-                                                                        result.push(i.key);
-                                                                    }
-                                                                });
+                                                                // 选中当前节点和此节点的下一级节点   
+                                                                if ( node.children && node.children.length ) {
+                                                                    node.children.map(i=>{
+                                                                        if(!result.includes(i.key)) {
+                                                                            result.push(i.key);
+                                                                        }
+                                                                    });
+                                                                }                                          
+                                                                
                                                             } else {
                                                                 // 删除当前节点所有的子节点
                                                                 let childKeys = [];

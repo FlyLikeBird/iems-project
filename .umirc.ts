@@ -70,7 +70,8 @@ export default defineConfig({
                     { path:'/energy/energy_manage/cost_analyz', component:'@/pages/energy_manager/CostAnalyze'},
                     { path:'/energy/energy_manage/cost_calendar', component:'@/pages/energy_manager/CostCalendarManager'},
                     { path:'/energy/energy_manage/ele_cost', component:'@/pages/energy_manager/EleCostManager'},
-                    { path:'/energy/energy_manage/water_cost_menu', component:'@/pages/energy_manager/WaterCostManager'},
+                    { path:'/energy/energy_manage/water_cost', component:'@/pages/energy_manager/WaterCostManager'},
+                    { path:'/energy/energy_manage/steam_cost', component:'@/pages/energy_manager/WaterCostManager'},
                     { path:'/energy/energy_manage/combust_cost', component:'@/pages/energy_manager/WaterCostManager'},
                     { path:'/energy/energy_manage/ele_statement', component:'@/pages/energy_manager/EleStatementManager'}
                 ]

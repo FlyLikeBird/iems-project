@@ -10,7 +10,8 @@ const initialState = {
     //     { type_name:'热', type_code:'hot', type_id:'4', unit:'GJ' },
     // ],
     energyList:[],
-    energyInfo:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh' },
+    energyInfo: { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh' },
+    energyMaps:{},
     // {
     //     'ele':{
     //         fieldList:[],
@@ -164,8 +165,16 @@ export default {
             let arr = data.map(i=>{
                 i.type_id = i.type_id + '';
                 return i;
-            })
-            return { ...state, energyList:arr };
+            });
+            let obj = data.reduce((sum, cur)=>{
+                sum[cur.type_code] = cur;
+                return sum;
+            },{});
+            if ( obj.combust ) {
+                obj['gas'] = obj.combust;
+            }
+            obj['total'] = { type_id:0, type_name:'总', type_code:'total', unit:'tce' }
+            return { ...state, energyList:arr, energyMaps:obj  };
         },
         getFields(state, { payload:{ data, energyInfo }} ){
             let { fields } = data;
@@ -193,7 +202,7 @@ export default {
             let { list } = data;
             let temp = state.allFields;
             temp[energyInfo.type_code] = { 
-                fieldList:temp[energyInfo.type_code].fieldList, 
+                fieldList:[...temp[energyInfo.type_code].fieldList], 
                 fieldAttrs:temp[energyInfo.type_code].fieldAttrs ? { ...temp[energyInfo.type_code].fieldAttrs, [finalField.field_name]:list } : {[finalField.field_name]:list }
             };
             let result = [], deep = 0;

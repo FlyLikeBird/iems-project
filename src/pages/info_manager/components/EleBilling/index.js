@@ -16,20 +16,13 @@ const allTimeType = {
     4:'尖时段'
 };
 
-function EleBilling({ dispatch, user, billing }){
-    let { companyList, currentCompany, theme } = user;
-    let { rateList, is_actived, rateInfo, tplList } = billing;
-    let [editingCost, toggleEditing] = useState(false);
+function EleBilling({ rateList, rateInfo, tplList, dispatch, theme }){
     let [rateFormInfo, setRateFormInfo] = useState({ visible:false, current:null, forEdit:false });
     let [quarterFormInfo, setQuarterFormInfo] = useState({ visible:false, currentRate:null, currentQuarter:null });
     let [currentRate, setCurrentRate] = useState({});
     let [currentTpl, setCurrentTpl] = useState({});
     let [visible, setVisible] = useState(false);
-    useEffect(()=>{
-        return ()=>{
-            dispatch({ type:'billing/reset'});
-        }
-    },[]);
+   
     const columns = [
         {
             title: '季度',
@@ -269,8 +262,6 @@ function EleBilling({ dispatch, user, billing }){
     )
 };
 
-EleBilling.propTypes = {
-};
 
-export default connect( ({ user, billing }) => ({ user, billing }))(EleBilling);
+export default React.memo(EleBilling);
 

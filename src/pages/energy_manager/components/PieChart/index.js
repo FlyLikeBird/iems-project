@@ -10,25 +10,25 @@ import style from '../../../IndexPage.css';
 import XLSX from 'xlsx';
 import { IconFont } from '@/pages/components/IconFont';
 
-let energyMaps = {
+let eleMaps = {
     'tip':'尖',
     'top':'峰',
     'middle':'平',
     'bottom':'谷',
     'base':'基'
 }
-function PieChart({ data, energyInfo, energyList, showType, theme, startDate, forReport }) {
+
+function PieChart({ data, energyInfo, energyMaps, showType, theme, startDate, forReport }) {
     let textColor = theme === 'dark' ? '#b0b0b0' : 'rgba(0,0,0,0.8)';   
     let legendData = [];
     let total = 0;
     // 获取到能源饼图的数据
+    // 电能源特殊处理，显示基、尖、峰、平、谷的用量分布
     const valueArr = Object.keys(data).map(key=>{
         let obj = {};
-        let info = energyList.filter(i=>i.type_code === key)[0];
-        info = info || {};
-        obj.name = energyInfo.type_id === 1 ? energyMaps[key] : info.type_name;
+        obj.name = energyInfo.type_code === 'ele' ? eleMaps[key] : energyMaps[key].type_name;
         obj.value = showType === '0' ? ( data[key].cost || 0 ) : ( data[key].energy || 0);
-        obj.unit = energyInfo.type_id === 0 ? info.unit : energyInfo.unit;
+        obj.unit =  energyInfo.type_code === 'ele' ? energyInfo.unit : energyMaps[key].unit;
         obj.label = { show:false };
         obj.labelLine = { show:false };
         if ( obj.name ){
@@ -37,7 +37,6 @@ function PieChart({ data, energyInfo, energyList, showType, theme, startDate, fo
         }
         return obj;
     });
-    console.log(startDate);
     const echartsRef = useRef();
     let title = `${ forReport && startDate ? ( startDate.month() + 1 ) + '月' : '本月'}${ energyInfo.type_name }${ showType === '0' ? '费用' : '能耗'}`;
     return (   
@@ -75,7 +74,7 @@ function PieChart({ data, energyInfo, energyList, showType, theme, startDate, fo
                         valueArr.filter(i=>i.name).forEach(i=>{
                             let temp = [];
                             temp.push(i.name);
-                            temp.push(i.unit);
+                            temp.push( showType === '0' ? '元' : i.unit);
                             temp.push(i.value);
                             temp.push(`${total ? Math.round(i.value/total*100) : 0 }%`);
                             aoa.push(temp);
@@ -113,15 +112,14 @@ function PieChart({ data, energyInfo, energyList, showType, theme, startDate, fo
                         itemWidth:10,
                         itemHeight:10,
                         icon:'circle',
-                        right:'12%',
+                        left:'60%',
                         top:'middle',
                         orient:'vertical',
                         data:legendData,
                         textStyle:{ color:textColor },
                         formatter:(name)=>{
                             let temp = valueArr.filter(i=>i.name === name)[0];
-                            let info = energyList.filter(i=>i.type_name === name)[0];
-                            return `{title|${name}}\n{value|${Math.round(temp.value)}}{title|${showType === '0' ? '元' : info ? info.unit : energyInfo.unit }}  {value|${total ? (temp.value / total * 100).toFixed(1) : 0.0 }}{title|%}`
+                            return `{title|${name}}\n{value|${Math.round(temp.value)}}{title|${showType === '0' ? '元' : temp.unit }}  {value|${total ? (temp.value / total * 100).toFixed(1) : 0.0 }}{title|%}`
                         },
                         textStyle:{
                             rich: {

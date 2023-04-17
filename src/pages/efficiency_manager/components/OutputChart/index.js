@@ -16,36 +16,17 @@ function sumRatio(data){
     return result;
 }
 
-function OutputChart({ data, theme }) {
+function OutputChart({ data, energyMaps, theme }) {
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     let bgColor = theme === 'dark' ? '#05050f' : '#f1f1f1';
     let seriesData = [];
-    seriesData.push({
-        type:'bar',
-        name:'万元产值比',
-        barWidth:40,
-        showBackground: true,
-        backgroundStyle: {
-            color: bgColor
-        },
-        data:data.map(i=>i.value),
-        itemStyle:{
-            color:'#1890ff'
-        },
-        label:{
-            show:true,
-            color: theme === 'dark' ? '#fff' : '#000',
-            textStyle:{ fontSize:14 },
-            position:'inside',
-            formatter:(params)=>{
-                if ( params.value === 0 ){
-                    return '';
-                } else {
-                    return params.value;
-                }
-            }
-        }
-    });
+    Object.keys(data).filter(key=>energyMaps[key]).map(key=>{
+        seriesData.push({
+           value:data[key],
+           text:energyMaps[key].type_name 
+        })
+    })
+    
     return (  
                 <ReactEcharts
                     notMerge={true}
@@ -70,7 +51,7 @@ function OutputChart({ data, theme }) {
                         },                  
                         xAxis: {
                             type:'category',
-                            data: data.map(i=>i.text),
+                            data: seriesData.map(i=>i.text),
                             silent: false,
                             show:true,
                             splitLine: {
@@ -86,7 +67,6 @@ function OutputChart({ data, theme }) {
                         yAxis:{
                             type:'value',
                             show:false,
-                            name:'成本(元)',
                             splitArea: {
                                 show: false
                             },
@@ -97,7 +77,32 @@ function OutputChart({ data, theme }) {
                                 }
                             }     
                         },                       
-                        series: seriesData 
+                        series:[{
+                            type:'bar',
+                            name:'万元产值比',
+                            barWidth:30,
+                            showBackground: true,
+                            backgroundStyle: {
+                                color: bgColor
+                            },
+                            data:seriesData.map(i=>i.value),
+                            itemStyle:{
+                                color:'#1890ff'
+                            },
+                            label:{
+                                show:true,
+                                color: theme === 'dark' ? '#fff' : '#000',
+                                textStyle:{ fontSize:14 },
+                                position:'inside',
+                                formatter:(params)=>{
+                                    if ( params.value === 0 ){
+                                        return '';
+                                    } else {
+                                        return params.value;
+                                    }
+                                }
+                            }
+                        }]
                     }}
                 />
     );

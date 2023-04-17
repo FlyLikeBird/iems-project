@@ -13,7 +13,7 @@ import moment from 'moment';
 const { Option } = Select;
 
 function CostTrendManager({ dispatch, user, fields, attrEnergy }){
-    let { allFields, energyList, currentField, energyInfo } = fields;
+    let { allFields, energyList, currentField, energyInfo, energyMaps } = fields;
     let { attrData, attrQuota, energyQuota, currentDate, showType, isLoading, regionLoading } = attrEnergy; 
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let dateArr = currentDate.format('YYYY-MM-DD').split('-');
@@ -125,6 +125,7 @@ function CostTrendManager({ dispatch, user, fields, attrEnergy }){
                         showType={showType} 
                         energyList={energyList}
                         theme={user.theme}
+                        energyMaps={energyMaps}
                         onToggleTimeType={value=>{
                             dispatch({type:'attrEnergy/fetchEnergyQuota', payload:{ timeType:value }});
                         }} 

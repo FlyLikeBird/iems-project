@@ -11,7 +11,7 @@ function GlobalMonitor({ dispatch, fields, monitor, user }){
     const [template, toggleTemplate] = useState('2');
     const { monitorInfo } = monitor;
     const { authorized } = user;
-    const { energyList } = fields;
+    const { energyList, energyMaps } = fields;
     useEffect(()=>{       
         return ()=>{
             clearInterval(timer);
@@ -48,11 +48,11 @@ function GlobalMonitor({ dispatch, fields, monitor, user }){
             {
                 template === '1' 
                 ?
-                <IndexTemplate1 monitor={monitor} energyList={energyList} dispatch={dispatch} />
+                <IndexTemplate1 monitor={monitor} energyMaps={energyMaps} energyList={energyList} dispatch={dispatch} />
                 :
                 template === '2' 
                 ?
-                <IndexTemplate2 monitor={monitor} />
+                <IndexTemplate2 monitor={monitor} energyMaps={energyMaps} />
                 :
                 null
             }            

@@ -1,4 +1,4 @@
-import { getTotalCost, getCurrentCost, getSceneInfo, getRank, getElectricCostAnalysis, getAttrWaterCost, getAttrGasCost, getTotalCostAnalysis, fetchImg } from '../../services/energyService';
+import { getTotalCost, getCurrentCost, getSceneInfo, getRank, getElectricCostAnalysis, getAttrWaterCost, getAttrGasCost, getAttrSteamCost, getTotalCostAnalysis, fetchImg } from '../../services/energyService';
 import { getEnergyType } from '../../services/fieldsService';
 import { setSceneInfo, uploadImg } from '../../services/alarmService';
 import { getSaveSpace } from '../../services/monitorService';
@@ -6,7 +6,6 @@ import { getSaveSpace } from '../../services/monitorService';
 
 const initialState = {
     energyInfo:{ type_id:0, type_name:'总', type_code:'total', unit:'tce' },
-    energyList:[],
     //  时间维度，切换小时/日/月，默认以小时为单位
     chartLoading:true,
     timeType:'3',
@@ -30,17 +29,7 @@ export default {
     namespace:'energy',
     state:initialState,
     effects:{
-        *fetchEnergy(action, { put, select, call }){
-            let { fields:{ energyList }} = yield select();
-            if ( !energyList.length ) {
-                let { data } = yield call(getEnergyType);
-                if ( data && data.code === '0') {
-                    yield put({ type:'getEnergyTypeResult', payload:{ data:data.data }});
-                }
-            } else {
-                yield put({ type:'getEnergyTypeResult', payload:{ data:energyList }});
-            }
-        },
+       
         *fetchCost(action, { call, put, all, select }){
             try {
                 let { resolve, reject, forReport } = action.payload || {};
@@ -49,7 +38,7 @@ export default {
                 let [ currentCost, costAnalysis ] = yield all([
                     call(getCurrentCost, forReport ? { company_id, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD')} : { company_id, type_id : energyInfo.type_id }),
                     call(
-                        energyInfo.type_id === 1 ?
+                        energyInfo.type_code === 'ele' ?
                         getElectricCostAnalysis : 
                         getTotalCostAnalysis,
                         forReport ? { company_id, type_id:energyInfo.type_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') } : { company_id, type_id:energyInfo.type_id }
@@ -82,11 +71,15 @@ export default {
         *initWaterCost(action, { call, select, put, all }) {
             try {
                 let { type } = action.payload;
+                yield put.resolve({ type:'fields/fetchEnergy'});
+                let { fields:{ energyList }} = yield select();
+                let energyInfo = energyList.filter(i=>i.type_code + '_cost' === type )[0] || energyList[0];
+                yield put({ type:'fields/toggleEnergyInfo', payload:energyInfo });
                 yield all([
                     put.resolve({ type:'fields/init'}),
                     put.resolve({ type:'worktime/fetchWorktimeList'})
-                ])
-                yield put({ type:'fetchWaterCost', payload:{ type }});
+                ]);
+                yield put({ type:'fetchWaterCost', payload:{ type:type.split('_')[0] }});
             } catch(err){
                 console.log(err);
             }
@@ -101,7 +94,11 @@ export default {
                 }
                 timeType = timeType === '10' ? '2' : timeType;
                 yield put({ type:'toggleWaterLoading', payload:true });
-                let { data } = yield call( type === 'water' ? getAttrWaterCost : type === 'combust' ? getAttrGasCost : getAttrWaterCost, { company_id, attr_id:currentAttr.key, rostering_id:currentWorktime.id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
+                let { data } = yield call( 
+                    type === 'water' ? getAttrWaterCost : 
+                    type === 'combust' ? getAttrGasCost :  
+                    type === 'steam' ? getAttrSteamCost :
+                    getAttrWaterCost, { company_id, attr_id:currentAttr.key, rostering_id:currentWorktime.id, time_type:timeType, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD') });
                 if ( data && data.code === '0'){
                     yield put({ type:'getWaterCost', payload:{ data:data.data }});
                 }
@@ -129,10 +126,10 @@ export default {
                 ]);
                 let imgURL = '';
                 let temp = sceneData.data.data;
-                if ( temp.scene && temp.scene.bg_image_path ){
+                if ( temp && temp.scene && temp.scene.bg_image_path ){
                     imgURL = yield call(fetchImg, { path:temp.scene.bg_image_path} );
                 }
-                if ( sceneData.data.code === '0' && rankData.data.code === '0' && saveData.data.code === '0' ){
+                if ( sceneData && sceneData.data.code === '0' && rankData.data.code === '0' && saveData.data.code === '0' ){
                     sceneData.data.data.saveSpace = saveData.data.data.costInfo;
                     sceneData.data.data.rank = rankData.data.data.rank;
                     if ( imgURL ){
@@ -174,10 +171,6 @@ export default {
         toggleWaterLoading(state, { payload }){
             return { ...state, waterLoading:payload };
         },
-        getEnergyTypeResult(state, { payload:{ data }}){
-            let arr = [{ type_id:0, type_name:'总', type_code:'total', unit:'tce' }, ...data];
-            return { ...state, energyList:arr };
-        },
         get(state, { payload:{ data:{ currentCost, costAnalysis }}}){
             let costInfo=[];
             costInfo.push({ key:'day', ...currentCost['day']});
@@ -216,7 +209,7 @@ export default {
         toggleChartLoading(state){
             return { ...state, chartLoading:true };
         },
-        toggleEnergyType(state, { payload }){
+        setEnergyInfo(state, { payload }){
             return { ...state, energyInfo:payload };
         },
         toggleShowType(state, { payload }){

@@ -65,10 +65,10 @@ function RegionQuotaChart({ data, energyInfo, showType, currentField, onLink, mu
     let showTitle = showType ? showType === '0' ? '成本' : '能耗' : '能效产值比';
     let cardTitle = multi ? 
             // '责任区域综合能效对比' :
-            `${currentField ? currentField.field_name : ''}综合能效对比` :
+            `${currentField.field_id ? currentField.field_name : ''}综合能效对比` :
             showType ?
-            `${ forReport ? (startDate.month()+1) + '月' : '本月'}${ currentField ? currentField.field_name : ''}${showTitle}排行(${ showType === '0' ? '元' : forReport && energyInfo.type_id === 0 ? 'kwh' : energyInfo.unit})`:
-            `${currentField ? currentField.field_name : ''}能效产值比(元/万元)`;
+            `${ forReport ? (startDate.month()+1) + '月' : '本月'}${ currentField.field_id ? currentField.field_name : ''}${showTitle}排行(${ showType === '0' ? '元' : forReport && energyInfo.type_id === 0 ? 'kwh' : energyInfo.unit})`:
+            `${currentField.field_id ? currentField.field_name : ''}能效产值比(元/万元)`;
     const onEvents = {
         'click':(params)=>{
             if(params.componentType === 'markPoint' && params.type === 'click'){

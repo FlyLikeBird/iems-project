@@ -1,13 +1,14 @@
+import React from 'react';
 import { routerRedux } from 'dva/router';
 import { 
-    login, userAuth, agentUserAuth, 
+    login, userAuth, agentUserAuth, getNotice, 
     fetchSessionUser, getNewThirdAgent, setCompanyLogo, 
     getWeather, getThirdAgentInfo, 
     getCameraAccessToken,
     getAlarmTypes, getTypeRule, setTypeRule
 } from '../services/userService';
 import { uploadImg } from '../services/alarmService';
-import { message } from 'antd';
+import { message, notification, Button } from 'antd';
 import { md5, encryptBy, decryptBy } from '../utils/encryption';
 import moment from 'moment';
 
@@ -104,7 +105,8 @@ const initialState = {
     endDate:moment(date),
     timeType:'1',
     // 打开用户音频权限
-    audioAllowed:false
+    audioAllowed:false,
+    notice:{}
 };
 
 function checkIsLTUser(){
@@ -170,10 +172,14 @@ export default {
                             return;
                         }
                         // 成本报表和复合计费报表
-                        if ( pathname === '/energy/stat_report/energy_cost_report' || pathname === '/energy/stat_report/timereport' ) {
+                        if ( pathname === '/energy/stat_report/energy_cost_report' ) {
                             dispatch({ type:'costReport/initCostReport'});
                         }
-                        
+                        // 复合计费报表(查看尖峰平谷)
+                        if ( pathname === '/energy/stat_report/timereport' ){
+                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'}});                       
+                            dispatch({ type:'costReport/initCostReport'});
+                        }
                         // 成本透视页面
                         if ( pathname === '/energy/energy_manage/cost_analyz'){
                             dispatch({ type:'costReport/initCostAnalyze'});
@@ -211,16 +217,21 @@ export default {
                             dispatch({ type:'baseCost/initEleCost'});                           
                             return;
                         }
-                        // 水费成本页面
-                        if ( pathname === '/energy/energy_manage/water_cost_menu' ) {
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'水', type_code:'water', type_id:'2', unit:'m³'}});   
-                            dispatch({ type:'energy/initWaterCost', payload:{ type:'water' }});                   
-                        }
-                        // 燃气成本页面
-                        if ( pathname === '/energy/energy_manage/combust_cost' ) {
-                            dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'}});   
-                            dispatch({ type:'energy/initWaterCost', payload:{ type:'combust' }});                   
-                        }
+                        // // 水费成本页面
+                        // if ( pathname === '/energy/energy_manage/water_cost_menu' ) {
+                        //     dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'水', type_code:'water', type_id:'2', unit:'m³'}});   
+                        //     dispatch({ type:'energy/initWaterCost', payload:{ type:'water' }});                   
+                        // }
+                        // // 燃气成本页面
+                        // if ( pathname === '/energy/energy_manage/combust_cost' ) {
+                        //     dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'}});   
+                        //     dispatch({ type:'energy/initWaterCost', payload:{ type:'combust' }});                   
+                        // }
+                        // // 蒸汽成本页面
+                        // if ( pathname === '/energy/energy_manage/combust_cost' ) {
+                        //     dispatch({ type:'fields/toggleEnergyInfo', payload:{ type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'}});   
+                        //     dispatch({ type:'energy/initWaterCost', payload:{ type:'combust' }});                   
+                        // }
                         // 费用结算单页面
                         if ( pathname === '/energy/energy_manage/ele_statement'){
                             dispatch({ type:'energy/fetchEleStatement'});
@@ -382,7 +393,7 @@ export default {
                         }
                         // 信息管理 --- 维度管理
                         if ( pathname === '/energy/info_manage_menu/field_manage' ) {
-                            dispatch({ type:'fields/fetchField'});
+                            dispatch({ type:'fields/init'});
                             dispatch({ type:'fields/fetchFieldType'});
                             return;
                         }
@@ -447,6 +458,11 @@ export default {
                             let temp = matchResult ? matchResult[1] : '';
                             yield put({ type:'fetchNewThirdAgent', payload:temp });
                         }
+                        // 获取系统的当前通知消息
+                        let noticeData = yield call(getNotice, { company_id:data.data.company_id });
+                        if ( noticeData.data && noticeData.data.code === '0' && noticeData.data.count !== 0 ) {
+                            yield put({ type:'getNotice', payload:{ data:noticeData.data.data }});                   
+                        }                 
                         yield put.resolve({ type:'fetchAlarmTypes'});
                         yield put({type:'setUserInfo', payload:{ data:data.data, company_id, fromAgent:matchResult ? true : false, isFrame } });
                         yield put({ type:'setContainerWidth' });
@@ -723,6 +739,9 @@ export default {
         },
         setAgentMsg(state, { payload:{ data }}){
             return { ...state, agentMsg:data.detail };
+        },
+        getNotice(state, { payload:{ data }}){
+            return { ...state, notice:data };
         },
         setContainerWidth(state){
             let containerWidth = window.innerWidth;

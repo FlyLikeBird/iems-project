@@ -43,7 +43,7 @@ function AnalyzeReport({ dispatch, user, energy, monitor, attrEnergy, fields, al
     const containerRef = useRef(null);
     const [loading, toggleLoading] = useState(false);
     const { currentCompany, timeType, startDate, endDate } = user;
-    const { allFields, energyInfo, energyList, currentField } = fields;
+    const { allFields, energyInfo, energyList, currentField, energyMaps } = fields;
     let companyName = currentCompany.company_name ? currentCompany.company_name : '';
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
 
@@ -158,7 +158,7 @@ function AnalyzeReport({ dispatch, user, energy, monitor, attrEnergy, fields, al
                 {/* 诊断结论 */}
                 <PageItem0 analyze={analyze} monitor={monitor} dispatch={dispatch} companyName={companyName} />
                 {/* 能源成本分析 */}
-                <PageItem1 energy={energy} attrEnergy={attrEnergy} fieldList={fieldList} currentField={currentField} energyList={energyList} startDate={startDate} analyze={analyze} dispatch={dispatch} companyName={companyName}/>
+                <PageItem1 energy={energy} attrEnergy={attrEnergy} energyMaps={energyMaps} fieldList={fieldList} currentField={currentField} energyList={energyList} startDate={startDate} analyze={analyze} dispatch={dispatch} companyName={companyName}/>
                 {/* 能源成本分析---计量电费、基本电费 */}
                 {/* <PageItem8 energy={energy} baseCost={baseCost} dispatch={dispatch} user={user} companyName={companyName} /> */}
                 {/* 能源效率分析 */}

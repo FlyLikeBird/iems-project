@@ -131,7 +131,9 @@ function RatioChart({ data, theme, forReport }) {
                     },
                     legend:{
                         top:40,
+                        type:'scroll',
                         left:'center',
+                        
                         data:legendData.map(i=>i.type).concat('能耗产值比'),
                         textStyle:{ color:textColor }
                     },  

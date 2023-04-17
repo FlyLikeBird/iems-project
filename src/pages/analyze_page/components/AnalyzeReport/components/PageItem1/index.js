@@ -10,10 +10,9 @@ import style from '../../AnalyzeReport.css';
 
 const { Option } = Select;
 
-function PageItem1({ energy, attrEnergy, analyze, startDate, dispatch, energyList, fieldList, currentField, companyName }){
+function PageItem1({ energy, attrEnergy, analyze, startDate, dispatch, energyList, fieldList, energyMaps, currentField, companyName }){
     const { energyInfo, showType, costAnalysis, costInfo, chartLoading, chartInfo, timeType } = energy;
     const { reportInfo }= analyze;
-    let energyArr = [{ type_id:0, type_name:'总', type_code:'total', unit:'tce' }, ...energyList];
     if ( reportInfo.text && reportInfo.text.length && reportInfo.text[0].length ){
         if ( reportInfo.text[0].length === 1 ){
             let str = costInfo.length && reportInfo.text && reportInfo.text.length ? `${startDate.month() + 1}月电费:${Math.floor(costInfo[1].cost)}元，占比100%， 对比上月${costInfo[1].adjoinRate <= 0 ? '减少':'增加'}${Math.abs(costInfo[1].adjoinRate).toFixed(1)}%` : '';
@@ -41,21 +40,20 @@ function PageItem1({ energy, attrEnergy, analyze, startDate, dispatch, energyLis
                 <div className={style['layout-container']} style={{ height:'340px'}}>
                     <div className={style['item-container-wrapper']}>
                         <div className={style['item-container']}>
-                            <PieChart data={costAnalysis} energyInfo={energyInfo} energyList={energyList} showType={showType} startDate={startDate} forReport={true} />
+                            <PieChart data={costAnalysis} energyInfo={energyInfo} energyList={energyList} energyMaps={energyMaps} showType={showType} startDate={startDate} forReport={true} />
                         </div>
                     </div>
                     <div className={style['item-container-wrapper']}>
                         <div style={{ height:'30px', display:'flex', justifyContent:'space-between'}}>
-                            <Radio.Group buttonStyle='solid' size='small' value={energy.energyInfo.type_id} onChange={e=>{
-                                let temp = energyArr.filter(i=>i.type_id === e.target.value )[0];
-                                dispatch({ type:'energy/toggleEnergyType', payload:temp });
+                            <Radio.Group buttonStyle='solid' size='small' value={energyInfo.type_code} onChange={e=>{
+                                dispatch({ type:'energy/setEnergyInfo', payload:{ ...energyMaps[e.target.value]} });
                                 dispatch({ type:'energy/fetchCost', payload:{ forReport:true }});
                                 dispatch({ type:'energy/fetchCostByTime', payload:{ forReport:true }}); 
                                 dispatch({ type:'attrEnergy/fetchAttrQuota', payload:{ forReport:true }});                    
                             }}>
                                 {
-                                    energyArr.map((item,index)=>(
-                                        <Radio.Button key={item.type_id} value={item.type_id}>{item.type_name}</Radio.Button>
+                                    ['total'].concat(energyList.map(i=>i.type_code)).map((item)=>(
+                                        <Radio.Button key={item} value={item}>{ energyMaps[item] ? energyMaps[item].type_name : ''}</Radio.Button>
                                     ))
                                 }
                             </Radio.Group>
@@ -153,6 +151,7 @@ function PageItem1({ energy, attrEnergy, analyze, startDate, dispatch, energyLis
                                 showType={showType} 
                                 energyInfo={energy.energyInfo} 
                                 forReport={true}
+                                currentField={{}}
                                 startDate={startDate}
                             />
                         </div>                      
@@ -162,6 +161,7 @@ function PageItem1({ energy, attrEnergy, analyze, startDate, dispatch, energyLis
                             <EnergyQuotaChart 
                                 data={attrEnergy.energyQuota} 
                                 showType={showType} 
+                                energyMaps={energyMaps}
                                 forReport={true}                                   
                             />
                         </div>                     

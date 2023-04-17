@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { history } from 'umi';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Spin, Card, Tree, Tabs, Button, Modal, message, Skeleton } from 'antd';
@@ -17,8 +18,6 @@ function SameRateReport({ dispatch, user, extremeReport, fields }) {
     const { currentCompany, pagesize, timeType, startDate, endDate } = user;
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
-    console.log(fieldAttrs);
-    console.log(checkedKeys);
     const sidebar = (
         <div>
             <div className={style['card-container']}>

@@ -11,7 +11,7 @@ import XLSX from 'xlsx';
 const colors = ['#57e29f','#65cae3','#198efb','#f1ac5b'];
 
 function hasSetQuota(arr){
-    return arr.filter(i=>i>0).length ? true : false;
+    return arr && arr.filter(i=>i>0).length ? true : false;
 }
 
 function EfficiencyQuotaChart({ data, timeType, currentAttr, onLink, theme, forReport }) {

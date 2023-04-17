@@ -58,16 +58,17 @@ html, body {
 .sidebar-container.dark {
     background:#191932;
 }
+
 .sidebar-container::-webkit-scrollbar-thumb {
     border-radius: 8px;
     -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
-    background: rgba(130,130,130,0.8);
+    background: rgba(194, 193, 193, 0.4);
 }
 
 .sidebar-container::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
     border-radius: 8px;
-    background:rgba(88, 89, 135, 0.4);
+    background:rgba(138, 139, 182, 0.3);
 }
 .sidebar-container .collapsed-button {
     position:absolute;
@@ -436,13 +437,13 @@ html, body {
 .container .card-container::-webkit-scrollbar-thumb, .container .scroll-container::-webkit-scrollbar-thumb {
     border-radius: 8px;
     -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
-    background: rgba(130,130,130,0.8);
+    background: rgba(194, 193, 193, 0.4);
 }
 
 .container .card-container::-webkit-scrollbar-track, .container .scroll-container::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
     border-radius: 8px;
-    background:rgba(88, 89, 135, 0.4);
+    background:rgba(138, 139, 182, 0.3);
 }
 .container.dark .card-container {
     background-color:#191932;

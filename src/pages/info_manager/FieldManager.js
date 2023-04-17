@@ -20,7 +20,6 @@ function FieldManager({dispatch, fields, fieldDevice, user}){
         labelCol: { span: 6 },
         wrapperCol: { span: 18 },
     };
-   
     return (
             loaded 
             ?

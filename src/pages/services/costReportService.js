@@ -105,6 +105,19 @@ export function getMeterReport(data = {}){
         body:str
         }); 
 }
+export function getMeterReportDetail(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/costreport/exportEnergyDetail', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+
 export function exportReport(data={}){
     let token = apiToken();
     data.token = token;

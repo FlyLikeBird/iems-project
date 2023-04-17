@@ -21,8 +21,9 @@ const dotStyle = {
     transform:'translateY(50%)',
 }
 let timer;
-function EnergyManager({ dispatch, user, energy }){
-    const { timeType, maskVisible, energyInfo, energyList, showType, chartInfo, sceneInfo, costInfo, costAnalysis, isLoading, chartLoading } = energy;
+function EnergyManager({ dispatch, user, fields, energy }){
+    const { timeType, maskVisible, energyInfo, showType, chartInfo, sceneInfo, costInfo, costAnalysis, isLoading, chartLoading } = energy;
+    const { energyList, energyMaps } = fields;
     // 添加滚动事件，如果滚出视图区，则变为固定定位
     // const  handleScroll = (e)=>{
     //         clearTimeout(clearIndex);
@@ -35,7 +36,7 @@ function EnergyManager({ dispatch, user, energy }){
     //     };
     useEffect(()=>{
         // 当组件卸载时重置loaded的状态
-        dispatch({ type:'energy/fetchEnergy'});
+        dispatch({ type:'fields/fetchEnergy'});
         dispatch({ type:'energy/fetchCost'});
         dispatch({ type:'energy/fetchCostByTime'});
         timer = setInterval(()=>{
@@ -43,9 +44,9 @@ function EnergyManager({ dispatch, user, energy }){
             dispatch({ type:'energy/fetchCostByTime'});
         },3 * 60 * 1000)
         return ()=>{
-            dispatch({type:'energy/reset'});
             clearInterval(timer);
             timer = null;
+            dispatch({type:'energy/reset'});
         }
     },[]);
     const containerRef = useRef();
@@ -57,46 +58,25 @@ function EnergyManager({ dispatch, user, energy }){
                 backgroundRepeat:'no-repeat',
                 backgroundSize:'cover'
             }}> 
-                
-                {/* {
-                    sceneInfo.tags && sceneInfo.tags.length
-                    ?              
-                    sceneInfo.tags.map((tag,index)=>(
-                        <Tooltip 
-                            key={index} 
-                            // trigger="click" 
-                            placement="rightTop" 
-                            title={<TooltipInfo data={tag} allTypes={sceneInfo.types} />} 
-                            overlayClassName='tooltip'
-                        >
-                            <div className='tag-container' style={{ left:tag.pos_left+'%', top:tag.pos_top+'%'}}>
-                                <div className='tag'>{ tag.tag_name }</div>
-                                <div className='sub-tag'>{`今日总成本: ${tag.cost}元`}</div>
-                            </div>
-                        </Tooltip>                               
-                    ))
-                    :
-                    null
-                } */}
             </div>
             <div style={{ display:energyInfo.type_code === 'total' || energyInfo.type_code === 'ele' ? 'block' : 'none', backgroundImage:'linear-gradient(to right, rgba(0,0,0,0.4) , transparent)', position:'absolute', left:'0', top:'0', width:'20%', height:'100%' }}>
                 <div style={{ color:'#fff', position:'absolute', transform:'translateY(-50%)', left:'0', top:'50%', padding:'0 40px'}}>
-                    <div style={{ margin:'20px 0', position:'relative'}}>
+                    <div style={{ margin:'20px 0', position:'relative', whiteSpace:'nowrap' }}>
                         <div style={{...dotStyle, backgroundColor:'#2d54ef'}}></div>
                         <div style={{ fontSize:'0.8rem'}}>本月力调电费节俭潜力</div>
                         <div style={{ fontSize:'1.4rem', fontWeight:'bold'}}>{ `${sceneInfo.saveSpace ? sceneInfo.saveSpace.adjustCost : ''}元`}</div>
                     </div>
-                    <div style={{ margin:'20px 0', position:'relative'}}>
+                    <div style={{ margin:'20px 0', position:'relative', whiteSpace:'nowrap' }}>
                         <div style={{...dotStyle, backgroundColor:'#1cc5c4'}}></div>
                         <div style={{ fontSize:'0.8rem'}}>本月计量电费节俭潜力</div>
                         <div style={{ fontSize:'1.4rem', fontWeight:'bold'}}>{ `${sceneInfo.saveSpace ? sceneInfo.saveSpace.eleCost : ''}元`}</div>
                     </div>
-                    <div style={{ margin:'20px 0', position:'relative'}}>
+                    <div style={{ margin:'20px 0', position:'relative', whiteSpace:'nowrap' }}>
                         <div style={{...dotStyle, backgroundColor:'#732ad6'}}></div>
                         <div style={{ fontSize:'0.8rem'}}>本月基本电费节俭潜力</div>
                         <div style={{ fontSize:'1.4rem', fontWeight:'bold'}}>{ `${sceneInfo.saveSpace ? sceneInfo.saveSpace.baseCost : ''}元`}</div>
                     </div>
-                    <div style={{ margin:'20px 0', position:'relative'}}>
+                    <div style={{ margin:'20px 0', position:'relative', whiteSpace:'nowrap' }}>
                         <div style={{...dotStyle, backgroundColor:'#e9eaf5'}}></div>
                         <div style={{ fontSize:'0.8rem'}}>能源成本竞争力</div>
                         <div style={{ fontSize:'1.4rem', fontWeight:'bold'}}>{ `排名第${sceneInfo.saveSpace ? sceneInfo.rank : ''}位`}</div>
@@ -123,18 +103,23 @@ function EnergyManager({ dispatch, user, energy }){
                 null
             }
             <div style={{ height:'40px'}}>
-                <Radio.Group buttonStyle='solid' size='small' style={{ marginRight:'20px' }} value={energyInfo.type_id} className={style['custom-radio']} onChange={(e)=>{
-                    let currentEnergy = energyList.filter(i=>i.type_id === e.target.value )[0];
-                    dispatch({ type:'energy/toggleEnergyType', payload:currentEnergy });
-                    dispatch({ type:'energy/fetchCost'});
-                    dispatch({ type:'energy/fetchCostByTime'});       
-                }}>
-                    {
-                        energyList.map((item,index)=>(
-                            <Radio.Button key={item.type_id} value={item.type_id}>{ item.type_name }</Radio.Button>
-                        ))
-                    }
-                </Radio.Group>
+                {
+                    energyList.length 
+                    ?
+                    <Radio.Group buttonStyle='solid' size='small' style={{ marginRight:'20px' }} value={energyInfo.type_code} className={style['custom-radio']} onChange={(e)=>{
+                        dispatch({ type:'energy/setEnergyInfo', payload: { ...energyMaps[e.target.value] }});
+                        dispatch({ type:'energy/fetchCost'});
+                        dispatch({ type:'energy/fetchCostByTime'});       
+                    }}>
+                        {
+                            ['total'].concat(energyList.map(i=>i.type_code)).map((item,index)=>(
+                                <Radio.Button key={item} value={item}>{ energyMaps[item] ? energyMaps[item].type_name : '' }</Radio.Button>
+                            ))
+                        }
+                    </Radio.Group>
+                    :
+                    null
+                }           
                 <Radio.Group buttonStyle='solid' size='small' value={showType} className={style['custom-radio']} onChange={(e)=>{
                     dispatch({ type:'energy/toggleShowType', payload:e.target.value });
                 }}>
@@ -200,7 +185,7 @@ function EnergyManager({ dispatch, user, energy }){
                             {
                                 Object.keys(costAnalysis).length 
                                 ?
-                                <PieChart data={costAnalysis} energyInfo={energyInfo} energyList={energyList} showType={showType} theme={user.theme} />
+                                <PieChart data={costAnalysis} energyInfo={energyInfo} energyMaps={energyMaps} showType={showType} theme={user.theme} />
                                 :
                                 <Spin size='large' className={style['spin']} />
                             }   
@@ -212,4 +197,4 @@ function EnergyManager({ dispatch, user, energy }){
     )    
 }
 
-export default connect(({ user, energy })=>({ user, energy }))(EnergyManager);
+export default connect(({ user, fields, energy })=>({ user, fields, energy }))(EnergyManager);

@@ -12,7 +12,7 @@ import EnergyProcess from './EnergyProcess';
 import ScrollTable from './ScrollTable/index';
 // 切换总能源成本， 电成本， 水成本
 
-function IndexTemplate2({ monitor }){
+function IndexTemplate2({ monitor, energyMaps }){
     let { energyInfoList, monitorInfo, saveSpace, tplInfo, coalInfo } = monitor;
     let loaded = Object.keys(monitorInfo).length ? true : false ;
     return (
@@ -20,9 +20,9 @@ function IndexTemplate2({ monitor }){
             <div className={style['title-container']} style={{ backgroundImage:`url(${titleImg})` }}><div className={style['title']}>智慧能源大屏</div></div>
             <div className={style['info-container']} style={{ backgroundImage:`url(${infoImg})` }}>
                 {
-                    loaded && Object.keys(tplInfo).length && Object.keys(coalInfo).length 
+                    loaded && Object.keys(tplInfo).length && Object.keys(coalInfo).length  && Object.keys(energyMaps).length
                     ?
-                    <InfoContainer data={monitorInfo.energyInfo} coal={tplInfo.coal} carbon={tplInfo.gas_coal}  />
+                    <InfoContainer data={monitorInfo.energyInfo} energyMaps={energyMaps} totalCost={tplInfo.cost} coal={tplInfo.coal} carbon={tplInfo.gas_coal}  />
                     :
                     null
                 }
@@ -55,7 +55,7 @@ function IndexTemplate2({ monitor }){
                             {
                                 energyInfoList.length
                                 ?
-                                <EnergyProcess data={energyInfoList} />
+                                <EnergyProcess data={energyInfoList} energyMaps={energyMaps} />
                                 :
                                 <Spin size='large' className={style['spin']} />
                             }

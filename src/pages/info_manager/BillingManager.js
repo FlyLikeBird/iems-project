@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { connect } from 'dva';
 import { Table, Tabs, Select, Spin, Switch, Form, Skeleton, Input, Tag } from 'antd';
 import { FireOutlined, DownloadOutlined, DoubleLeftOutlined, DoubleRightOutlined, PlusOutlined } from '@ant-design/icons'
@@ -15,22 +15,24 @@ const allTimeType = {
     4:'尖时段'
 };
 
-function BillingManager({ dispatch, user, fields }){
+function BillingManager({ dispatch, user, fields, billing }){
     let { companyList, currentCompany, theme } = user;
     let { energyList, energyInfo } = fields;
+    let { rateList, rateInfo, tplList, feeRate } = billing;
     useEffect(()=>{
         return ()=>{
             dispatch({ type:'billing/reset'});
         }
     },[]);
-    
+    const onDispatch = useCallback((action)=>{
+        dispatch(action);
+    },[]);
     return (
        <div className={style['page-container']}>
            <div className={style['card-container']}>
                 <Tabs className={style['custom-tabs']} activeKey={energyInfo.type_id} onChange={activeKey=>{
                     let temp = energyList.filter(i=>i.type_id === activeKey)[0];
                     dispatch({ type:'fields/toggleEnergyInfo', payload:temp });
-                    dispatch({ type:'fields/fetchField'});
                 }}>
                     {
                         energyList.map((item,index)=>(
@@ -38,13 +40,9 @@ function BillingManager({ dispatch, user, fields }){
                                 {
                                     item.type_code === 'ele' 
                                     ?
-                                    <EleBilling />
+                                    <EleBilling rateList={rateList} rateInfo={rateInfo} tplList={tplList}  theme={theme} dispatch={onDispatch} />
                                     :
-                                    item.type_code === 'water'
-                                    ?
-                                    <WaterBilling />
-                                    :
-                                    null
+                                    <WaterBilling  energyInfo={energyInfo} feeRate={feeRate} dispatch={onDispatch} />
                                 }
                             </TabPane>
                         ))
@@ -58,4 +56,4 @@ function BillingManager({ dispatch, user, fields }){
 BillingManager.propTypes = {
 };
 
-export default connect( ({ user, fields }) => ({ user, fields }))(BillingManager);
+export default connect( ({ user, fields, billing }) => ({ user, fields, billing }))(BillingManager);

@@ -13,7 +13,7 @@ const initialState = {
     // 能流图维度切换
     rankInfo:{},
     ratioInfo:[],
-    outputInfo:[],
+    outputInfo:{},
     costChart:{},
     allCostChart:{},
     attrData:[{ key:'month'}, { key:'day'}, { key:'hour' }],
@@ -206,9 +206,7 @@ export default {
                 addNewNode(parentChart, clickNode, data);
                 temp = { ...parentChart };
             }
-            // console.log(data);
-            console.log(temp);
-            
+            // console.log(data);            
             return { ...state, chartInfo:temp, chartLoading:false };
         },
         getCost(state, { payload : { data }}){
@@ -223,14 +221,7 @@ export default {
             return { ...state, ratioInfo };
         },
         getOutput(state, { payload:{ data }}){
-            let outputInfo = Object.keys(data).map(key=>{
-                let text = key === 'ele' ? '电' : 
-                    key === 'water' ? '水' :
-                    key === 'gas' ? '气' : 
-                    key === 'hot' ? '燃' : '';
-                return { type:key, value:data[key], text };
-            });
-            return { ...state, outputInfo };
+            return { ...state, outputInfo:data };
         },
         getAttrRatio(state, { payload : { attrMonthData, attrDayData, attrHourData }}){
             attrMonthData['key'] = 'month';

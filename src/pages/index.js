@@ -2,11 +2,11 @@ import React, { Component, useState, useEffect, useLayoutEffect, useRef, useCall
 import { connect } from 'dva';
 import { Link, Route, Switch, Redirect } from 'dva/router';
 import style from './IndexPage.css';
-import { Table, Button, Dropdown } from 'antd';
+import { Table, Button, Modal, Dropdown } from 'antd';
 import { MailOutlined, UserOutlined, PropertySafetyOutlined, ScheduleOutlined, ProfileOutlined, DoubleRightOutlined, DoubleLeftOutlined } from '@ant-design/icons';
 import Menu from './components/Menu';
 import Header from './components/Header';
-
+import noticeImg from '../../public/notice.png';
 function isFullscreen(){
     return document.fullscreenElement    ||
            document.msFullscreenElement  ||
@@ -15,7 +15,7 @@ function isFullscreen(){
 }
 
 function ProjectIndex({ dispatch, user, children }){
-    let { routePath, currentPath, currentProject, currentMenu, userInfo, authorized, fromAgent, currentCompany, collapsed, containerWidth, msg, theme } = user;
+    let {  currentMenu, userInfo, authorized, fromAgent, currentCompany, collapsed, containerWidth, msg, notice, theme } = user;
     let sidebarWidth = collapsed ? 70 : containerWidth * 0.1 ;
     const containerRef = useRef();
     useEffect(()=>{
@@ -52,6 +52,21 @@ function ProjectIndex({ dispatch, user, children }){
                 authorized
                 ?
                 <div style={{ height:'100%'}}>
+                    {/* 系统通知信息 */}
+                    {
+                        Object.keys(notice).length 
+                        ?
+                        <div style={{ position:'absolute', left:'0', top:'0', width:'100%', height:'100%', background:'rgba(0, 0, 0, 0.25)' }}>
+                            <div style={{ position:'absolute', left:'50%', top:'50%', zIndex:'10', transform:'translate(-50%, -50%)' }}>
+                                <img src={noticeImg} />
+                            </div>
+                        </div>
+                        
+                        :
+                        null
+                    }
+                        
+                    
                     <Header data={user} onDispatch={action=>dispatch(action)} collapsed={collapsed} sidebarWidth={sidebarWidth} msg={msg} theme={theme}  />
                     <div className={style['main-content']} style={ isFulled && ( currentMenu.path === 'ai_gas_station' || currentMenu.path === 'power_room' ) ? { height:'100%' } : {} }>
                         <div className={ theme==='dark' ? style['sidebar-container'] + ' ' + style['dark'] : style['sidebar-container']} style={{ width: sidebarWidth + 'px' }} >

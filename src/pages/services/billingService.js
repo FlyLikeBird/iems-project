@@ -185,7 +185,30 @@ export function setWaterRate(data = {}){
         body:str
         }); 
 }
-
+export function setCombustRate(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/feerate/setgasrate', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
+export function setSteamRate(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/feerate/setsteamrate', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
 export function getTpl(data = {}){
     let token = apiToken();
     data.token = token;

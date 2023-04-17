@@ -1,5 +1,7 @@
 import { 
-    getRateInfo, getFeeRate, setWaterRate, getBilling, getCity,
+    getRateInfo, getFeeRate, 
+    setWaterRate, setCombustRate, setSteamRate, 
+    getBilling, getCity,
     addRate, updateRate, delRate,
     addQuarter, editQuarter, delQuarter, 
     isActive, isUnActive, editRate,
@@ -21,6 +23,7 @@ export default {
     state:initialState,
     effects:{
         *init(action, { select, call, put, all }){
+            yield put.resolve({ type:'fields/init'});
             yield put({ type:'fetchEleBilling'});
             yield put({ type:'fetchFeeRate'});
             yield put({ type:'fetchRateInfo'});
@@ -136,9 +139,15 @@ export default {
             } 
         },
         *setFeeRate(action, { select, call, put }){
-            let { user:{ company_id }} = yield select();
-            let { resolve, reject, water_rate } = action.payload || {};
-            let { data } = yield call(setWaterRate, { company_id, water_rate });
+            let { user:{ company_id }, fields:{ energyInfo }} = yield select();
+            let { type, resolve, reject, water_rate } = action.payload || {};
+            let params = type === 'water' ? { company_id, water_rate } : { company_id, rate:water_rate };
+            let { data } = yield call( 
+                type === 'water' ? setWaterRate :
+                type === 'combust' ? setCombustRate : 
+                type === 'steam' ? setSteamRate :
+                setWaterRate
+                , params);
             if ( data && data.code === '0'){
                 yield put({ type:'fetchFeeRate'});
                 if ( resolve && typeof resolve === 'function' ) resolve();

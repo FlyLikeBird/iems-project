@@ -1,21 +1,15 @@
 import React from 'react';
 import style from './template2.css';
 
-let energyMaps = {
-    'ele':'电',
-    'water':'水',
-    'gas':'气',
-    'hot':'热'
-};
+function EnergyProcess({ data, energyMaps }){
 
-function EnergyProcess({ data }){
     return (
         <div className={style['flex-container']}>
             {
                 data.map((item,index)=>(
                     <div className={style['flex-item']} key={index}>
                         <div className={style['flex-item-content']}>
-                            <span style={{ width:'10%', paddingLeft:'10px', color:'#506575' }}>{`用${energyMaps[item.key]}`}</span>
+                            <span style={{ width:'10%', paddingLeft:'10px', color:'#506575' }}>{`${energyMaps[item.key] ? energyMaps[item.key].type_name : ''}`}</span>
                             <span className={style['process-container']}>
                                 <span className={style['process-item']} style={{
                                     width: item.percent + '%',

@@ -6,27 +6,17 @@ import style from './template2.css';
 let repeatTimer;
 let timer1;
 let timer2;
-let energyMaps = {
-    'ele':'电',
-    'water':'水',
-    'gas':'气',
-    'hot':'热'
-};
+
 // 切换索引值
-function InfoContainer({ data, coal, carbon }){
+function InfoContainer({ data, energyMaps, totalCost, coal, carbon }){
     const scrollRef = useRef();
     const backRef = useRef();
-    let toggleData = [], total = 0;
+    let toggleData = [];
+    toggleData.push({ title:'总能源成本', value:Math.round(totalCost) });
     Object.keys(data).forEach(key=>{
-        total += data[key].cost;
+        toggleData.push({ title:energyMaps[key].type_name + '能源成本', value:Math.round( data[key].cost )})
     });
-    toggleData.push({ title:'总能源成本', value:Math.round(total) });
-    toggleData.push({ title:'电能源成本', value:Math.round(data['ele'].cost) });
-    toggleData.push({ title:'水能源成本', value:Math.round(data['water'].cost) });
-    toggleData.push({ title:'气能源成本', value:Math.round(data['gas'].cost) });
-    // toggleData.push({ title:'热能源成本', value:Math.round(data['hot'].cost) });
-    // toggleData = toggleData.filter(i=>+i.value !== 0);
-   
+
     let index = 1;
     useEffect(()=>{
         repeatTimer = setInterval(()=>{

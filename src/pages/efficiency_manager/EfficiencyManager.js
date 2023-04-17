@@ -22,7 +22,7 @@ const labelStyle = {
 };
 function EfficiencyManager({ dispatch, user, fields, efficiency }){ 
     const { timeType, startDate, endDate, theme  } = user;
-    const { allFields, energyList, energyInfo, currentField, currentAttr } = fields;
+    const { allFields, energyList, energyInfo, energyMaps, currentField, currentAttr } = fields;
     const { chartInfo,  parentNodes, rankInfo, costChart, maskVisible, ratioInfo, outputInfo, attrData, regionData, chartLoading } = efficiency;
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     useEffect(()=>{
@@ -31,8 +31,6 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
         }
     },[])
     const containerRef = useRef();
-    console.log(energyList);
-    console.log(energyInfo);
     return (
         <div 
             className={style['page-container']} 
@@ -174,7 +172,7 @@ function EfficiencyManager({ dispatch, user, fields, efficiency }){
                     </div>
                     <div className={style['card-container-wrapper']} style={{ width:'30%', paddingBottom:'0', paddingRight:'0' }}>
                         <div className={style['card-container']}>
-                            <OutputChart data={outputInfo} theme={user.theme} />
+                            <OutputChart data={outputInfo} energyMaps={energyMaps} theme={user.theme} />
 
                         </div>
                     </div>

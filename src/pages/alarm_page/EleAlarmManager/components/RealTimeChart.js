@@ -39,53 +39,49 @@ function RealTimeChart({ data, dispatch, dayTimeType, typeCode, theme }){
             itemStyle:{ color:'#3f8fff'},
             markPoint:{
                 data:[
-                    { symbol:'circle', symbolSize:14, itemStyle:{ color:'#3f8fff'}, xAxis:data.energy.length ? data.energy.length - 1 : 0, yAxis:data.energy[data.energy.length ? data.energy.length-1 : 0]},
-                    { symbol:'circle', symbolSize:6, itemStyle:{ color:'#fff' }, xAxis:data.energy.length ? data.energy.length - 1 : 0, yAxis:data.energy[data.energy.length ? data.energy.length-1 : 0]}
+                    { symbol:'emptyCircle', symbolSize:10, itemStyle:{ color:'#3f8fff'}, xAxis:data.energy.length ? data.energy.length - 1 : 0, yAxis:data.energy[data.energy.length ? data.energy.length-1 : 0]},
                 ]
             },
         })
     } else {
-        let isVol = typeCode === 'vol_exceed' ? true : false;
-        let energyA = isVol ? data.energyAB || [] : data.energyA;
-        let energyB = isVol ? data.energyBC || [] : data.energyB;
-        let energyC = isVol ? data.energyCA || []: data.energyC;
+        // let isVol = typeCode === 'vol_exceed' ? true : false;
+        let energyA = data.energyA;
+        let energyB = data.energyB;
+        let energyC = data.energyC;
         
         seriesData.push({
             type:'line',
-            name: isVol ? 'AB线' : 'A相' + typeMap[typeCode].text,
+            name: 'A相' + typeMap[typeCode].text,
             symbol:'none',
             data: energyA,
             itemStyle:{ color:'#3f8fff'},
             markPoint:{
                 data:[
-                    { symbol:'circle', symbolSize:14, itemStyle:{ color:'#3f8fff'}, xAxis:energyA.length ? energyA.length - 1 : 0, yAxis:energyA[energyA.length ? energyA.length-1 : 0]},
-                    { symbol:'circle', symbolSize:6, itemStyle:{ color:'#fff' }, xAxis:energyA.length ? energyA.length - 1 : 0, yAxis:energyA[energyA.length ? energyA.length-1 : 0]}
+                    { symbol:'emptyCircle', symbolSize:10, itemStyle:{ color:'#3f8fff'}, xAxis:energyA.length ? energyA.length - 1 : 0, yAxis:energyA[energyA.length ? energyA.length-1 : 0]},
                 ]
             },
         });
         seriesData.push({
             type:'line',
-            name: isVol ? 'BC线' : 'B相' + typeMap[typeCode].text,
+            name: 'B相' + typeMap[typeCode].text,
             symbol:'none',
             data:energyB,
             itemStyle:{ color:'#f5a60a'},
             markPoint:{
                 data:[
-                    { symbol:'circle', symbolSize:14, itemStyle:{ color:'#f5a60a'}, xAxis:energyB.length ? energyB.length - 1 : 0, yAxis:energyB[energyB.length ? energyB.length-1 : 0]},
-                    { symbol:'circle', symbolSize:6, itemStyle:{ color:'#fff' }, xAxis:energyB.length ? energyB.length - 1 : 0, yAxis:energyB[energyB.length ? energyB.length-1 : 0]}
+                    { symbol:'emptyCircle', symbolSize:10, itemStyle:{ color:'#f5a60a'}, xAxis:energyB.length ? energyB.length - 1 : 0, yAxis:energyB[energyB.length ? energyB.length-1 : 0]},
                 ]
             },
         });
         seriesData.push({
             type:'line',
-            name: isVol ? 'CA线' : 'C相' + typeMap[typeCode].text,
+            name: 'C相' + typeMap[typeCode].text,
             symbol:'none',
             data:energyC,
             itemStyle:{ color:'#1fc48d'},
             markPoint:{
                 data:[
-                    { symbol:'circle', symbolSize:14, itemStyle:{ color:'#1fc48d'}, xAxis:energyC.length ? energyC.length - 1 : 0, yAxis:energyC[energyC.length ? energyC.length-1 : 0]},
-                    { symbol:'circle', symbolSize:6, itemStyle:{ color:'#fff' }, xAxis:energyC.length ? energyC.length - 1 : 0, yAxis:energyC[energyC.length ? energyC.length-1 : 0]}
+                    { symbol:'emptyCircle', symbolSize:10, itemStyle:{ color:'#1fc48d'}, xAxis:energyC.length ? energyC.length - 1 : 0, yAxis:energyC[energyC.length ? energyC.length-1 : 0]},
                 ]
             },
         });  

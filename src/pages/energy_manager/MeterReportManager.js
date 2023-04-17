@@ -24,13 +24,12 @@ for(var i=0;i<24;i++){
     hourData.push({ key:i, value:temp + ' : 00'});
 }
 function MeterReportManager({ dispatch, user, meterReport, fields }) {
-    const { list, isLoading, checkedKeys } = meterReport;
+    const { list, isLoading, startHour, checkedKeys } = meterReport;
     const { allFields, energyList, energyInfo, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { currentCompany, pagesize, timeType, startDate, endDate, theme } = user;
     const [visible, toggleVisible] = useState(false);
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
-    let [startHour, setStartHour] = useState(0);
     useEffect(()=>{
         return ()=>{
             dispatch({ type:'meterReport/cancelAll'});
@@ -114,15 +113,7 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
             </div>
         </div>
     );
-    useEffect(()=>{
-        // 筛选时间段功能点击筛选Button才触发，默认不触发
-        if ( keepState ){
-            
-        } else {
-            setStartHour(0);
-        }
-        keepState = false;
-    },[list])
+
     const content = (
         <div style={{ position:'relative' }}>
             {
@@ -134,15 +125,13 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
             }
             <div style={{ height:'40px', display:'flex' }}>
                 <CustomDatePicker onDispatch={()=>{
-                    keepState = true;
-                    dispatch({type:'meterReport/fetchMeterReport', payload:{ startHour }});                                            
+                    dispatch({type:'meterReport/fetchMeterReport' });                                            
                 }} />
                 <div style={{ marginLeft:'1rem' }}>
                     <span style={{ color: user.theme === 'dark' ? '#fff' : 'rgba(0, 0, 0, 0.8)' }}>起始基准点 : </span>
                     <Select style={{ width:'140px' }} className={style['custom-select']} value={startHour} onChange={value=>{
-                        setStartHour(value);
-                        keepState = true;
-                        dispatch({ type:'meterReport/fetchMeterReport', payload:{ startHour:value }});
+                        dispatch({ type:'meterReport/setStartHour', payload:value });
+                        dispatch({ type:'meterReport/fetchMeterReport' });
                     }}>
                         {
                             hourData.map(item=>(
@@ -155,7 +144,7 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
             <div className={style['card-container']} style={{ height:'calc(100% - 40px)'}}>            
                     <MeterReportTable 
                         data={list} 
-                        pagesize={pagesize}
+                        pagesize={12}
                         companyName={currentCompany.company_name}
                         dispatch={dispatch} 
                         isLoading={isLoading}

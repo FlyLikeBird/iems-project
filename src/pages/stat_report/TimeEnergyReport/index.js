@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { connect } from 'dva';
+import { history } from 'umi';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Spin, Card, Select, Tree, Tabs, Button, Checkbox, TimePicker, Modal, message, Skeleton } from 'antd';
 import { DoubleLeftOutlined , DoubleRightOutlined, PayCircleOutlined, ThunderboltOutlined, ExperimentOutlined, HourglassOutlined, FireOutlined  } from '@ant-design/icons';
@@ -109,14 +110,12 @@ function TimeEnergyReport({ dispatch, user, costReport, fields }) {
                     <div style={{ display:'flex', height:'40px' }}>
                         <Radio.Group size='small' buttonStyle='solid' className={style['custom-radio']} style={{ marginRight:'20px' }} value={dataType} onChange={e=>{
                             dispatch({ type:'costReport/toggleDataType', payload:e.target.value });
-                            keepState = true;
                             dispatch({ type:'costReport/fetchCostReport'});
                         }}>
                             <Radio.Button value='1'>成本</Radio.Button>
                             <Radio.Button value='2'>能耗</Radio.Button>
                         </Radio.Group>
                         <CustomDatePicker onDispatch={()=>{
-                            keepState = true;
                             dispatch({ type:'costReport/fetchCostReport' });
                         }} />
                         <div style={{ marginLeft:'1rem' }}>

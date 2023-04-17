@@ -22,21 +22,7 @@ const energyIcons = {
     'hot':3
 };
 
-const energyTypes = {
-    'ele':'电',
-    'water':'水',
-    'hot':'热',
-    'gas':'气'
-};
-
-const energyUnit = {
-    'ele':'kwh',
-    'water':'m³',
-    'gas':'m³',
-    'hot':'GJ'
-}
-
-function IndexTemplate1({ dispatch, energyList, monitor }){
+function IndexTemplate1({ dispatch, energyList, energyMaps, monitor }){
     const { sceneInfo, imgURL, energyInfoList, energyInfo, tplInfo, saveSpace, monitorInfo, chartLoading, levelInfo, sceneList } = monitor;
     const [showType, toggleShowType] = useState('energy');
     const [template, toggleTemplate] = useState('1');
@@ -68,7 +54,7 @@ function IndexTemplate1({ dispatch, energyList, monitor }){
                                                 <div className={style['info-item']}>                                                
                                                     <div className={style['info-icon']} style={{ backgroundImage:`url(${icons})`, backgroundPosition:`-${energyIcons[item.key]*24}px 0` }}></div>
                                                     <div className={style['info-content']}>
-                                                        <div className={style['info-title']}>{ `本月用${ energyTypes[item.key]}(${ showType === 'energy' ? item.unit : '元'})` }</div>
+                                                        <div className={style['info-title']}>{ `本月用${ energyMaps[item.key].type_name }(${ showType === 'energy' ? item.unit : '元'})` }</div>
                                                         <div className={style['info-num']}>{ `${ showType === 'energy' ? (item.energy).toFixed(0) : (item.cost).toFixed(0) }` }</div>
                                                         <div className={style['info-ratio']}>环比{ item.ratio <= 0 ? <ArrowDownOutlined/> : <ArrowUpOutlined /> } { `${Math.abs(item.ratio).toFixed(1)} %` }</div>
                                                     </div> 
@@ -97,8 +83,8 @@ function IndexTemplate1({ dispatch, energyList, monitor }){
                                                 <div className={style['energy-icon']} style={{ backgroundImage:`url(${icons})`, backgroundPosition:`-${energyIcons[item.key]*24}px 0` }}></div>
                                                 <div className={style['energy-info']}>
                                                     <div className={style['energy-title']}>
-                                                        <span>{ `本月用${energyTypes[item.key]}定额:` }</span>
-                                                        <span className={style['sub-num']}>{ `${item.quota} ${energyUnit[item.key]}` }</span>
+                                                        <span>{ `本月用${energyMaps[item.key].type_name}定额:` }</span>
+                                                        <span className={style['sub-num']}>{ `${item.quota} ${item.unit}` }</span>
                                                     </div>
                                                     <div className={style['progress-container']}>
                                                         {
@@ -122,8 +108,8 @@ function IndexTemplate1({ dispatch, energyList, monitor }){
                                                     </div>
 
                                                     <div className={style['energy-text']}>
-                                                        <div><span>已使用:</span><span className={style['sub-num']}>{ `${(item.energy).toFixed(0)} ${energyUnit[item.key]}` } </span></div>
-                                                        <div><span>超出:</span><span className={style['sub-num']}>{ `${ item.energy <= item.quota ? 0 : (item.energy - item.quota).toFixed(0)} ${energyUnit[item.key]}` } </span></div>
+                                                        <div><span>已使用:</span><span className={style['sub-num']}>{ `${(item.energy).toFixed(0)} ${item.unit}` } </span></div>
+                                                        <div><span>超出:</span><span className={style['sub-num']}>{ `${ item.energy <= item.quota ? 0 : (item.energy - item.quota).toFixed(0)} ${item.unit}` } </span></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -174,7 +160,7 @@ function IndexTemplate1({ dispatch, energyList, monitor }){
                                                 <div className={style['info-item']}>
                                                     <div className={style['info-icon']} style={{ backgroundImage:`url(${icons})`, backgroundPosition:`-${energyIcons[item.key]*24}px 0` }}></div>
                                                     <div className={style['info-content']}>
-                                                        <div className={style['info-title']}>{ `下月用${ energyTypes[item.key] }(${item.unit})` }</div>
+                                                        <div className={style['info-title']}>{ `下月用${ energyMaps[item.key].type_name }(${item.unit})` }</div>
                                                         <div className={style['info-num']}>{ `${(+item.demand).toFixed(0)}` }</div>
                                                         <div className={style['info-ratio']}>环比{ item.demandRatio <= 0 ? <ArrowDownOutlined/> : <ArrowUpOutlined /> } { `${Math.abs(item.demandRatio).toFixed(1)} %` }</div>
                                                     </div>

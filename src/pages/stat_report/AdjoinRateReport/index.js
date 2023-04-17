@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { history } from 'umi';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Radio, Spin, Card, Tree, Tabs, Button, Modal, message, Skeleton } from 'antd';

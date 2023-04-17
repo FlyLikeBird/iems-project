@@ -44,9 +44,10 @@ const energyText = {
     }
 }
 
-function ProgressItem({ data, showType, forReport }){
+function ProgressItem({ data, showType, energyMaps, forReport }){
     let quota = showType === '0' ? Math.floor(data.quota) : Math.floor(data.energyQuota);
     let value = showType === '0' ? Math.floor(data.cost) : Math.floor(data.energy);
+    console.log(data);
     return (
         <div className={style['process-item']}>
             <div className={style['icon-container']} style={{ 
@@ -58,7 +59,7 @@ function ProgressItem({ data, showType, forReport }){
             <div className={style['info-container']}>
                 
                 <div>
-                    <span>{`用${energyText[data.key].text}${showType === '0' ? '成本':'量'}定额:`}</span>
+                    <span>{`${energyMaps[data.key].type_name}${showType === '0' ? '成本':'量'}定额:`}</span>
                     { 
                         quota 
                         ?
@@ -81,8 +82,8 @@ function ProgressItem({ data, showType, forReport }){
                 </div>
                    
                 <div style={{ display:forReport ? 'block' : 'flex', justifyContent:'space-between'}}>
-                    <div>已使用:<span className={style['text']}>{ value }</span>{ showType==='0' ? '元' : energyText[data.key].unit }</div>
-                    <div>超出:<span className={style['text']}>{ value > quota ? (value-quota).toFixed(0) : '0'}</span>{ showType==='0' ? '元' : energyText[data.key].unit }</div>
+                    <div>已使用:<span className={style['text']}>{ value }</span>{ showType==='0' ? '元' : energyMaps[data.key].unit }</div>
+                    <div>超出:<span className={style['text']}>{ value > quota ? (value-quota).toFixed(0) : '0'}</span>{ showType==='0' ? '元' : energyMaps[data.key].unit }</div>
             
                 </div>
             </div>
@@ -90,7 +91,7 @@ function ProgressItem({ data, showType, forReport }){
     )
 }
 
-function EnergyQuotaChart({ data, showType, onToggleTimeType, forReport }) {
+function EnergyQuotaChart({ data, showType, onToggleTimeType, energyMaps, forReport }) {
     const [timeType, changeTimeType] = useState('2');
     const containerRef = useRef();
     return (   
@@ -129,7 +130,7 @@ function EnergyQuotaChart({ data, showType, onToggleTimeType, forReport }) {
                             {
                                 data.map(item=>(
                                     <div key={item.key}>
-                                        <ProgressItem data={item} showType={showType} forReport={forReport}  />
+                                        <ProgressItem data={item} showType={showType} energyMaps={energyMaps} forReport={forReport}  />
                                     </div>
                                 ))
                             }

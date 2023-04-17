@@ -16,7 +16,7 @@ const { TabPane } = Tabs;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 
-function WaterCostManager({ dispatch, user, fields, energy, worktime }){
+function WaterCostManager({ dispatch, user, fields, energy, worktime, location }){
     const { timeType, startDate, endDate } = user;
     const { list, currentWorktime } = worktime;
     const { allFields, currentField, currentAttr, energyInfo, expandedKeys, treeLoading } = fields;
@@ -24,7 +24,11 @@ function WaterCostManager({ dispatch, user, fields, energy, worktime }){
     const inputRef = useRef();
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
     let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][currentField.field_name] : [];
-    
+    useEffect(()=>{
+        let strArr = location.pathname.split('/');
+        let routePath = strArr[strArr.length - 1];
+        dispatch({ type:'energy/initWaterCost', payload:{ type:routePath }});
+    },[])
     const sidebar = (
         <div>
             <div className={style['card-container']}>

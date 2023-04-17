@@ -66,6 +66,18 @@ export function getAttrGasCost(data={}){
         body:str
         }); 
 }
+export function getAttrSteamCost(data={}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/energycost/getattrsteamcost', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
 export function getTotalCostAnalysis(data={}){
     let token = apiToken();
     data.token = token;

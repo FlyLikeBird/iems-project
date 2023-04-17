@@ -40,7 +40,7 @@ function AlarmTrend({ dispatch, user, alarm }){
                     sumList && sumList.length 
                     ?
                     sumList.map((item,index)=>(
-                        <div className={style['card-container-wrapper']} key={index} style={{ width:'25%', paddingBottom:'0', paddingRight:index === sumList.length - 1 ? '0' : '1rem' }}>
+                        <div className={style['card-container-wrapper']} key={index} style={{ width:'25%', height:'50%', paddingRight:index === sumList.length - 1 ? '0' : '1rem' }}>
                             <div className={style['card-container']}>
                                 <div className={style['card-title']} style={{
                                     backgroundColor:colorsMap[item.type],
@@ -49,7 +49,6 @@ function AlarmTrend({ dispatch, user, alarm }){
                                     <div><AlertOutlined />{ item.text }</div>
                                 </div>
                                 <div className={style['card-content']}>
-                                    <div style={{ height:'40%', position:'relative'}}>
                                         {
                                             item.type === 'total'
                                             ?
@@ -61,22 +60,42 @@ function AlarmTrend({ dispatch, user, alarm }){
                                                 data={ item.type === 'ele' ? warningTypeInfo.typeArr['ele'] : item.type === 'limit' ? warningTypeInfo.typeArr['limit'] : warningTypeInfo.typeArr['link'] } 
                                                 statusData={ item.type === 'ele' ? warningTypeInfo.codeArr[0] : item.type === 'limit' ? warningTypeInfo.codeArr[1] : warningTypeInfo.codeArr[2] } />
                                         }
-                                    </div>
-                                    <div className={style['trend-scroll-container']} style={{ height:'60%', overflow:'hidden auto' }}>
-                                        {
-                                            item.type === 'total' 
-                                            ?
-                                            <AlarmDetailTable data={sumInfo.detail} />
-                                            :
-                                            <FieldBarChart theme={user.theme} type={ item.type === 'ele' ? 'branch' : item.type === 'limit' ? 'region' : 'mach' } data={item.type === 'ele' ? fieldWarning['branch'] : item.type === 'limit' ? fieldWarning['region'] : fieldWarning['mach']} />
-                                        }
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     ))
                     :
                     <Skeleton active className={style['skeleton']} />
+                }
+                {
+                    sumList && sumList.length 
+                    ?
+                    sumList.map((item, index)=>(
+                        <div className={style['card-container-wrapper']} key={index} style={{ width:'25%', height:'50%', paddingBottom:'0', paddingRight:index === sumList.length - 1 ? '0' : '1rem' }}>
+                            <div className={style['card-container']}>
+                                <div className={style['card-title']}>
+                                    { 
+                                        item.type === 'total' ? '告警列表' :  
+                                        item.type === 'ele' ? '支路告警排序' : 
+                                        item.type === 'limit' ? '区域告警排序' :
+                                        item.type === 'link' ? '终端告警排序' : ''
+                                    }
+                                </div>
+                                <div className={style['card-content']}>
+                                        {
+                                            item.type === 'total' 
+                                            ?
+                                            <AlarmDetailTable data={sumInfo.detail.concat(sumInfo.detail)} />
+                                            :
+                                            <FieldBarChart theme={user.theme} type={ item.type === 'ele' ? 'branch' : item.type === 'limit' ? 'region' : 'mach' } data={item.type === 'ele' ? fieldWarning['branch'] : item.type === 'limit' ? fieldWarning['region'] : fieldWarning['mach']} />
+                                        }
+                                </div>
+                            </div>
+                            
+                        </div>
+                    ))
+                    :
+                    null
                 }
             </div>
         </div>

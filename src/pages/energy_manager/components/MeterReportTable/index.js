@@ -58,11 +58,15 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                 const renderNode = (
                     <div>
                         {
+                            value && value.length 
+                            ?
                             value.map((item,index)=>(
-                                <div style={{ borderBottom: index === value.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#191932' : '#f0f0f0'}`}} key={index}>
+                                <div style={{ borderBottom: index === value.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#272b5c' : '#f0f0f0'}`}} key={index}>
                                     <span>{ item.meter_name }</span>
                                 </div>
                             ))
+                            :
+                            null
                         }
                     </div>
                 )
@@ -80,17 +84,21 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                 const renderNode = (
                     <div>
                         {
+                            value && value.length 
+                            ?
                             value.map((item,index)=>(
-                                <div style={{ borderBottom: index === value.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#191932' : '#f0f0f0'}` }} key={index}>
+                                <div style={{ borderBottom: index === value.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#272b5c' : '#f0f0f0'}` }} key={index}>
                                     <span style={{color:'#1890ff'}}>{ item.min_code }</span>
                                 </div>
                             ))
+                            :
+                            null
                         }
                     </div>
                 )
                 let obj = {
                     children:renderNode,
-                    props:{ className : style['multi-table-cell'] }
+                    props:{ className : 'multi-table-cell' }
                 }
                 return obj;
             }
@@ -102,17 +110,21 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                 const renderNode = (
                     <div>
                         {
+                            value && value.length 
+                            ?
                             value.map((item,index)=>(
-                                <div style={{ borderBottom: index === value.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#191932' : '#f0f0f0'}` }} key={index}>
+                                <div style={{ borderBottom: index === value.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#272b5c' : '#f0f0f0'}` }} key={index}>
                                     <span style={{color:'#1890ff'}}>{ item.max_code }</span>
                                 </div>
                             ))
+                            :
+                            null
                         }
                     </div>
                 )
                 let obj = {
                     children:renderNode,
-                    props:{ className : style['multi-table-cell'] }
+                    props:{ className : 'multi-table-cell' }
                 }
                 return obj;
             }
@@ -124,17 +136,21 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                 const renderNode = (
                     <div>
                         {
+                            value && value.length 
+                            ?
                             value.map((item,index)=>(
-                                <div style={{ borderBottom: index === value.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#191932' : '#f0f0f0'}` }} key={index}>
+                                <div style={{ borderBottom: index === value.length - 1 ? 'none' : `1px solid ${theme==='dark' ? '#272b5c' : '#f0f0f0'}` }} key={index}>
                                     <span style={{color:'#1890ff'}}>{ item.energy }</span>
                                 </div>
                             ))
+                            :
+                            null
                         }
                     </div>
                 )
                 let obj = {
                     children:renderNode,
-                    props:{ className : style['multi-table-cell'] }
+                    props:{ className : 'multi-table-cell' }
                 }
                 return obj;
             }
@@ -155,7 +171,81 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                 return (
                     <div style={{ display:'flex', justifyContent:'space-between'}}>
                         <div>{ `${companyName}抄表记录(${ title ? title : ''})`}</div>
-                        <Button size="small" type="primary" onClick={()=>{
+                        <div>
+                        {
+                            timeType === '1' 
+                            ?
+                            <Button type='primary' size='small' onClick={()=>{
+                                new Promise((resolve, reject)=>{
+                                    dispatch({ type:'meterReport/fetchMeterDetail', payload:{ resolve, reject }})
+                                })
+                                .then((data)=>{
+                                    if ( data.length ){
+                                        let fileTitle = title + '抄表记录明细';
+                                        let thead = [], aoa = [];
+                                        thead.push('表计名称', '注册码', '表码值', '记录时间');
+                                        aoa.push(thead);
+                                        data.forEach(item=>{
+                                            let temp = [];
+                                            temp.push(item.meter_name);
+                                            temp.push(item.register_code);
+                                            temp.push(item.energyValue);
+                                            temp.push(item.record_date);
+                                            aoa.push(temp);
+                                        })
+                                        var sheet = XLSX.utils.aoa_to_sheet(aoa);
+                                        sheet['!cols'] = thead.map((item, index)=>({ wch:20 }));
+                                        downloadExcel(sheet, fileTitle + '.xlsx' );
+                                        // let timeList = [];
+                                        // let prevItem = {}, mergesArr = [];
+                                        // for ( let i=0; i<data.length; i++){
+                                        //     if ( i === 0 || prevItem.register_code === data[i].register_code ) {
+                                        //         timeList.push(data[i].record_date);
+                                        //     } else {
+                                        //         prevItem = {};
+                                        //         break;                                            
+                                        //     }
+                                        //     prevItem = data[i];
+                                        // }
+                                        // timeList.forEach(time=>{
+                                        //     thead.push(time);
+                                        // });
+                                        // aoa.push(thead);
+                                        // let valueArr = []
+                                        // let prevIndex = -1;
+                                        // data.forEach((item, index)=>{
+                                        //     if ( prevItem.register_code !== item.register_code ){
+                                        //         ++prevIndex;
+                                        //         let obj = { meter_name:item.meter_name, register_code:item.register_code, energyArr:[item.energyValue] };
+                                        //         valueArr.push(obj);                                                                                              
+                                        //     } else {
+                                        //         valueArr[prevIndex].energyArr.push(item.energyValue);
+                                        //     }
+                                        //     prevItem = item;
+                                        // });
+                                        // valueArr.forEach(item=>{
+                                        //     let temp = [];
+                                        //     temp.push(energyInfo.type_name);
+                                        //     temp.push(energyInfo.unit);
+                                        //     temp.push(item.meter_name);
+                                        //     temp.push(item.register_code);
+                                        //     temp.push(...item.energyArr);
+                                        //     aoa.push(temp);
+                                        // })
+                                        // // console.log(aoa);
+                                        // var sheet = XLSX.utils.aoa_to_sheet(aoa);
+                                        // sheet['!cols'] = thead.map((item, index)=>( index < 2 ? { wch:10 } : { wch:24 }));
+                                        // downloadExcel(sheet, fileTitle + '.xlsx' );
+                                    } else {
+                                        message.info('数据源为空');
+                                    }
+                                })
+                            }}>导出抄表明细</Button>
+                            :
+                            null
+                        }
+                        
+                        <Button size="small" type="primary" style={{ marginLeft:'1rem' }} onClick={()=>{
                             if ( isLoading ){
                                 message.info('正在加载数据，请稍后');
                                 return ;
@@ -172,7 +262,6 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                                     })
                                     aoa.push(thead);
                                     data.forEach((item,index)=>{
-                                        let lock = false;
                                         if ( item.meter && item.meter.length ){                                         
                                             item.meter.forEach((sub,j)=>{
                                                 let temp = [];
@@ -196,17 +285,19 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                                             })
                                         }
                                     });
-                                    var sheet = XLSX.utils.aoa_to_sheet(aoa);
+                                    var sheet = XLSX.utils.aoa_to_sheet(aoa);                                    
                                     sheet['!cols'] = colsStyle;
                                     downloadExcel(sheet, fileTitle + '.xlsx' );
                                 }
                                
                             }
                         }}>导出报表</Button>
+                        </div>
                     </div>
                 )
             }} 
             onChange={(pagination)=>{
+                console.log(pagination);
                 setCurrentPage(pagination.current);
             }}
             pagination={{ 

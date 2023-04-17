@@ -51,6 +51,19 @@ export function fetchSessionUser(data = {}){
         body:str
         }); 
 }
+// 全局消息通知
+export function getNotice(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/index/getNotice', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
 // 修改企业用户的logo
 export function setCompanyLogo(data = {}){
     let token = apiToken();

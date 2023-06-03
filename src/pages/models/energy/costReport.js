@@ -34,6 +34,8 @@ const initialState = {
     dataType:'2',
     reportInfo:{},
     showTimePeriod:false,
+    currentPage:1,
+    total:0,
     analyzeInfo:[],
     chartLoading:false,
     chartInfo:{},
@@ -90,19 +92,39 @@ export default {
         *fetchCostReport(action, { call, put, select}){
             try {
                 let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo, currentAttr }, worktime:{ currentWorktime }, costReport:{ dataType, isDeep, showTimePeriod, startHour  } } = yield select();
+                let { currentPage } = action.payload || {};
+                currentPage = currentPage || 1;
                 timeType = timeType === '3' ? '1' : timeType === '1' ? '3' : timeType === '10' ? '2' : timeType;
-                yield put({type:'toggleLoading'});
-                let obj = { data_type:dataType, company_id,  rostering_id:currentWorktime.id, time_type:timeType, type_id:energyInfo.type_id, attr_id:currentAttr.key, is_display_time:showTimePeriod ? '1' : '0', is_show_detail:isDeep ? '1' : '0', begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
+                yield put({type:'toggleLoading', payload:true });
+                let obj = { page:currentPage, pagesize:12, data_type:dataType, company_id,  rostering_id:currentWorktime.id, time_type:timeType, type_id:energyInfo.type_id, attr_id:currentAttr.key, is_display_time:showTimePeriod ? '1' : '0', is_show_detail:isDeep ? '1' : '0', begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
                 if ( startHour ) {
                     obj.day_start_hour = startHour;
                 }
                 let { data } = yield call(getCostReport, obj );
                 if ( data && data.code === '0'){
-                    yield put({type:'get', payload:{ data:data.data }});
+                    yield put({type:'get', payload:{ data:data.data, currentPage, total:data.count }});
                 } 
             } catch(err){
                 console.log(err);
             }       
+        },
+        *exportCostReport(action, { call, put, select }){
+            let { user:{ company_id, timeType, startDate, endDate }, fields:{ energyInfo, currentAttr }, worktime:{ currentWorktime }, costReport:{ dataType, isDeep, showTimePeriod, startHour  } } = yield select();
+            let { resolve, reject } = action.payload || {};
+            timeType = timeType === '3' ? '1' : timeType === '1' ? '3' : timeType === '10' ? '2' : timeType;
+            yield put({type:'toggleLoading', payload:true });
+            let obj = { page:1, pagesize:99999, data_type:dataType, company_id,  rostering_id:currentWorktime.id, time_type:timeType, type_id:energyInfo.type_id, attr_id:currentAttr.key, is_display_time:showTimePeriod ? '1' : '0', is_show_detail:isDeep ? '1' : '0', begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
+            if ( startHour ) {
+                obj.day_start_hour = startHour;
+            }
+            let { data } = yield call(getCostReport, obj );
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve(data.data);
+                yield put({ type:'toggleLoading', payload:false });
+            } else {
+                if ( reject ) reject(data.msg);
+                yield put({ type:'toggleLoading', payload:false });
+            }
         },
         *initCostAnalyze(action, { put, select }){
             yield put.resolve({ type:'fields/init'});
@@ -199,8 +221,8 @@ export default {
         
     },
     reducers:{
-        toggleLoading(state){
-            return { ...state, isLoading:true };
+        toggleLoading(state, { payload }){
+            return { ...state, isLoading:payload };
         },
         toggleChartLoading(state){
             return { ...state, chartLoading:true };
@@ -208,8 +230,8 @@ export default {
         toggleDataType(state, { payload }){
             return { ...state, dataType:payload };
         },
-        get(state, { payload : { data }}){
-            return { ...state, reportInfo:data, isLoading:false };
+        get(state, { payload : { data, currentPage, total }}){
+            return { ...state, reportInfo:data, currentPage, total, isLoading:false };
         },
         getFeeRate(state, { payload:{ data }}){
             return { ...state, rateInfo:data };

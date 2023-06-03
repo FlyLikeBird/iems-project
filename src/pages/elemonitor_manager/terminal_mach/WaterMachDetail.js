@@ -122,7 +122,7 @@ function MachDetail({ dispatch, data, machLoading, currentMach }){
                                 trigger:'axis'
                             },
                             title:{
-                                text:`用水量(m³)`,
+                                text:`用量(${data.unit_name})`,
                                 textStyle:{
                                     fontSize:14
                                 },
@@ -130,7 +130,7 @@ function MachDetail({ dispatch, data, machLoading, currentMach }){
                                 top:10
                             },
                             legend:{
-                                data:['用水量'],
+                                data:['用量'],
                                 top:10,
                                 left:'right'
                             },
@@ -173,7 +173,7 @@ function MachDetail({ dispatch, data, machLoading, currentMach }){
                                 itemStyle:{
                                     color:'#3a7adf'
                                 },
-                                name:'用水量',
+                                name:'用量',
                                 areaStyle:{
                                     color:{
                                         type:'linear',

@@ -187,7 +187,10 @@ export default defineConfig({
                     { path:'/energy/global_monitor/air_scene', component:'@/pages/page_index/air_station' },
                     { path:'/energy/global_monitor/ai_gas_station', component:'@/pages/page_index/smart_gas_station'},
                     { path:'/energy/global_monitor/water_ai_ctrl', component:'@/pages/page_index/smart_water_station'},
-                    { path:'/energy/global_monitor/test_station', component:'@/pages/page_index/CeshiStation'}
+                    { path:'/energy/global_monitor/test_station', component:'@/pages/page_index/CeshiStation'},
+                    { path:'/energy/global_monitor/ac_station', component:'@/pages/page_index/ac_station'},
+                    { path:'/energy/global_monitor/ac_system', component:'@/pages/page_index/ac_self_system'},
+                    { path:'/energy/global_monitor/mogu_station', component:'@/pages/page_index/mogu_station'}
                 ]
             },
             {

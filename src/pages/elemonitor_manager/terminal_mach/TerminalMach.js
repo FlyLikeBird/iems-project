@@ -45,7 +45,7 @@ function TerminalMach({ dispatch, user, terminalMach, global }){
                                     dispatch({ type:'terminalMach/fetchSeriesMach'});
                                 }}>
                                     <div>
-                                        <IconFont type={iconsMap[item.key]} style={{ fontSize:'1.2rem', marginRight:'6px' }}/>{ item.title }
+                                        <IconFont type={iconsMap[item.key] || 'iconshuibiao'} style={{ fontSize:'1.2rem', marginRight:'6px' }}/>{ item.title }
                                     </div>
                                     <div>{ item.count }</div>
                                 </div>

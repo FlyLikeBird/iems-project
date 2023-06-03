@@ -7,9 +7,9 @@ import moment from 'moment';
 import { downloadExcel } from '@/pages/utils/array';
 import XLSX from 'xlsx';
 
-function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, isLoading, timeType, currentField, currentAttr, startTime, endTime, theme }){
+function MeterReportTable({ dispatch, data, pageSize, currentPage, total, energyInfo, companyName, isLoading, timeType, currentField, currentAttr, startTime, endTime, theme }){
+    const [exportList, setExportList] = useState([]);
     let title;
-    const [currentPage, setCurrentPage] = useState(1);
     if ( timeType === '1'){
         title = startTime.format('YYYY-MM-DD');
     } else {
@@ -22,7 +22,7 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
             width:'60px',
             fixed:'left',
             render:(text,record,index)=>{
-                return `${ ( currentPage - 1) * pagesize + index + 1}`;
+                return `${ ( currentPage - 1) * pageSize + index + 1}`;
             }
         },
         {
@@ -156,9 +156,6 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
             }
         }
     ];
-    useEffect(()=>{
-        setCurrentPage(1);
-    },[data, pagesize])
     return (
         
         <Table
@@ -246,6 +243,7 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                         }
                         
                         <Button size="small" type="primary" style={{ marginLeft:'1rem' }} onClick={()=>{
+                            let fileTitle = title + '抄表记录';
                             if ( isLoading ){
                                 message.info('正在加载数据，请稍后');
                                 return ;
@@ -253,41 +251,47 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                                 if ( !data.length ){
                                     message.info('数据源为空');
                                 } else {
-                                    let fileTitle = title + '抄表记录';
-                                    let thead = [], colsStyle = [];
-                                    let aoa = [];
-                                    columns.forEach(item=>{
-                                        thead.push(item.title);
-                                        colsStyle.push({ wch:16 });
+                                    new Promise((resolve, reject)=>{
+                                        dispatch({ type:'meterReport/exportMeterReport', payload:{ resolve, reject }})
                                     })
-                                    aoa.push(thead);
-                                    data.forEach((item,index)=>{
-                                        if ( item.meter && item.meter.length ){                                         
-                                            item.meter.forEach((sub,j)=>{
-                                                let temp = [];
-                                                if ( j === 0 ){
-                                                    temp.push(index+1);
-                                                    temp.push(item.attr_name);
-                                                    temp.push(item.energy_type);
-                                                    temp.push(item.unit);                                               
-                                                } else {
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                    temp.push(null);                                               
-                                                }
-                                                temp.push(sub.meter_name);
-                                                temp.push(sub.min_code);
-                                                temp.push(sub.max_code);
-                                                temp.push(sub.energy);
-                                                temp.rowNum = item.meter.length;
-                                                aoa.push(temp);
-                                            })
-                                        }
-                                    });
-                                    var sheet = XLSX.utils.aoa_to_sheet(aoa);                                    
-                                    sheet['!cols'] = colsStyle;
-                                    downloadExcel(sheet, fileTitle + '.xlsx' );
+                                    .then((data)=>{
+                                        let thead = [], colsStyle = [];
+                                        let aoa = [];
+                                        columns.forEach(item=>{
+                                            thead.push(item.title);
+                                            colsStyle.push({ wch:16 });
+                                        })
+                                        aoa.push(thead);
+                                        data.forEach((item,index)=>{
+                                            if ( item.meter && item.meter.length ){                                         
+                                                item.meter.forEach((sub,j)=>{
+                                                    let temp = [];
+                                                    if ( j === 0 ){
+                                                        temp.push(index+1);
+                                                        temp.push(item.attr_name);
+                                                        temp.push(item.energy_type);
+                                                        temp.push(item.unit);                                               
+                                                    } else {
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                        temp.push(null);                                               
+                                                    }
+                                                    temp.push(sub.meter_name);
+                                                    temp.push(sub.min_code);
+                                                    temp.push(sub.max_code);
+                                                    temp.push(sub.energy);
+                                                    temp.rowNum = item.meter.length;
+                                                    aoa.push(temp);
+                                                })
+                                            }
+                                        });
+                                        var sheet = XLSX.utils.aoa_to_sheet(aoa);                                    
+                                        sheet['!cols'] = colsStyle;
+                                        downloadExcel(sheet, fileTitle + '.xlsx' );
+                                    })
+                                    .catch(msg=>message.error(msg))
+                                    
                                 }
                                
                             }
@@ -297,27 +301,16 @@ function MeterReportTable({ dispatch, data, pagesize, energyInfo, companyName, i
                 )
             }} 
             onChange={(pagination)=>{
-                console.log(pagination);
-                setCurrentPage(pagination.current);
+                dispatch({ type:'meterReport/fetchMeterReport', payload:{ currentPage:pagination.current }});
             }}
             pagination={{ 
-                total:data ? data.length : 0, 
+                total, 
                 current:currentPage,
-                pageSize:pagesize,
+                pageSize,
                 showSizeChanger:false                
             }}
         />
     )
 };
 
-MeterReportTable.propTypes = {
-};
-
-function areEqual(prevProps, nextProps){
-    if ( prevProps.data !== nextProps.data || prevProps.pagesize !== nextProps.pagesize || prevProps.theme !== nextProps.theme ) {
-        return false;
-    } else {
-        return true;
-    }
-}
-export default React.memo(MeterReportTable, areEqual);
+export default React.memo(MeterReportTable);

@@ -138,10 +138,10 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                         toggleVisible(true);
                     }
                 }}>
-                    <img src={ currentCompany.head_logo_path  || thirdAgent.logo_path || newThirdAgent.logo_path } style={{ width:'100%', display: collapsed ? 'none' : 'inline-block' }} />
-                    <img src={ currentCompany.mini_logo_path || thirdAgent.mini_logo_path || newThirdAgent.mini_logo_path } style={{ width:'100%', display: collapsed ? 'inline-block' : 'none'}} />
+                    <img src={ currentCompany.head_logo_path  || thirdAgent.logo_path || newThirdAgent.logo_path } style={{ width:'90%', display: collapsed ? 'none' : 'inline-block' }} />
+                    <img src={ currentCompany.mini_logo_path || thirdAgent.mini_logo_path || newThirdAgent.mini_logo_path } style={{ width:'90%', display: collapsed ? 'inline-block' : 'none'}} />
                 </div>
-                <div onClick={()=>onDispatch({type:'user/toggleCollapsed'})} className={style['collapse-button']} style={{ top:'50%', transform:'translateY(-50%)', left:sidebarWidth + 20 + 'px'}}>
+                <div onClick={()=>onDispatch({type:'user/toggleCollapsed'})} className={style['collapse-button']} style={{ fontSize:'1.6rem', top:'50%', transform:'translateY(-50%)', left:sidebarWidth + 20 + 'px'}}>
                     {
                         collapsed 
                         ?
@@ -156,7 +156,7 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
                     null
                     :
                     <div style={{ position:'absolute', top:'50%', transform:'translateY(-50%)', left:sidebarWidth + 20 + 40 + 'px' }}>
-                        <Switch checked={ theme === 'light' ? false : true } onChange={(boolean)=>{
+                        <Switch className={style['custom-switch']} checked={ theme === 'light' ? false : true } onChange={(boolean)=>{
                             if ( boolean ) {    
                                 onDispatch({ type:'user/toggleTheme', payload:'dark'});
                             } else {

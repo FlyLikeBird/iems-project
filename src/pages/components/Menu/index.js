@@ -33,13 +33,14 @@ const IconsObj = {
 // }
 let stationMaps = {
     // 配电房子站
-    '83':'pr',
-    '121':'acs',
+    'power_room':'pr',
+    'ai_gas_station':'acs',
+    'ac_system':'ac',
 }
 
 const MenuComponent = ({user, dispatch})=>{
     const [openKeys, setOpenKeys] = useState([]);
-    const { userMenu, currentMenu, currentPath, userInfo, company_id, currentProject, containerWidth, collapsed, fromAgent, theme } = user;
+    const { userMenu, currentMenu, currentPath, userInfo, company_id, currentProject, containerWidth, moguPath, collapsed, fromAgent, theme } = user;
     // console.log(currentMenu, currentPath);
     // let selectedKeys = currentMenu.children ? [currentMenu.children[0]+''] : [currentMenu.menu_id+''];
     // let openKeys = currentMenu.children ? [currentMenu.menu_id+''] : [currentMenu.parent+''];
@@ -76,9 +77,16 @@ const MenuComponent = ({user, dispatch})=>{
                                 if ( item.menu_code === 'global_monitor' || item.menu_code === 'energy_manage' || item.menu_code === 'energy_eff' || item.menu_code === 'alarm_manage' || item.menu_code === 'ele_quality' ) {
                                     // dispatch(routerRedux.push(`/${currentProject}/${item.menu_code}`));
                                     history.push(`/${currentProject}/${item.menu_code}`);
-                                }
-                                
-                            }} 
+                                } else {
+                                    if ( item.child && item.child.length ) {
+                                        history.push(`/${currentProject}/${item.menu_code}/${item.child[0].menu_code}`)
+                                    }
+                                } 
+                                if ( item.menu_code === 'mogu_station'){
+                                    
+                                }                         
+                            }}
+                           
                             title={
                             <div>
                                 { IconsObj[item.menu_code] }
@@ -91,26 +99,32 @@ const MenuComponent = ({user, dispatch})=>{
                                     
                                     <Menu.Item key={sub.menu_id}>
                                         {
-                                            item.menu_id === 79 
+                                            item.menu_code === 'global_monitor' 
                                             ?
                                             <Tooltip placement="right" title={                                               
                                                 <Button type='primary' size='small' onClick={(e)=>{
-                                                    if ( stationMaps[sub.menu_id]){
+                                                    // 监控中心下的子菜单是各种子站，可以跳转至相关项目首页
+                                                    if ( stationMaps[sub.menu_code]){
                                                         e.stopPropagation();
                                                         // 兼容第三方服务商的location跳转
                                                         let temp = location.host.split('-');
                                                         let prefix = temp.length === 2 ? temp[1].split('.')[0] : '';
-                                                        let linkPath = ( prefix ? stationMaps[sub.menu_id] + '-' + prefix : stationMaps[sub.menu_id] ) + '.h1dt.com';
-                                                        // let linkPath = ( prefix ? stationMaps[sub.menu_id] + '-' + prefix : stationMaps[sub.menu_id] ) + '';
+                                                        let linkPath = ( prefix ? stationMaps[sub.menu_code] + '-' + prefix : stationMaps[sub.menu_code] ) + '.h1dt.com';
                                                         window.open(`http://${linkPath}?pid=${Math.random()}&&userId=${userInfo.user_id}&&companyId=${company_id}&&mode=full`);
-                                                    }                                          
+                                                    } else {
+                                                        if ( sub.menu_code === 'ac_station') {
+                                                            window.open('https://epc.cie-tech.cn/?TOKEN=5d24042b-669b-4798-a0b3-9802cc2e1e01');
+                                                        }
+                                                        if ( sub.menu_code === 'mogu_station') {
+                                                            window.open(moguPath);
+                                                        }
+                                                    }                                       
                                                 }}>{`进入${sub.menu_name}`}</Button>
                                             }>
                                                 <Link to={`/${currentProject}/${item.menu_code}/${sub.menu_code}`} >{sub.menu_name}</Link>
                                             </Tooltip>
                                             :
                                             <Link to={`/${currentProject}/${item.menu_code}/${sub.menu_code}`} >{sub.menu_name}</Link>
-
                                         }
                                                                            
                                     </Menu.Item>

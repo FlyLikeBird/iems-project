@@ -4,7 +4,7 @@ import {
     login, userAuth, agentUserAuth, getNotice, 
     fetchSessionUser, getNewThirdAgent, setCompanyLogo, 
     getWeather, getThirdAgentInfo, 
-    getCameraAccessToken,
+    getCameraAccessToken, getMoguToken,
     getAlarmTypes, getTypeRule, setTypeRule
 } from '../services/userService';
 import { uploadImg } from '../services/alarmService';
@@ -17,14 +17,7 @@ const companyReg =  /\?pid\=0\.\d+&&userId=(\d+)&&companyId=(\d+)&&mode=(\w+)/;
 const agentReg = /\?agent=(.*)/;
 const agentReg2 = /iot-(.*)/;
 const sessionReg = /\?sid=(.*)/;
-let energyList = [
-    { type_name:'电', type_code:'ele', type_id:'1', unit:'kwh'},
-    { type_name:'水', type_code:'water', type_id:'2', unit:'m³'},
-    { type_name:'气', type_code:'gas', type_id:'3', unit:'m³' },
-    { type_name:'燃气', type_code:'combust', type_id:'7', unit:'m³'},
-    // { type_name:'压缩空气', type_code:'compressed', type_id:'8', unit:'m³'},
-    { type_name:'热', type_code:'hot', type_id:'4', unit:'GJ' }
-];
+
 let date = new Date();
 // 初始化socket对象，并且添加监听事件
 function createWebSocket(url, data, companyId, fromAgent, dispatch){
@@ -106,7 +99,8 @@ const initialState = {
     timeType:'1',
     // 打开用户音频权限
     audioAllowed:false,
-    notice:{}
+    notice:{},
+    moguPath:''
 };
 
 function checkIsLTUser(){
@@ -464,6 +458,7 @@ export default {
                             yield put({ type:'getNotice', payload:{ data:noticeData.data.data }});                   
                         }                 
                         yield put.resolve({ type:'fetchAlarmTypes'});
+                        yield put({ type:'fetchMoguToken'});
                         yield put({type:'setUserInfo', payload:{ data:data.data, company_id, fromAgent:matchResult ? true : false, isFrame } });
                         yield put({ type:'setContainerWidth' });
                         yield put({type:'weather'});
@@ -651,6 +646,13 @@ export default {
             } catch(err){
                 console.log(err);
             }
+        },
+        *fetchMoguToken(action, { put, call, select }){
+            let { user:{ company_id }} = yield select();
+            let { data } = yield call(getMoguToken, { company_id });
+            if ( data && data.code === '0'){
+                yield put({ type:'getMoguTokenResult', payload:{ data:data.data }});
+            } 
         }
     },
     reducers:{
@@ -742,6 +744,9 @@ export default {
         },
         getNotice(state, { payload:{ data }}){
             return { ...state, notice:data };
+        },
+        getMoguTokenResult(state, { payload:{ data }}){
+            return { ...state, moguPath:data };
         },
         setContainerWidth(state){
             let containerWidth = window.innerWidth;

@@ -80,8 +80,7 @@ const EditableCell = ({
 let timePeriod = [{ key:'total', title:'汇总' }, { key:'tipArr', title:'尖' }, { key:'topArr', title:'峰'},  {key:'middleArr', title:'平' }, { key:'bottomArr', title:'谷' }];
 let dateColumns = [];
 
-function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType, pagesize, startDate, theme, showTimePeriod, companyName }){
-    const [currentPage, setCurrentPage] = useState(1);
+function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType, currentPage, total, startDate, theme, showTimePeriod, companyName }){
     let [sourceData, setSourceData] = useState(data.value || []);
     let [isPatching, togglePatching] = useState(false);
     let [value, setValue] = useState('');
@@ -129,7 +128,6 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
             })
         };
         setSourceData(data.value);
-        setCurrentPage(1);
     },[data])
     
     const columns = [
@@ -138,7 +136,7 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
             width:'60px',
             fixed:'left',
             render:(text,record,index)=>{
-                return `${ ( currentPage - 1) * pagesize + index + 1}`;
+                return `${ ( currentPage - 1) * 12 + index + 1}`;
             }
         },
         {
@@ -358,6 +356,7 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
                             }
                         </div>
                         <Button size="small" type="primary" onClick={()=>{
+                            let fileTitle = `统计报表-${ dataType === '1' ? '成本' : '能耗' }报表`;
                             if ( isLoading ){
                                 message.info('正在加载数据，请稍后');
                                 return ;
@@ -365,79 +364,84 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
                                 if ( !data.value.length ){
                                     message.info('数据源为空');
                                 } else {
-                                    let fileTitle = `统计报表-${ dataType === '1' ? '成本' : '能耗' }报表`;
-                                    let aoa = [];
-                                    let thead = [];
-                                    let colsStyle = [];
-                                   
-                                    thead.push('序号','属性','能源类型', '能源单位', '产量', '目标单耗','实际单耗','能耗汇总');                                    
-                                    data.date.forEach(time=>{
-                                        thead.push(time);
-                                        if ( showTimePeriod ){
-                                            thead.push(null);
-                                        }
-                                    });
-                                    thead.push('注册码', '配电房', '相关属性', '相关属性2');
-                                    thead.forEach(()=>{
-                                        colsStyle.push({ wch:16 });
+                                    new Promise((resolve, reject)=>{
+                                        dispatch({ type:'costReport/exportCostReport', payload:{ resolve, reject }})
                                     })
-                                    aoa.push(thead);
-                                    if ( showTimePeriod ){
-                                        // 按尖峰平谷时段展开
-                                        data.value.forEach((row, i)=>{
-                                            timePeriod.forEach((period, j)=>{
-                                                let temp = [];
-                                                if ( j === 0 ){
-                                                    temp.push( i + 1);
-                                                    temp.push(row.attr_name);
-                                                    temp.push(row.energy_name);
-                                                    temp.push(dataType === '1' ? '元' : energyInfo.unit );
-                                                    temp.push(row.productNum || '--');
-                                                    temp.push(row.target || '--');
-                                                    temp.push(row.productNum ? (row.total / row.productNum).toFixed(3) : '--');
-                                                    temp.push(row.total);
-                                                } else {
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                    temp.push(null);
-                                                }
-                                                data.date.forEach(time=>{
-                                                    temp.push(period.title);
-                                                    temp.push(period.key === 'total' ? (+row[time]).toFixed(1) : (+row[period.key][time]).toFixed(1) );
-                                                });
-                                                temp.push(row.regcode || '--');
-                                                temp.push(row.ele_room || '--');
-                                                temp.push(row.other_attr || '--');
-                                                temp.push(row.other_attr2 || '--');
-                                                aoa.push(temp);
-                                            })      
-                                        })
-                                    } else {
-                                        data.value.forEach((item,index)=>{
-                                            let temp = [];
-                                            temp.push(index + 1);
-                                            columns.forEach((col,j)=>{
-                                                if ( col.dataIndex ){                                              
-                                                   temp.push(item[col.dataIndex] || '-- --');                                   
-                                                } else if ( col.key === 'unit') {
-                                                    temp.push(dataType === '1' ? '元' : energyInfo.unit )
-                                                } else if ( col.key === 'single_cost') {
-                                                    let result = item.productNum ? (item.total / item.productNum).toFixed(3) : '-- --';
-                                                    temp.push(result);
-                                                }
-                                            })
-                                            aoa.push(temp);
+                                    .then((data)=>{
+                                        let aoa = [];
+                                        let thead = [];
+                                        let colsStyle = [];
+                                        
+                                        thead.push('序号','属性','能源类型', '能源单位', '产量', '目标单耗','实际单耗','能耗汇总');                                    
+                                        data.date.forEach(time=>{
+                                            thead.push(time);
+                                            if ( showTimePeriod ){
+                                                thead.push(null);
+                                            }
                                         });
-                                    }
-                                    // console.log(aoa);
-                                    var sheet = XLSX.utils.aoa_to_sheet(aoa);
-                                    sheet['!cols'] = colsStyle;
-                                    downloadExcel(sheet, fileTitle + '.xlsx' );
+                                        thead.push('注册码', '配电房', '相关属性', '相关属性2');
+                                        thead.forEach(()=>{
+                                            colsStyle.push({ wch:16 });
+                                        })
+                                        aoa.push(thead);
+                                        if ( showTimePeriod ){
+                                            // 按尖峰平谷时段展开
+                                            data.value.forEach((row, i)=>{
+                                                timePeriod.forEach((period, j)=>{
+                                                    let temp = [];
+                                                    if ( j === 0 ){
+                                                        temp.push( i + 1);
+                                                        temp.push(row.attr_name);
+                                                        temp.push(row.energy_name);
+                                                        temp.push(dataType === '1' ? '元' : energyInfo.unit );
+                                                        temp.push(row.productNum || '--');
+                                                        temp.push(row.target || '--');
+                                                        temp.push(row.productNum ? (row.total / row.productNum).toFixed(3) : '--');
+                                                        temp.push(row.total);
+                                                    } else {
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                        temp.push(null);
+                                                    }
+                                                    data.date.forEach(time=>{
+                                                        temp.push(period.title);
+                                                        temp.push(period.key === 'total' ? (+row[time]).toFixed(1) : (+row[period.key][time]).toFixed(1) );
+                                                    });
+                                                    temp.push(row.regcode || '--');
+                                                    temp.push(row.ele_room || '--');
+                                                    temp.push(row.other_attr || '--');
+                                                    temp.push(row.other_attr2 || '--');
+                                                    aoa.push(temp);
+                                                })      
+                                            })
+                                        } else {
+                                            data.value.forEach((item,index)=>{
+                                                let temp = [];
+                                                temp.push(index + 1);
+                                                columns.forEach((col,j)=>{
+                                                    if ( col.dataIndex ){                                              
+                                                       temp.push(item[col.dataIndex] || '-- --');                                   
+                                                    } else if ( col.key === 'unit') {
+                                                        temp.push(dataType === '1' ? '元' : energyInfo.unit )
+                                                    } else if ( col.key === 'single_cost') {
+                                                        let result = item.productNum ? (item.total / item.productNum).toFixed(3) : '-- --';
+                                                        temp.push(result);
+                                                    }
+                                                })
+                                                aoa.push(temp);
+                                            });
+                                        }
+                                        // console.log(aoa);
+                                        var sheet = XLSX.utils.aoa_to_sheet(aoa);
+                                        sheet['!cols'] = colsStyle;
+                                        downloadExcel(sheet, fileTitle + '.xlsx' );
+                                    })
+                                    .catch(msg=>message.error(msg));
                                 }
                                
                             }
@@ -447,27 +451,16 @@ function EnergyTable({ dispatch, data, dataType, energyInfo, isLoading, timeType
             }} 
             scroll={ { x:1000 }}
             onChange={(pagination)=>{
-                setCurrentPage(pagination.current);
+                dispatch({ type:'costReport/fetchCostReport', payload:{ currentPage:pagination.current }});
             }}
             pagination={{ 
-                total:data.value ? data.value.length : 0, 
+                total:total, 
                 current:currentPage,
-                pageSize:pagesize,
+                pageSize:12,
                 showSizeChanger:false                
             }}
         />
     )
 };
 
-EnergyTable.propTypes = {
-};
-
-function areEqual(prevProps, nextProps){
-    if ( prevProps.data !== nextProps.data || prevProps.theme !== nextProps.theme  ) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-export default React.memo(EnergyTable, areEqual);
+export default React.memo(EnergyTable);

@@ -20,7 +20,7 @@ for(var i=0;i<24;i++){
     hourData.push({ key:i, value:temp + ' : 00'});
 }
 function TimeEnergyReport({ dispatch, user, costReport, fields }) {
-    const { reportInfo, dataType, isDeep, startHour, isLoading } = costReport;
+    const { reportInfo, dataType, currentPage, total, isDeep, startHour, isLoading } = costReport;
     const { allFields, currentField, energyInfo, currentAttr, expandedKeys, treeLoading } = fields;
     const { currentCompany, pagesize, timeType, startDate, endDate, theme } = user;
     let fieldList = allFields['ele'] ? allFields['ele'].fieldList : [];
@@ -138,7 +138,8 @@ function TimeEnergyReport({ dispatch, user, costReport, fields }) {
                             data={reportInfo.value}
                             energyInfo={energyInfo}
                             companyName={currentCompany.company_name}
-                            pagesize={pagesize}
+                            currentPage={currentPage}
+                            total={total}
                             timeType={timeType}
                             startDate={startDate}
                             endDate={endDate}

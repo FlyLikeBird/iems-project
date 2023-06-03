@@ -1,4 +1,10 @@
-import { deleteField, addField, editField, addFieldAttr, deleteFieldAttr, editFieldAttr, getAttrDevice, getAllDevice, addAttrDevice, deleteAttrDevice, getCalcRule, addCalcRule, editCalcRule, deleteCalcRule } from '../../services/fieldsService';
+import { 
+    deleteField, addField, editField, 
+    addFieldAttr, deleteFieldAttr, editFieldAttr, 
+    getAttrDevice, getAllDevice, addAttrDevice, deleteAttrDevice, 
+    getCalcRule, addCalcRule, editCalcRule, deleteCalcRule,
+    saveField, getSavedField, getSavedFieldAttrs, getSavedFieldMachs, restoreField, delSavedField
+} from '../../services/fieldsService';
 
 const initialState = {
     deviceList:[],
@@ -202,6 +208,65 @@ export default {
             } else {
                 if ( reject && typeof reject === 'function' ) reject(data.msg);
             }
+        },
+        // 备份维度树
+        *saveFieldAsync(action, { put, call, select }){
+            let { user:{ company_id }, fieldDevice:{ selectedField }} = yield select();
+            let { resolve, reject, image_name } = action.payload || {};
+            let { data } = yield call(saveField, { company_id, field_id:selectedField.field_id, image_name });
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve();
+            } else {
+                if ( reject ) reject(data.msg);
+            }
+        },
+        *fetchSavedField(action, { put, call, select }){
+            let { user:{ company_id }} = yield select();
+            let { resolve, reject, field_id } = action.payload || {};
+            let { data } = yield call(getSavedField, { company_id, field_id });
+            if ( data && data.code === '0'){ 
+                if ( resolve ) resolve(data.data);
+            } else {
+                if ( reject ) reject(data.msg);
+            }
+        },
+        *fetchSavedFieldAttrs(action, { put, call, select }){
+            let { resolve, reject, image_id } = action.payload || {};
+            let { data } = yield call(getSavedFieldAttrs, { image_id });
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve(data.data);
+            } else {
+                if ( reject ) reject(data.msg);
+            }
+        },
+        *fetchSavedFieldMachs(action, { put, call, select }){
+            let { resolve, reject, image_id, attr_id, meter_name } = action.payload || {};
+            let { data } = yield call(getSavedFieldMachs, { image_id, attr_id, meter_name });
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve(data.data);
+            } else {
+                if ( reject ) reject(data.msg);
+            }
+        },
+        *restoreFieldAsync(action, { put, call, select }){
+            let { user:{ company_id }} = yield select();
+            let { resolve, reject, image_id } = action.payload || {};
+            let { data } = yield call(restoreField, { company_id, image_id });
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve();
+            } else {
+                if ( reject ) reject(data.msg);
+            }
+        },
+        *delSavedFieldAsync(action, { put, select, call }){
+            let { user:{ company_id }} = yield select();
+            let { resolve, reject, image_id } = action.payload || {};
+            let { data } = yield call(delSavedField, { company_id, image_id });
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve();
+            } else {
+                if ( reject ) reject(data.msg);
+            }
         }
         
     },
@@ -235,7 +300,6 @@ export default {
             return { ...state, selectedRowKeys:payload };
         },
         getRuleList(state, { payload:{ data }}){
-            console.log(data);
             return { ...state, calcRuleList:data };
         },
         reset(state){

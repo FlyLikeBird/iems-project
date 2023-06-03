@@ -24,7 +24,7 @@ for(var i=0;i<24;i++){
     hourData.push({ key:i, value:temp + ' : 00'});
 }
 function MeterReportManager({ dispatch, user, meterReport, fields }) {
-    const { list, isLoading, startHour, checkedKeys } = meterReport;
+    const { list, isLoading, startHour, currentPage, total, checkedKeys } = meterReport;
     const { allFields, energyList, energyInfo, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { currentCompany, pagesize, timeType, startDate, endDate, theme } = user;
     const [visible, toggleVisible] = useState(false);
@@ -144,7 +144,9 @@ function MeterReportManager({ dispatch, user, meterReport, fields }) {
             <div className={style['card-container']} style={{ height:'calc(100% - 40px)'}}>            
                     <MeterReportTable 
                         data={list} 
-                        pagesize={12}
+                        pageSize={12}
+                        currentPage={currentPage}
+                        total={total}
                         companyName={currentCompany.company_name}
                         dispatch={dispatch} 
                         isLoading={isLoading}

@@ -40,9 +40,7 @@ export default {
             yield put({ type:'reset'});
         },
         *fetchMachTypes(action, { call, put, select }){
-            yield put({ type:'cancelMachTypes'});
-            yield put.resolve({ type:'cancelable', task:fetchMachTypesCancelable, action:'cancelMachTypes' });
-            function* fetchMachTypesCancelable(params){
+          
                 try {
                     let { user:{ company_id }} = yield select();
                     let { data } = yield call(getMachTypes, { company_id });
@@ -54,12 +52,10 @@ export default {
                 } catch(err){
                     console.log(err);
                 }
-            }
+            
         },
         *fetchSeriesMach(action, { call, put, select }){
-            yield put({ type:'cancelSeriesMach'});
-            yield put.resolve({ type:'cancelable', task:fetchSeriesMachCancelable, action:'cancelSeriesMach' });
-            function* fetchSeriesMachCancelable(params){
+           
                 try {
                     yield put({ type:'toggleLoading'});
                     let { user:{ company_id, containerWidth }, terminalMach:{ currentType } } = yield select();
@@ -73,7 +69,7 @@ export default {
                 } catch(err){
                     console.log(err);
                 }
-            }
+            
         },
         *resetMachDetail(action, { put }){
             yield put({ type:'cancelMachDetail'});

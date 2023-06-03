@@ -91,3 +91,12 @@
 .container.dark .weather-container {
     color:#fff;
 }
+
+.custom-switch:global(.ant-switch):global(.ant-switch-checked) {
+    background-color:#4b4b7e;
+}
+.custom-switch:global(.ant-switch) :global(.ant-switch-handle) {
+    width:16px;
+    height:16px;
+    top:3px;
+}

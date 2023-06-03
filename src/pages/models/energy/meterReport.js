@@ -6,6 +6,8 @@ const initialState = {
     list:[],
     checkedKeys:[],
     startHour:0,
+    currentPage:1,
+    total:0,
     isLoading:true
 };
 
@@ -35,15 +37,18 @@ export default {
         *fetchMeterReport(action, { call, put, select }){
             try {
                 let { user:{ company_id, startDate, endDate }, fields:{ currentAttr, energyInfo }, meterReport:{ startHour }} = yield select();
-                let obj = { company_id, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD')};
+                let { currentPage, pageSize } = action.payload || {};
+                currentPage = currentPage || 1;
+                pageSize = pageSize || 12;
+                let obj = { page:currentPage, pagesize:pageSize, company_id, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD')};
                 if ( startHour ) {
                     obj.day_start_hour = startHour;
                 }
                 if ( currentAttr.key ){
-                    yield put({ type:'toggleLoading'});                
+                    yield put({ type:'toggleLoading', payload:true });                
                     let { data } = yield call(getMeterReport, obj );
                     if ( data && data.code === '0'){
-                        yield put({ type:'getMeterReport', payload:{ data:data.data }});
+                        yield put({ type:'getMeterReport', payload:{ data:data.data, currentPage, total:data.count }});
                     } 
                 } else {
                     yield put({ type:'getMeterReport', payload:{ data:[] }});
@@ -52,10 +57,28 @@ export default {
                 console.log(err);
             }
         },
+        *exportMeterReport(action, { call, put, select }){
+            let { user:{ company_id, startDate, endDate }, fields:{ currentAttr, energyInfo }, meterReport:{ startHour }} = yield select();
+            let { resolve, reject } = action.payload || {};
+            let obj = { page:1, pagesize:99999, company_id, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
+            if ( startHour ){
+                obj.day_start_hour = startHour;
+            }
+            yield put({ type:'toggleLoading', payload:true });
+            let { data } = yield call(getMeterReport, obj);
+            if ( data && data.code === '0'){
+                if ( resolve ) resolve(data.data);
+                yield put({ type:'toggleLoading', payload:false });
+            } else {
+                if ( reject ) reject(data.msg);
+                yield put({ type:'toggleLoading', payload:false });
+            }
+        },
         *fetchMeterDetail(action, { call, put, select, all }){
             let { resolve, reject } = action.payload || {};
             let { user:{ company_id, startDate, endDate }, fields:{ currentAttr, energyInfo }} = yield select();
             let params = { company_id, type_id:energyInfo.type_id, attr_id:currentAttr.key, begin_time:startDate.format('YYYY-MM-DD'), end_time:endDate.format('YYYY-MM-DD') };
+            yield put({ type:'toggleLoading', payload:true });
             let { data } = yield call(getMeterReportDetail, params);
             if ( data && data.code === '0'){
                 let { page, total_page, info } =  data.data;
@@ -78,21 +101,25 @@ export default {
                         totalData.push( ...pageData.data.data.info );
                     })
                 }
+                yield put({ type:'toggleLoading', payload:false });
                 if ( resolve ) resolve(totalData || []);
+
             } else {
                 if ( reject ) reject(data.msg);
+                yield put({ type:'toggleLoading', payload:false });
+
             }
         }
     },
     reducers:{
-        toggleLoading(state){
-            return { ...state, isLoading:true };
+        toggleLoading(state, { payload }){
+            return { ...state, isLoading:payload };
         },
         toggleChartLoading(state){
             return { ...state, chartLoading:true };
         },
-        getMeterReport(state, { payload:{ data }}){
-            return { ...state, list:data, loaded:true, isLoading:false }
+        getMeterReport(state, { payload:{ data, currentPage, total }}){
+            return { ...state, list:data, currentPage, total, isLoading:false }
         },
         select(state, { payload }){
             return { ...state, checkedKeys:payload };

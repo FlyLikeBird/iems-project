@@ -134,9 +134,9 @@ function FlowChart({ data, theme, energyInfo, rankInfo, dispatch }){
                         triggerOn:'mousemove',
                         formatter:(params)=>{
                             if ( params.data.source && params.data.target ) {
-                                return `${params.data.source} -- ${params.data.target}:<br/>能耗值:${params.data.ele_energy}kwh<br/>成本:${params.data.ele_cost}元`;
+                                return `${params.data.source} -- ${params.data.target}:<br/>能耗值:${params.data.ele_energy}${energyInfo.unit}<br/>成本:${params.data.ele_cost}元`;
                             } else if ( params.data.name ){
-                                return `${params.data.name}:<br/>能耗值:${params.data.ele_energy}kwh<br/>成本:${params.data.ele_cost}元`;
+                                return `${params.data.name}:<br/>能耗值:${params.data.ele_energy}${energyInfo.unit}<br/>成本:${params.data.ele_cost}元`;
                             }
                         }
                     },

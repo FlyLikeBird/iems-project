@@ -26,9 +26,12 @@ export function selectArr(parentArr, childArr){
 export function findMaxAndMin(arr, decimal){
     if (!arr) return {};
     let maxInit = arr[0], minInit = arr[0], maxIndex = 0, minIndex = 0;
-    let sum = 0;
+    let sum = 0, validLength = 0 ;
     for(var i=0,len=arr.length;i<len;i++){
         sum += +arr[i];
+        if ( arr[i] ) {
+            validLength += 1;
+        }
         if ( arr[i] > maxInit ) {
             maxInit = arr[i];
             maxIndex = i;
@@ -46,7 +49,7 @@ export function findMaxAndMin(arr, decimal){
             value: decimal ? (+maxInit).toFixed(1) : Math.round(maxInit),
             index:maxIndex
         },
-        avg: decimal ? (sum/arr.length).toFixed(1) : Math.round(sum/arr.length)
+        avg: decimal ? (sum/validLength).toFixed(1) : Math.round(sum/validLength)
     }
 }
 

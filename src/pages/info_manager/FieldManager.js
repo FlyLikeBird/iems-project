@@ -3,7 +3,7 @@ import { connect } from 'dva';
 import { Link, Route, Switch  } from 'dva/router';
 import { Table, Tabs, Button, Modal, Card, Select, Popconfirm, Form, Input, Drawer, Spin, Skeleton, message } from 'antd';
 import { EditOutlined, EllipsisOutlined, SettingOutlined, RadarChartOutlined, CloseOutlined } from '@ant-design/icons';
-
+import SavedFieldContainer from './components/FieldItem/SavedFieldContainer';
 import FieldItem from './components/FieldItem';
 import FieldGroup from './components/FieldGroup';
 import style from '../IndexPage.css';
@@ -16,6 +16,7 @@ function FieldManager({dispatch, fields, fieldDevice, user}){
     let { fieldType, allFields, energyList, energyInfo, loaded } = fields;
     let { selectedField, selectedAttr, addModal, setModal, isRootAttr, attrModal, editAttr, editField } = fieldDevice;
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
+    const [info, setInfo] = useState({});
     const layout = {
         labelCol: { span: 6 },
         wrapperCol: { span: 18 },
@@ -40,7 +41,7 @@ function FieldManager({dispatch, fields, fieldDevice, user}){
                                             <div style={{ paddingBottom:'1rem' }}><Button type="primary" onClick={()=>dispatch({type:'fieldDevice/toggleAddModal', payload:true})}>添加维度</Button></div>
                                             {
                                                 fieldList.map((field,index)=>(
-                                                    <FieldItem field={field} key={index} dispatch={dispatch} theme={user.theme} />
+                                                    <FieldItem field={field} key={index} dispatch={dispatch} theme={user.theme} onSelect={obj=>setInfo(obj)} />
                                                 ))
                                             }
                                         </div>
@@ -105,6 +106,20 @@ function FieldManager({dispatch, fields, fieldDevice, user}){
                 >
                     <FieldGroup />
                 </Drawer>
+                {/* 维度备份 */}
+                <Modal
+                    visible={Object.keys(info).length ? true : false }
+                    footer={null}
+                    width='80%'
+                    bodyStyle={{ minHeight:'460px' }}
+                    destroyOnClose={true}
+                    onCancel={()=>setInfo({})}
+                >
+                    <SavedFieldContainer
+                        dispatch={dispatch}
+                        info={info}
+                    />
+                </Modal>
                 <Modal
                     footer={null}
                     visible={attrModal}

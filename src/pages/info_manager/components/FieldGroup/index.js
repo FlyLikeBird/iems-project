@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react';
+import React, { Component, useState, useRef, useEffect } from 'react';
 import { connect } from 'dva';
 import { Link, Route, Switch } from 'dva/router';
 import { Table, Button, Modal, Card, Select, Popconfirm, Tree, Spin, message, Input } from 'antd';
@@ -10,6 +10,9 @@ const { Option } = Select;
 function FieldGroup( { fields, fieldDevice, dispatch}) {
         const [value, setValue] = useState('');
         const [virtualNode, setVirtualNode] = useState(false);
+        const [editing, setEditing] = useState(false);
+        const [saveName, setSaveName] = useState('');
+        const inputRef = useRef();
         let { allFields, energyInfo, expandedKeys, treeLoading } = fields;
         let { isRootAttr, selectedField, selectedAttr, deviceList, allDevice, forAddStatus, selectedRowKeys, isLoading, calcRuleList  } = fieldDevice;
         let fieldAttrs = allFields[energyInfo.type_code] && allFields[energyInfo.type_code].fieldAttrs ? allFields[energyInfo.type_code]['fieldAttrs'][selectedField.field_name] : [];
@@ -52,7 +55,11 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
             selectedRowKeys,
             onChange: selectedKeys => dispatch({type:'fieldDevice/select', payload:selectedKeys})
         };
-        
+        useEffect(()=>{
+            if ( inputRef.current ){
+                inputRef.current.focus();
+            }
+        },[editing])
         return (
             <div className={style['container']}>
                 <Card
@@ -72,7 +79,7 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
                         <Spin />
                         :
                         <Tree
-                            // expandedKeys={expandedKeys}
+                            expandedKeys={expandedKeys}
                             defaultExpandAll={true}
                             onExpand={temp=>{
                                 dispatch({ type:'fields/setExpandedKeys', payload:temp });
@@ -88,44 +95,71 @@ function FieldGroup( { fields, fieldDevice, dispatch}) {
                     }
                 </Card>
                 <Card className={style['device-container']}>
-                    <div className={style['button-container']}>
-                        <Button type="primary" disabled={forAddStatus ? true : false} onClick={()=>{                           
-                            dispatch({type:'fieldDevice/fetchAll'});
-                        }}>添加设备</Button>
-                        <Button type="primary" style={{marginLeft:'6px'}} disabled={ forAddStatus ? true : selectedRowKeys && selectedRowKeys.length ? false : true } onClick={()=>{
-                            if ( selectedRowKeys.length ) {
-                                new Promise((resolve, reject)=>{
-                                    dispatch({type:'fieldDevice/deleteDevice', payload:{ resolve, reject }})
-                                })
-                                .then(()=>{
-                                
-                                })
-                                .catch(msg=>message.info(msg))
-                            } else {
-                                message.info('请至少选中一个设备')
-                            }
-                        }}>删除关联设备</Button>
-                        {
-                            forAddStatus 
-                            ?
-                            <Input style={{ width:'160px', marginLeft:'20px' }} placeholder='请输入设备名' value={value} onChange={e=>setValue(e.target.value)} />
-                            :
-                            null
-                        }
-                        {
-                            forAddStatus
-                            ?
-                            <Button type='primary' onClick={()=>{
-                                if(value){
-                                    dispatch({ type:'fieldDevice/fetchAll', payload:{ meter_name:value }})
+                    <div style={{ display:'flex', justifyContent:'space-between' }}>
+                        <div>
+                            <Button type="primary" disabled={forAddStatus ? true : false} onClick={()=>{                           
+                                dispatch({type:'fieldDevice/fetchAll'});
+                            }}>添加设备</Button>
+                            <Button type="primary" style={{marginLeft:'6px'}} disabled={ forAddStatus ? true : selectedRowKeys && selectedRowKeys.length ? false : true } onClick={()=>{
+                                if ( selectedRowKeys.length ) {
+                                    new Promise((resolve, reject)=>{
+                                        dispatch({type:'fieldDevice/deleteDevice', payload:{ resolve, reject }})
+                                    })
+                                    .then(()=>{
+                                    
+                                    })
+                                    .catch(msg=>message.info(msg))
                                 } else {
-                                    message.info('请输入要查询的设备名');
+                                    message.info('请至少选中一个设备')
                                 }
-                            }}>查询</Button>
+                            }}>删除关联设备</Button>
+                            {
+                                forAddStatus 
+                                ?
+                                <Input style={{ width:'160px', marginLeft:'20px' }} placeholder='请输入设备名' value={value} onChange={e=>setValue(e.target.value)} />
+                                :
+                                null
+                            }
+                            {
+                                forAddStatus
+                                ?
+                                <Button type='primary' onClick={()=>{
+                                    if(value){
+                                        dispatch({ type:'fieldDevice/fetchAll', payload:{ meter_name:value }})
+                                    } else {
+                                        message.info('请输入要查询的设备名');
+                                    }
+                                }}>查询</Button>
+                                :
+                                null
+                            }
+                            <Button style={{ margin:'0 20px'}} type='primary' onClick={()=>setVirtualNode(true)} >虚拟节点运算</Button>
+                        </div>
+                        {
+                            editing 
+                            ?
+                            <div>
+                                <Input ref={inputRef} style={{ width:'180px', marginRight:'1rem' }} value={saveName} onChange={e=>setSaveName(e.target.value)} placeholder='请输入备份名称' />
+                                <Button type='primary' style={{ marginRight:'0.5rem' }} onClick={()=>{
+                                    if ( saveName ){
+                                        new Promise((resolve, reject)=>{
+                                            dispatch({ type:'fieldDevice/saveFieldAsync', payload:{ resolve, reject, image_name:saveName } })
+                                        })
+                                        .then(()=>{
+                                            message.success('维度备份成功');
+                                            setEditing(false);
+                                        })
+                                        .catch(msg=>message.error(msg))
+                                    } else {
+                                        message.error('请输入备份名称')
+                                    }
+                                }}>确定</Button>
+                                <Button onClick={()=>setEditing(false)}>取消</Button>
+                            </div>
                             :
-                            null
+                            <Button type='primary' onClick={()=>setEditing(true)}>保存当前设置</Button>
                         }
-                        <Button style={{ margin:'0 20px'}} type='primary' onClick={()=>setVirtualNode(true)} >虚拟节点运算</Button>
+                        
                     </div>
                     {
                         isLoading 

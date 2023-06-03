@@ -6,15 +6,14 @@ import style from '../../IndexPage.css';
 import { downloadExcel } from '@/pages/utils/array';
 import XLSX from 'xlsx';
 
-function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate, dataType, companyName, pagesize }){
-    const [currentPage, setCurrentPage] = useState(1);
+function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate, dataType, companyName, currentPage, total }){
     const columns = [
         {
             title:'序号',
             width:'60px',
             fixed:'left',
             render:(text,record,index)=>{
-                return `${ ( currentPage - 1) * pagesize + index + 1}`;
+                return `${ ( currentPage - 1) * 12 + index + 1}`;
             }
         },
         {
@@ -70,9 +69,7 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
             render:(text)=>(<span style={{color:'#1890ff'}}>{ text ? (+text).toFixed(1) : '--' } </span>)
         }
     ];
-    useEffect(()=>{
-        setCurrentPage(1);
-    },[data, pagesize]);
+    
     return (
        
         <Table
@@ -99,38 +96,45 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
                                     
                                     // console.log(dateStr);
                                     let fileTitle = dateStr + `复合计费`;
-                                    let aoa = [];
-                                    let thead = [];
-                                    let colsStyle = [];
-                                    thead.push('序号','属性','单位', '对比项', dataType === '1' ? '成本' : '能耗');
-                                    thead.forEach(col=>{
-                                        colsStyle.push({ wch:16 });
-                                    });
-                                    aoa.push(thead);
-                                    let timePeriod = [{ title:'汇总', dataIndex:'total' }, { title:'尖', dataIndex:'tip' }, { title:'峰', dataIndex:'top'}, { title:'平', dataIndex:'middle'}, { title:'谷', dataIndex:'bottom'}]
-                                    data.forEach((item,index)=>{
-                                        timePeriod.forEach((time,j)=>{
-                                            let row = [];
-                                            if ( j === 0 ){
-                                                row.push(index+1);
-                                                row.push(item.attr_name);
-                                                row.push(dataType === '1' ? '元' : energyInfo.unit );
-                                                row.push(time.title);
-                                                row.push(item[time['dataIndex']]);
-                                            } else {
-                                                row.push(null);
-                                                row.push(null);
-                                                row.push(null);
-                                                row.push(time.title);
-                                                row.push(item[time['dataIndex']]);
-                                            }
-                                            aoa.push(row);
-                                        })                                  
-                                    });
-                                    // console.log(aoa);
-                                    var sheet = XLSX.utils.aoa_to_sheet(aoa);
-                                    sheet['!cols'] = colsStyle;
-                                    downloadExcel(sheet, fileTitle + '.xlsx' );
+                                    new Promise(( resolve, reject )=>{
+                                        dispatch({ type:'costReport/exportCostReport', payload:{ resolve, reject }})
+                                    })
+                                    .then((data)=>{
+                                        let aoa = [];
+                                        let thead = [];
+                                        let colsStyle = [];
+                                        thead.push('序号','属性','单位', '对比项', dataType === '1' ? '成本' : '能耗');
+                                        thead.forEach(col=>{
+                                            colsStyle.push({ wch:16 });
+                                        });
+                                        aoa.push(thead);
+                                        let timePeriod = [{ title:'汇总', dataIndex:'total' }, { title:'尖', dataIndex:'tip' }, { title:'峰', dataIndex:'top'}, { title:'平', dataIndex:'middle'}, { title:'谷', dataIndex:'bottom'}]
+                                        data.value.forEach((item,index)=>{
+                                            timePeriod.forEach((time,j)=>{
+                                                let row = [];
+                                                if ( j === 0 ){
+                                                    row.push(index+1);
+                                                    row.push(item.attr_name);
+                                                    row.push(dataType === '1' ? '元' : energyInfo.unit );
+                                                    row.push(time.title);
+                                                    row.push(item[time['dataIndex']]);
+                                                } else {
+                                                    row.push(null);
+                                                    row.push(null);
+                                                    row.push(null);
+                                                    row.push(time.title);
+                                                    row.push(item[time['dataIndex']]);
+                                                }
+                                                aoa.push(row);
+                                            })                                  
+                                        });
+                                        // console.log(aoa);
+                                        var sheet = XLSX.utils.aoa_to_sheet(aoa);
+                                        sheet['!cols'] = colsStyle;
+                                        downloadExcel(sheet, fileTitle + '.xlsx' );
+                                    })
+                                    .catch(msg=>message.error(msg))
+                                    
                                 }
                                
                             
@@ -148,45 +152,49 @@ function EnergyTable({ dispatch, data, energyInfo, timeType, startDate, endDate,
                                     
                                     // console.log(dateStr);
                                     let fileTitle = dateStr + `复合计费`;
-                                    let aoa = [];
-                                    let thead = [];
-                                    let colsStyle = [];
-                                    columns.forEach(col=>{
-                                        thead.push(col.title);
-                                        colsStyle.push({ wch:16 });
-                                    });
-                                    aoa.push(thead);
-                                    data.forEach((item,index)=>{
-                                        let row = [];
-                                        row.push(index + 1);
+                                    new Promise(( resolve, reject )=>{
+                                        dispatch({ type:'costReport/exportCostReport', payload:{ resolve, reject }})
+                                    })
+                                    .then((data)=>{
+                                        let aoa = [];
+                                        let thead = [];
+                                        let colsStyle = [];
                                         columns.forEach(col=>{
-                                            if ( col.dataIndex ){
-                                                row.push(item[col.dataIndex]);
-                                            } else if ( col.key === 'unit' ){
-                                                row.push(dataType === '1' ? '元' : energyInfo.unit );
-                                            }
+                                            thead.push(col.title);
+                                            colsStyle.push({ wch:16 });
                                         });
-                                        aoa.push(row);                    
-                                    });
-                                    // console.log(aoa);
-                                    var sheet = XLSX.utils.aoa_to_sheet(aoa);
-                                    sheet['!cols'] = colsStyle;
-                                    downloadExcel(sheet, fileTitle + '.xlsx' );
-                                }
-                               
-                            
+                                        aoa.push(thead);
+                                        data.value.forEach((item,index)=>{
+                                            let row = [];
+                                            row.push(index + 1);
+                                            columns.forEach(col=>{
+                                                if ( col.dataIndex ){
+                                                    row.push(item[col.dataIndex]);
+                                                } else if ( col.key === 'unit' ){
+                                                    row.push(dataType === '1' ? '元' : energyInfo.unit );
+                                                }
+                                            });
+                                            aoa.push(row);                    
+                                        });
+                                        // console.log(aoa);
+                                        var sheet = XLSX.utils.aoa_to_sheet(aoa);
+                                        sheet['!cols'] = colsStyle;
+                                        downloadExcel(sheet, fileTitle + '.xlsx' );
+                                    })
+                                    .catch(msg=>message.error(msg))   
+                                }                         
                         }}>导出横版</Button>
                         </div>
                     </div>
                 )
             }} 
             onChange={(pagination)=>{
-                setCurrentPage(pagination.current);
+                dispatch({ type:'costReport/fetchCostReport', payload:{ currentPage:pagination.current }})
             }}
             pagination={{ 
-                total:data ? data.length : 0, 
+                total, 
                 current:currentPage,
-                pageSize:pagesize,
+                pageSize:12,
                 showSizeChanger:false                
             }}
         />

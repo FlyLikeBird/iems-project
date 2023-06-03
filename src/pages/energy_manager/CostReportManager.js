@@ -22,7 +22,7 @@ for(var i=0;i<=24;i++){
 }
 function CostReportManager({ dispatch, user, costReport, fields, worktime }) {
     const { list, currentWorktime } = worktime;
-    const { reportInfo, dataType, isDeep, startHour, showTimePeriod, isLoading } = costReport;
+    const { reportInfo, dataType, currentPage, total, isDeep, startHour, showTimePeriod, isLoading } = costReport;
     const { energyList, energyInfo, allFields, currentField, currentAttr, expandedKeys, treeLoading } = fields;
     const { currentCompany, pagesize, timeType, startDate, endDate, theme } = user;
     let fieldList = allFields[energyInfo.type_code] ? allFields[energyInfo.type_code].fieldList : [];
@@ -193,7 +193,8 @@ function CostReportManager({ dispatch, user, costReport, fields, worktime }) {
                             dataType={dataType}
                             companyName={currentCompany.company_name}
                             timeType={timeType}
-                            pagesize={pagesize}
+                            currentPage={currentPage}
+                            total={total}
                             dispatch={dispatch}
                             energyInfo={energyInfo}
                             startDate={startDate}

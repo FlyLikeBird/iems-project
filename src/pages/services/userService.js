@@ -77,7 +77,19 @@ export function setCompanyLogo(data = {}){
         body:str
         }); 
 }
-
+// 蘑菇物联-单点登录
+export function getMoguToken(data = {}){
+    let token = apiToken();
+    data.token = token;
+    let str = translateObj(data);
+    return request('/Singlesign/mgManage', { 
+        method:'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body:str
+        }); 
+}
 // 请求中台商的logo
 export function getThirdAgentInfo(data = {}){
     let token = apiToken();

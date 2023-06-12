@@ -69,11 +69,11 @@ const Header = ({ data, onDispatch, sidebarWidth, collapsed, msg })=> {
         timer = setInterval(()=>{
             updateTime(getToday(2));
         },1000);
-        function handleAudio(){
-            setMuted(false);
-            document.onclick = null;  
-        }
-        document.onclick = handleAudio;
+        // function handleAudio(){
+        //     setMuted(false);
+        //     document.onclick = null;  
+        // }
+        // document.onclick = handleAudio;
           
         function handleUnload(e){
             gapTimer = new Date().getTime() - startTimer;

@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@ant-design/pro-layout": "^6.5.0",
+    "@antv/x6": "^2.11.1",
     "crypto-js": "^4.0.0",
     "echarts": "^4.7.0",
     "echarts-for-react": "^3.0.1",

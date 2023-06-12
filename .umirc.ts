@@ -190,7 +190,8 @@ export default defineConfig({
                     { path:'/energy/global_monitor/test_station', component:'@/pages/page_index/CeshiStation'},
                     { path:'/energy/global_monitor/ac_station', component:'@/pages/page_index/ac_station'},
                     { path:'/energy/global_monitor/ac_system', component:'@/pages/page_index/ac_self_system'},
-                    { path:'/energy/global_monitor/mogu_station', component:'@/pages/page_index/mogu_station'}
+                    { path:'/energy/global_monitor/mogu_station', component:'@/pages/page_index/mogu_station'},
+                    { path:'/energy/global_monitor/freeze_station', component:'@/pages/page_index/freeze_station'}
                 ]
             },
             {

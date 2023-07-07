@@ -1,11 +1,21 @@
-import { getMonitorInfo, getScenes, getMachData } from '../services/monitorIndexService';
+import { 
+    getMonitorInfo, getScenes, getMachData,
+    getFrozenStationInfo, getNitrogenStationInfo,
+    getFrozenMachList, getFrozenChartInfo, getNitrogenMachList, getNitrogenChartInfo
+} from '../services/monitorIndexService';
 
 const initialState = {
     sceneList:[],
     currentScene:{},
     sceneLoading:true,
     monitorInfo:{},
-    sceneIndex:1
+    sceneIndex:1,
+    // 制冷站和氮气站
+    infoList:[],
+    machList:[],
+    isLoading:false,
+    currentMach:{},
+    chartInfo:{}
 }
 
 export default {
@@ -48,27 +58,69 @@ export default {
                 console.log(err);
             }
         },   
-        *fetchMachData(action, { call, put, select }){
-            yield put.resolve({ type:'cancelMachData'})
-            yield put.resolve({ type:'cancelable', task:fetchMachDataCancelable, action:'cancelMachData'});
-            function* fetchMachDataCancelable(params){
-                try {
-                    let { user:{ company_id }} = yield select();
-                    let { register_code, mach_type, resolve, reject  } = action.payload || {};
-                    mach_type = mach_type || 'ele';
-                    let { data } = yield call(getMachData, { company_id, register_code, mach_type });
-                    if ( data && data.code === '0'){
-                        if ( resolve && typeof resolve === 'function' ) resolve(data.data);
-                    } else {
-                        if ( reject && typeof reject === 'function' ) reject(data.msg);
-                    }
-                } catch(err){
-                    console.log(err);
-                }
+        *fetchFrozenStationSumInfo(action, { call, put, select }){
+            let { user:{ company_id }} = yield select();
+            let cryometers = ['MEIYI7610HZVIS01'];
+            let elemeters = ['042202000205'];
+            let { data } = yield call(getFrozenStationInfo, { company_id, cryometers, elemeters });
+            if ( data && data.code === '0'){
+                yield put({ type:'getFrozenStationInfoResult', payload:{ data:data.data }})
             }
-        }
+        },
+        *fetchNitrogenStationSumInfo(action, { call, put, select }){
+            let { user:{ company_id }} = yield select();
+            let gasmeters = ['WEITAIHZVIS02'];
+            let elemeters = ['209136460035'];
+            let { data } = yield call(getNitrogenStationInfo, { company_id, gasmeters, elemeters });
+            if ( data && data.code === '0'){
+                yield put({ type:'getNitrogenStationInfoResult', payload:{ data:data.data }})
+            }
+        },
+        *fetchMachData(action, { call, put, select }){         
+            try {
+                let { user:{ company_id }} = yield select();
+                let { register_code, mach_type, resolve, reject  } = action.payload || {};
+                mach_type = mach_type || 'ele';
+                let { data } = yield call(getMachData, { company_id, register_code, mach_type });
+                if ( data && data.code === '0'){
+                    if ( resolve && typeof resolve === 'function' ) resolve(data.data);
+                } else {
+                    if ( reject && typeof reject === 'function' ) reject(data.msg);
+                }
+            } catch(err){
+                console.log(err);
+            }
+        },
+        *initFrozenStation(action, { put }){
+            yield put.resolve({ type:'fetchFrozenMachList', payload:{ type:'frozen' }});
+            yield put({ type:'fetchFrozenChartInfo', payload:{ type:'frozen'}});
+        },
+        *initNitrogenStation(action, { put }){
+            yield put.resolve({ type:'fetchFrozenMachList', payload:{ type:'nitrogen' }});
+            yield put({ type:'fetchFrozenChartInfo', payload:{ type:'nitrogen'}})
+        },
+        *fetchFrozenMachList(action, { call, put, select }){
+            let { user:{ company_id }} = yield select();
+            let { type } = action.payload || {};
+            let { data } = yield call( type === 'frozen' ? getFrozenMachList : getNitrogenMachList, { company_id });
+            if ( data && data.code === '0'){
+                yield put({ type:'getMachListResult', payload:{ data:data.data }});
+            }
+        },
+        *fetchFrozenChartInfo(action, { call, put, select }){
+            let { user:{ startDate, endDate, timeType }, monitorIndex:{ currentMach }} = yield select();
+            let { type } = action.payload || {};
+            yield put({ type:'toggleLoading'});
+            let { data } = yield call( type === 'frozen' ? getFrozenChartInfo : getNitrogenChartInfo, { mach_id:currentMach.mach_id, begin_date:startDate.format('YYYY-MM-DD'), end_date:endDate.format('YYYY-MM-DD'), time_type:timeType });
+            if ( data && data.code === '0'){
+                yield put({ type:'getChartInfoResult', payload:{ data:data.data } });
+            }
+        }     
     },
     reducers:{
+        toggleLoading(state){
+            return { ...state, isLoading:true };
+        },
         toggleSceneLoading(state, { payload }){
             return { ...state, sceneLoading:payload };
         },
@@ -106,6 +158,34 @@ export default {
         getScenes(state, { payload:{ data }}){
             let currentScene = data && data.length ? data[0] : {};
             return { ...state, sceneList:data, currentScene };
+        },
+        getMachListResult(state, { payload:{ data }}){
+            return { ...state, machList:data, currentMach:data && data.length ? data[0] : {} }
+        },
+        getChartInfoResult(state, { payload:{ data }}){
+            return { ...state, chartInfo:data, isLoading:false };
+        },
+        getFrozenStationInfoResult(state, { payload:{ data }}){
+            let infoList = [
+                { title:'昨日用电', value:data.lastDayEle, unit:'kwh' },
+                { title:'本月用电', value:data.monthEle, unit:'kwh'},
+                { title:'本年用电', value:data.yearEle, unit:'kwh'},
+                { title:'累计流量', value:data.cumulativeFlow, unit:'m³'},
+                { title:'累计冷量', value:data.cumulativeCryo, unit:'GJ'},
+            ];
+            return { ...state, infoList };
+        },
+        getNitrogenStationInfoResult(state, { payload:{ data }}){
+            let infoList = [
+                { title:'昨日用电', value:data.lastDayEle, unit:'kwh' },
+                { title:'本月用电', value:data.monthEle, unit:'kwh'},
+                { title:'本年用电', value:data.yearEle, unit:'kwh'},
+                { title:'累计流量', value:data.cumulative, unit:'m³'},
+            ];
+            return { ...state, infoList };
+        },
+        setCurrentMach(state, { payload }){
+            return { ...state, currentMach:payload };
         },
         reset(state){
             return initialState;

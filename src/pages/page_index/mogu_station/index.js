@@ -4,9 +4,13 @@ import { connect } from 'dva';
 
 function MoguStation({ dispatch, user }){
     let { userInfo, authorized, companyList, moguPath, currentCompany, msg } = user;  
-    
+    useEffect(()=>{
+        if ( authorized ){
+            dispatch({ type:'user/fetchMoguToken'});
+        }
+    },[authorized])
     return (
-        authorized 
+        authorized && moguPath
         ?
         <iframe
             src={moguPath}

@@ -90,7 +90,7 @@ function AlarmExecute({ dispatch, user, alarm, location }){
                             }}/>
                         </div>
                     }>
-                        <TabPane key='1' tab='电气告警'>
+                        <TabPane key='1' tab='安全告警'>
                             <Table
                                 dataSource={recordListInfo.list || []}
                                 bordered={true}

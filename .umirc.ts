@@ -58,7 +58,9 @@ export default defineConfig({
                     { path:'/energy/ele_monitor_menu/ele_line_monitor', component:'@/pages/elemonitor_manager/line_monitor/LineMonitor'},
                     { path:'/energy/ele_monitor_menu/mach_monitor_menu', component:'@/pages/elemonitor_manager/terminal_mach/TerminalMach'},
                     { path:'/energy/ele_monitor_menu/useless_manage', component:'@/pages/efficiency_manager/UseLessManager'},
-                    { path:'/energy/ele_monitor_menu/demand_manage', component:'@/pages/efficiency_manager/DemandManager'}
+                    { path:'/energy/ele_monitor_menu/demand_manage', component:'@/pages/efficiency_manager/DemandManager'},
+                    { path:'/energy/ele_monitor_menu/frozen_eff', component:'@/pages/elemonitor_manager/FrozenStationEff'},
+                    { path:'/energy/ele_monitor_menu/nitrogen_eff', component:'@/pages/elemonitor_manager/NitrogenStationEff'}
                 ]
             },
             // 能源成本模块
@@ -191,7 +193,8 @@ export default defineConfig({
                     { path:'/energy/global_monitor/ac_station', component:'@/pages/page_index/ac_station'},
                     { path:'/energy/global_monitor/ac_system', component:'@/pages/page_index/ac_self_system'},
                     { path:'/energy/global_monitor/mogu_station', component:'@/pages/page_index/mogu_station'},
-                    { path:'/energy/global_monitor/freeze_station', component:'@/pages/page_index/freeze_station'}
+                    { path:'/energy/global_monitor/freeze_station', component:'@/pages/page_index/freeze_station'},
+                    { path:'/energy/global_monitor/nitrogen_station', component:'@/pages/page_index/nitrogen_station'}
                 ]
             },
             {

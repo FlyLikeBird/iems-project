@@ -390,7 +390,7 @@ export default {
         getSumInfo(state, { payload : { sumInfo, typeInfo, machWarning, fieldWarning }}){
             let sumList = [], machList=[];
             sumList.push({ type:'total', text:'总告警数' });
-            sumList.push({ type:'ele', text:'电气安全告警'});
+            sumList.push({ type:'ele', text:'安全告警'});
             sumList.push({ type:'limit', text:'指标越限告警'});
             sumList.push({ type:'link', text:'通讯异常告警'});
             Object.keys(machWarning).forEach(key=>{

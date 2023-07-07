@@ -26,7 +26,7 @@ const machsMap = {
 function WarningTypePieChart({ data, type, statusData, theme }) {   
     let textColor = theme === 'dark' ? '#b0b0b0' : '#000';
     let seriesData = [];
-    let title = type === 'ele' ? '电气安全告警' : type === 'limit' ? '指标越限告警' : '通讯异常告警';
+    let title = type === 'ele' ? '安全告警' : type === 'limit' ? '指标越限告警' : '通讯异常告警';
     let total = 0;
     if ( data.length ){
         data.forEach((item)=>{

@@ -458,9 +458,7 @@ export default {
                             yield put({ type:'getNotice', payload:{ data:noticeData.data.data }});                   
                         }                 
                         yield put.resolve({ type:'fetchAlarmTypes'});
-                        yield put({ type:'fetchMoguToken'});
                         yield put({type:'setUserInfo', payload:{ data:data.data, company_id, fromAgent:matchResult ? true : false, isFrame } });
-                        yield put({ type:'setContainerWidth' });
                         yield put({type:'weather'});
                         if ( resolve && typeof resolve === 'function') resolve();
                         // websocket 相关逻辑
@@ -692,7 +690,7 @@ export default {
             },{});
             routeConfig.home = { menu_name:'首页', path:'/', linkable:true};
             // routeConfig['user_setting'] = { menu_name:'账号设置', path:'user_setting' };   
-            return { ...state, userInfo:data, userMenu:menuData, companyList:companys || [], company_id: currentCompany && currentCompany.company_id, currentCompany:currentCompany || {}, routeConfig, fromAgent, authorized:true, isFrame };
+            return { ...state, userInfo:data, userMenu:menuData, companyList:companys || [], containerWidth:window.innerWidth, company_id: currentCompany && currentCompany.company_id, currentCompany:currentCompany || {}, routeConfig, fromAgent, authorized:true, isFrame };
         },
         setRoutePath(state, { payload }){
             let routes = payload.split('/').filter(i=>i);
@@ -723,7 +721,7 @@ export default {
             routes = routes.map(route=>{
                 return routeConfig[route]
             });
-            return { ...state, routePath:routes, currentPath:payload, currentMenu : currentMenu || {}, currentProject, deviceWidth:window.innerWidth };
+            return { ...state, routePath:routes, currentPath:payload, currentMenu : currentMenu || {}, currentProject };
         },
         getAgentAlarm(state, { payload:{ data }}){
             return { ...state, userInfo:data };

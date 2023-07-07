@@ -3,50 +3,53 @@ import { connect } from 'dva';
 import { Button, message } from 'antd';
 import { PlayCircleOutlined } from '@ant-design/icons';
 import { Graph } from '@antv/x6';
-import frozenTower from '../../../../public/frozenTower.png';
-import frozenMach from '../../../../public/frozenMach.png';
-import waterPump from '../../../../public/waterPump.png';
-import waterCollector from '../../../../public/waterCollector.png';
-import waterDispatcher from '../../../../public/waterDispatcher.png';
-import measureMach from '../../../../public/measureMach3.png';
-import style from './station.css';
 
-import { createFrozenTowerPort, createWaterPumpPort, createFrozenMachPort, getDefaultEdgeStyle, allEdges } from './portConfig';
-let largePadding = 40, middlePadding = 20, smallPadding = 10;
+import valve from '../../../../public/valve.png';
+import airMach from '../../../../public/airMach.png';
+import airTank from '../../../../public/airTank.png';
+import connector from '../../../../public/connector.png';
+import dryingMach from '../../../../public/dryingMach.png';
+import flowMeasure from '../../../../public/flowMeasure.png';
+import nitrogenProducer from '../../../../public/nitrogenProducer.png';
 
-const nodes = [
-    { key:1, x:100, y:60, label:'冷却塔1#', width:96, height:140, url:frozenTower, ports:createFrozenTowerPort() },
-    { key:2, x:100 + 96 + middlePadding , y:60, label:'冷却塔2#', width:96, height:140, url:frozenTower, ports:createFrozenTowerPort(), innerPorts:[{ source:'port4', target:'port3', color:'#09eca8' }]  },
-    { key:3, x:100 + ( 96 + middlePadding ) * 2, y:60, label:'冷却塔3#', width:96, height:140, url:frozenTower, ports:createFrozenTowerPort(), innerPorts:[{ source:'port4', target:'port3', color:'#09eca8' }] },
-    { key:4, x:100 + ( 96 + middlePadding ) * 3, y:60, label:'冷却塔4#', width:96, height:140, url:frozenTower, ports:createFrozenTowerPort(), innerPorts:[{ source:'port1', target:'port3', color:'#09eca8' }] },
-    { key:5, x:640, y:140, label:'制冷主机1#', bindMeters:[{ registerCode:'MEIYI7610HZVIS01', type:'hot' }, { registerCode:'042202000205', type:'ele' }],  width:210, height:113, url:frozenMach, ports:createFrozenMachPort(), innerPorts:[{ source:'port5', target:'port1', color:'#09eca8' }, { source:'port7', target:'port3', color:'#ae2afe'}] },
-    { key:6, x:640, y:140 + 113 + middlePadding , label:'制冷主机2#', width:210, height:113, url:frozenMach, ports:createFrozenMachPort(), innerPorts:[{ source:'port5', target:'port1', color:'#09eca8' }, { source:'port2', target:'port6', color:'#09eca8' }, { source:'port7', target:'port3', color:'#ae2afe'}, { source:'port4', target:'port8', color:'#099eec' }] },
-    { key:7, x:640, y:140 + ( 113 + middlePadding ) * 2, label:'制冷主机3#', width:210, height:113, url:frozenMach, ports:createFrozenMachPort(), innerPorts:[{ source:'port5', target:'port1', color:'#09eca8' }, { source:'port2', target:'port6', color:'#09eca8' }, { source:'port7', target:'port3', color:'#ae2afe'}, { source:'port4', target:'port8', color:'#099eec' }] },
-    { key:8, x:640, y:140 + ( 113 + middlePadding ) * 3, label:'制冷主机4#', width:210, height:113, url:frozenMach, ports:createFrozenMachPort() },
-    { key:9, x:300, y:330, label:'水泵1', width:51, height:67, url:waterPump, ports:createWaterPumpPort() },
-    { key:10, x:300, y:330 + 67 + middlePadding, label:'水泵2', width:51, height:67, url:waterPump, ports:createWaterPumpPort(), innerPorts:[{ source:'port4', target:'port3', color:'#09eca8'}] },
-    { key:11, x:300, y:330 + ( 67 + middlePadding ) * 2, label:'水泵3', width:51, height:67, url:waterPump, ports:createWaterPumpPort(), innerPorts:[{ source:'port4', target:'port3', color:'#09eca8'}] },
-    { key:12, x:300, y:330 + ( 67 + middlePadding ) * 3, label:'水泵4', width:51, height:67, url:waterPump, ports:createWaterPumpPort() },
-    { key:13, x:1140, y:330, label:'水泵5', width:51, height:67, url:waterPump, ports:createWaterPumpPort()},
-    { key:14, x:1140, y:330 + 67 + middlePadding, label:'水泵6', width:51, height:67, url:waterPump, ports:createWaterPumpPort(), innerPorts:[{ source:'port3', target:'port4', color:'#099eec'}] },
-    { key:15, x:1140, y:330 + ( 67 + middlePadding ) * 2, label:'水泵7', width:51, height:67, url:waterPump, ports:createWaterPumpPort(), innerPorts:[{ source:'port3', target:'port4', color:'#099eec'}] },
-    { key:16, x:1140, y:330 + ( 67 + middlePadding ) * 3, label:'水泵8', width:51, height:67, url:waterPump, ports:createWaterPumpPort()  },
-    { key:17, x:1000, y:40, label:'集水器', width:192, height:69, url:waterCollector, ports:createFrozenTowerPort() },
-    { key:18, x:1300, y:40, label:'分水器', width:192, height:69, url:waterDispatcher, ports:createFrozenTowerPort() },
-    { key:19, x:1100, y:150, label:'冷量计', bindMeters:[{ registerCode:'MEIYI7610HZVIS01', type:'hot' }], width:278, height:103, url:measureMach },
+
+import { createAirMachPort, createDryingMachPort, createAirTankPort, createNitrogenProducerPort, createNitrogenTankPort, getDefaultEdgeStyle, allEdges } from './portConfig';
+let largePadding = 100, middlePadding = 60, smallPadding = 40;
+
+const nodes = [ 
+    { key:1, x:20, y:200, label:'空压机', width:229, height:207, url:airMach, ports:createAirMachPort()  },
+    { key:2, x:249 + middlePadding , y:264, label:'冷干机', width:196, height:143, url:dryingMach, ports:createDryingMachPort(), innerPorts:[{ source:'port3', target:'port1', color:'#099eec'}, { source:'port2', target:'port4', color:'#099eec'}] },
+    { key:3, x:465 + middlePadding + largePadding , y:264, label:'空气储气罐', width:109, height:264, url:airTank, ports:createAirTankPort() },
+    { key:4, x:734 + middlePadding * 2, y:100, label:'制氮机', width:348, height:253, url:nitrogenProducer, ports:createNitrogenProducerPort() },
+    { key:5, x:734 + 348 + middlePadding * 3 + smallPadding, y:100, label:'氮气储气罐', width:109, height:264, url:airTank, ports:createNitrogenTankPort() },
+    { key:6, x:734 + 348 + 109 + middlePadding * 3 + smallPadding * 2 + 20, y:146, label:'流量计', bindMeters:[{ registerCode:'WEITAIHZVIS02', type:'gas-flow' }, { registerCode:'209136460035', type:'ele' }], width:103, height:95, url:flowMeasure },
+    // 一些阀门节点，计算位置，不算实际连接节点
+    { key:7, x:210, y:120, label:'阀门01', width:45, height:28, url:valve },
+    { key:8, x:249 + middlePadding, y:120, label:'阀门02', width:45, height:28, url:valve },
+    { key:9, x:477, y:120, label:'阀门03', width:45, height:28, url:valve },
+    { key:10, x:249 + middlePadding + 76, y:60, label:'阀门04', width:45, height:28, url:valve },
+    { key:11, x:569, y:60, label:'阀门05', width:45, height:28, url:valve },
+    { key:12, x:734 + middlePadding * 2 - 20, y:206, label:'阀门06', width:45, height:28, url:valve },
+    { key:13, x:734 + 348 + middlePadding * 3 + smallPadding , y:40, label:'阀门07', width:45, height:28, url:valve },
+    { key:14, x:734 + 348 + middlePadding * 3 + smallPadding + 119, y:212, label:'阀门08', width:45, height:28, url:valve },
+
+    // 一些连接点
+    { key:15, x:255, y:120, label:'连接器01', width:48, height:125, url:connector },
+    { key:16, x:520, y:120, label:'连接器02', width:48, height:125, url:connector },
+    { key:17, x:590, y:120, label:'连接器03', width:48, height:125, url:connector },
+    { key:18, x:734 + 348 + middlePadding * 3 + smallPadding - 60, y:40, label:'连接器04', width:48, height:125, url:connector }
 ]
 
 let graph = null;
 let nodeMaps = {};
-let ratio = -0.25;
-
 
 function getPortPos(box, obj){
-    let prevX = Number(obj.x.replace('%','')) / 100 ; 
-    let prevY = Number(obj.y.replace('%','')) / 100;
-    return { x:box.x + box.width * prevX, y:box.y + box.height * prevY };
+    let offsetX = obj.x.includes('%') ? box.x + box.width * Number( obj.x.replace('%','')) / 100 : box.x + Number(obj.x); 
+    let offsetY = obj.y.includes('%') ? box.y + box.height * Number(obj.y.replace('%','')) / 100 : box.y + Number(obj.y);
+    
+    return { x:offsetX, y:offsetY };
 }
-function FreezeStation({ dispatch, user, monitorIndex }){
+function NitrogenStation({ dispatch, user, monitorIndex }){
     const { authorized, theme, containerWidth } = user;
     const { infoList } = monitorIndex;
     const containerRef = useRef();
@@ -63,7 +66,8 @@ function FreezeStation({ dispatch, user, monitorIndex }){
         });
        
         graph.on('node:mouseenter',({ e, node, view })=>{
-            if ( node.attrs.label.text.includes('制冷主机') || node.attrs.label.text.includes('冷量计') ) {
+            if ( node.attrs.label.text && node.attrs.label.text.includes('流量计') ) {
+                // 请求实时数据
                 let bindMeters = nodes.filter(i=>i.key === node.data.key)[0].bindMeters;
                 if ( bindMeters && bindMeters.length ) {
                     // 请求实时数据
@@ -78,16 +82,11 @@ function FreezeStation({ dispatch, user, monitorIndex }){
                         // data1是冷量表或者气表， data2是电表
                         let box = node.getBBox();
                         let infoSize = node.attrs.label.text.includes('冷量计') ? 'small' : 'large';
-                        let arr = node.attrs.label.text.includes('冷量计') 
-                            ? 
-                            [] 
-                            : 
-                            [
-                                { title:'瞬时流量', value:data1.speedFlow, unit:'m³/h'},
-                                { title:'瞬时热量', value:data1.speedHot, unit:'GJ/h'},
-                                { title:'累计流量', value:data1.cumulativeFlow, unit:'m³'},
-                                { title:'累计冷量', value:data1.cumulativeHot, unit:'GJ' }
-                            ];
+                        
+                        let arr = [
+                                { title:'瞬时流量', value:data1.speed, unit:'m³/h'},
+                                { title:'累计流量', value:data1.cumulative, unit:'m³'},
+                            ]
                         if ( data1.son && data1.son.length ) {
                             data1.son.forEach(item=>{
                                 arr.push({ title:item.name, value:item.value, unit:item.unit });
@@ -127,7 +126,7 @@ function FreezeStation({ dispatch, user, monitorIndex }){
                     zIndex:5,
                     attrs:{
                         label:{ 
-                            text:item.label.includes('水泵') ? '' : item.label,
+                            text:item.label.includes('阀门') || item.label.includes('连接器') ? '' : item.label,
                             fill:'#fff',
                             refX: item.label === '冷量计' ? '100%' : 0.5,
                             refY:'100%',
@@ -187,7 +186,6 @@ function FreezeStation({ dispatch, user, monitorIndex }){
                         vertices.push({ x:temp.x, y:temp.y });
                     })
                 }
-                // console.log(vertices);
                 // 外层管道
                 graph.addEdge({
                     ...item,
@@ -205,7 +203,7 @@ function FreezeStation({ dispatch, user, monitorIndex }){
                             stroke:'rgba(0, 0, 0, 0.65)', 
                             strokeWidth:4,
                             strokeDasharray:'20,1', 
-                            sourceMarker:{ name:'circle', r:1, fill:item.attrs.line.stroke },
+                            sourceMarker:{ name:'circle', r:2, fill:item.attrs.line.stroke },
                             targetMarker:{ name:'classic', width:14, height:16, fill:item.attrs.line.stroke },
                             style:{ 
                                 animation:'ant-line 30s infinite linear'
@@ -227,10 +225,10 @@ function FreezeStation({ dispatch, user, monitorIndex }){
     useEffect(()=>{
         if ( graph && authorized ) {
             if ( containerWidth < 1440 ) {
-                graph.zoom(ratio);
+                graph.zoom(-0.25);
                 graph.centerContent();
             }
-            dispatch({ type:'monitorIndex/fetchFrozenStationSumInfo' });
+            dispatch({ type:'monitorIndex/fetchNitrogenStationSumInfo'});
         }
     },[authorized])
     
@@ -241,7 +239,7 @@ function FreezeStation({ dispatch, user, monitorIndex }){
                 display:Object.keys(info).length ? 'block' : 'none', 
                 position:'absolute', 
                 left:( info.pos ? info.pos.x : 0 ) + 'px', 
-                top: ( info.pos ? info.pos.y + ( containerWidth <= 1440 ? 140 * ( 1- ratio ) : 140 ) - ( info.size === 'small' ? 146 : 236 ) : 0 ) + 'px', 
+                top: ( info.pos ? info.pos.y + 140 - 236 : 0 ) + 'px', 
                 zIndex:'10', 
                 background:'rgba(2, 2, 6, 0.9)', 
                 borderRadius:'6px', 
@@ -265,7 +263,6 @@ function FreezeStation({ dispatch, user, monitorIndex }){
                    
                 </div>
             </div>
-            {/* 汇总信息 */}
             <div style={{ display:'flex', color: theme === 'dark' ? '#fff' : '#000', alignItems:'center', justifyContent:'space-around', height:'140px', backgroundColor:theme === 'dark' ? '#191932' : '#fff' }}>
                 {
                     infoList.map((item, index)=>(
@@ -287,4 +284,4 @@ function FreezeStation({ dispatch, user, monitorIndex }){
     )
 }
 
-export default connect(({ user, monitorIndex })=>({ user, monitorIndex }))(FreezeStation);
+export default connect(({ user, monitorIndex })=>({ user, monitorIndex }))(NitrogenStation);

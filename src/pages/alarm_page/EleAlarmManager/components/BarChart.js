@@ -67,7 +67,7 @@ function BarChart({ data, typeCode, timeType, theme }){
                 </Radio.Group>
                 <Radio.Group style={{ marginLeft:'20px' }} size='small' buttonStyle="solid" className={style['custom-button']} value='data' onChange={e=>{
                     let value = e.target.value;
-                    let fileTitle = '电气安全告警次数';
+                    let fileTitle = '安全告警次数';
                     if ( value === 'download' && echartsRef.current ){
                         html2canvas(echartsRef.current.ele, { allowTaint:false, useCORS:false, backgroundColor:'#191932' })
                         .then(canvas=>{
@@ -118,7 +118,7 @@ function BarChart({ data, typeCode, timeType, theme }){
                 option={{
                     tooltip: { trigger:'axis'},
                     title:{
-                        text:`{a|${ typeCode === 'ele' ? '电气安全' : typeCode === 'over' ? '指标安全' : '通讯安全'}}{b|总告警数:${data.totalCount}次}`,
+                        text:`{a|${ typeCode === 'ele' ? '安全告警' : typeCode === 'over' ? '指标告警' : '通讯告警'}}{b|总告警数:${data.totalCount}次}`,
                         left:40,
                         top:20,
                         textStyle:{
